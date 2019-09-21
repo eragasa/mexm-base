@@ -13,7 +13,7 @@ class Lattice(object):
             self.H = np.array(Lattice.default_lattice)
         else:
             self.H = np.array(H)
-    
+
 
     @property
     def a1(self):
@@ -25,7 +25,7 @@ class Lattice(object):
             self.H[:,0] = np.array(a1)
         else:
             self.H[:,0] = a1
-    
+
     @property
     def a2(self):
         return self.H[:,2]
@@ -45,4 +45,4 @@ class Lattice(object):
         if isinstance(a1, list):
             self.H[:,2] = np.array(a1)
         else:
-            self.H[:,02 = a3
+            self.H[:,2] = a3
