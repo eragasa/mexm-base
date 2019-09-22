@@ -1,4 +1,5 @@
 import numpy as np
+from mexm.util import is_number
 
 class Atom(object):
     """description of an atom
@@ -18,16 +19,37 @@ class Atom(object):
             coordinates
         magentic_moment (float): the magnetic moment of the atom
     """
-    def __init__(self, symbol, position, magmom = 0):
+    def __init__(self, symbol, position, magmom=0, atom_id=None):
+        assert isinstance(symbol, str)
 
         self.symbol = symbol
-        if isinstance(position,list):
+        self.position = None
+        self.magnetic_moment = None
+        self.atom_id = None
+
+        self._initialize_position(position=position)
+        self._initialize_magnetic_moment(magmom=magmom)
+        self._initialize_atom_id(atom_id=None)
+
+    def _initialize_position(self, position):
+        assert isinstance(position, list) or isinstance(position, np.ndarray)
+
+        if isinstance(position, list):
             self.position = np.array(position)
-        elif isinstance(position,np.ndarray):
-            self.position = position.copy()
         else:
-            raise TypeError('position must either be a list of numeric values or a numpy array')
-        self.magnetic_moment = magmom
+            self.position = position.copy()
+
+    def _initialize_magnetic_moment(self, magmom):
+        assert is_number(magmom)
+        self.magnetic_moment = float(magmom)
+
+    def _initialize_atom_id(self, atom_id):
+        if atom_id is None:
+            self.atom_id = None
+        elif isinstance(atom_id, str):
+            self.atom_id = atom_id
+        else:
+            self.atom_id = str(atom_id)
 
     @property
     def magmom(self):

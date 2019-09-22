@@ -18,6 +18,10 @@ import numpy as np
 import numpy.linalg as linalg
 #import ase.atoms
 
+from mexm.crystal.lattice import Lattice
+from mexm.crystal.atom import Atom
+from mexm.crystal.simulationcell import SimulationCell
+
 iso_chem_symbols = ['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al',
         'Si','P','S','Cl','Ar','K', 'Ca','Sc','Ti','V', 'Cr','Mn','Fe','Co',
         'Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y', 'Zr','Nb',

@@ -1,6 +1,3 @@
-from mexm.crystal import SimulationCell
-from mexm.crystal import Atom
-
 import numpy as np
 
 class Lattice(object):
