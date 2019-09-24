@@ -17,7 +17,7 @@ class Atom(object):
         symbol (str): the standard ISO symbol for an element
         position (numpy.ndarray): the position of the atom, usually in direct
             coordinates
-        magentic_moment (float): the magnetic moment of the atom
+        magnetic_moment (float): the magnetic moment of the atom
     """
     def __init__(self, symbol, position, magmom=0, atom_id=None):
         assert isinstance(symbol, str)
