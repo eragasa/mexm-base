@@ -1,7 +1,7 @@
 import pytest
 from collections import OrderedDict
 
-from mexm.potential import determine_pair_parameter_names
+from mexm.potential import get_pair_parameter_names
 
 cases = OrderedDict()
 cases['1sym_list'] = OrderedDict([
@@ -23,13 +23,13 @@ cases['2sym_list'] = OrderedDict([
     "symbols,pair_parameter_names,expected_parameter_names",
     [tuple(v for v in case.values()) for case in cases.values()]
 )
-def test__determine_pair_parameter_names(
+def test__get_pair_parameter_names(
         symbols,
         pair_parameter_names,
         expected_parameter_names):
 
-    parameter_names = determine_pair_parameter_names(symbols,
-                                                     pair_parameter_names)
+    parameter_names = get_pair_parameter_names(symbols,
+                                               pair_parameter_names)
     assert parameter_names == expected_parameter_names
 
 if __name__ == "__main__":

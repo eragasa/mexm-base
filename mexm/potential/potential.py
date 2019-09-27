@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 """This module contains classes to interact with GULP."""
-from pypospack.exceptions import BadParameterException
 __author__ = "Eugene J. Ragasa"
 __copyright__ = "Copyright (C) 2017,2018,2019"
 __license__ = "Simplified BSD License"
 __version__ = "1.0"
 
 from collections import OrderedDict
+from mexm.exceptions import BadParameterException
+
+from mexm.elements import ELEMENTS
+from mexm.potential import MEXM_CHARGE_FORMAT
+from mexm.potential import MEXM_PAIR_FORMAT
 
 class Potential(object):
     """base class for potential
@@ -14,21 +18,17 @@ class Potential(object):
     Args:
         symbols(list of str): a list of symbols to use for the potential
         potential_type(str): a description for the type of potential this is
-
+        is_charge(bool): if set to true, this potential is a charge potential, default: False
     """
 
-    # pylint: disable=too-many-instance-attributes
-    PYPOSPACK_CHRG_FORMAT = "chrg_{s}"
-    PYPOSPACK_PAIR_FORMAT = "{s1}{s2}_{p}"
-    PYPOSPACK_3BODY_FORMAT = "{s1}{s2}{s3}_{p}"
     def __init__(self,
                  symbols,
                  potential_type=None,
-                 is_charge=None):
+                 is_charge=False):
 
         # define formatting strings
 
-        self.potential = None
+        # self.potential = None
         self.symbols = symbols
         self.potential_type = potential_type
         self.is_charge = is_charge
@@ -41,10 +41,6 @@ class Potential(object):
         # these attributes will be initialized by _init_parameter_names
         self.parameters = None
         self._init_parameters()
-
-        # deprecated parameters here
-        self.param = {}
-        self.param_names = None         # list of str
 
     def _init_parameter_names(self):
         raise NotImplementedError
@@ -65,7 +61,7 @@ class Potential(object):
     def write_lammps_potential_file(self):
         """writes the lammps_potential file
 
-        This method exists to write the lammps potential file to disk.  This 
+        This method exists to write the lammps potential file to disk.  This
         method needs to be overriden to be implemented, in classes that
         inherit from this class.
         """
@@ -90,40 +86,11 @@ class Potential(object):
         """generates the potential section for a GULP string"""
         raise NotImplementedError
 
-    def _get_mass(self, element):
-        amu = OrderedDict([
-            ('B',  10.811),
-            ('C',  12.0107),
-            ('N',  14.0067),
-            ('O',  15.999),
-            ('Mg', 24.305),
-            ('Al', 26.982),
-            ('Si', 28.0855),
-            ('Ni', 58.6934)
-            ])
+    def _get_mass(self, symbol):
+        return ELEMENTS[symbol].mass
 
-        try:
-            return amu[element]
-        except NameError as e:
-            raise
-
-    def _get_name(self, element):
-        element_name = OrderedDict([
-            ('B',  'boron'),
-            ('C',  'carbon'),
-            ('N',  'nitrogen'),
-            ('O',  'oxygen'),
-            ('Mg', 'magnesium'),
-            ('Al', 'aluminum'),
-            ('Si', 'silicon'),
-            ('Ni', 'nickel')
-            ])
-
-        try:
-            return element_name['B']
-        except NameError as e:
-            raise
+    def _get_name(self, symbol):
+        return ELEMENTS[symbol].name.lower()
 
 if __name__ == "__main__":
     o = Potential(symbols=['Ni'])
-

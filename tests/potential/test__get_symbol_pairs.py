@@ -1,7 +1,7 @@
 import pytest
 from collections import OrderedDict
 
-from mexm.potential import determine_symbol_pairs
+from mexm.potential import get_symbol_pairs
 
 cases = OrderedDict()
 cases['1sym_str'] = OrderedDict([
@@ -33,8 +33,8 @@ cases['3sym_list'] = OrderedDict([
     "symbols,expected_pairs",
     [tuple(v for v in case.values()) for case in cases.values()]
 )
-def test__determine_symbol_pairs(symbols, expected_pairs):
-    assert expected_pairs == determine_symbol_pairs(symbols)
+def test__get_symbol_pairs(symbols, expected_pairs):
+    assert expected_pairs == get_symbol_pairs(symbols)
 
 if __name__ == "__main__":
     pass
