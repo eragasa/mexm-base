@@ -77,7 +77,6 @@ class Potential(object):
 
         raise NotImplementedError
 
-
     def write_gulp_potential_section(self):
         """writes the gulp potential for a GULP string"""
         raise NotImplementedError
