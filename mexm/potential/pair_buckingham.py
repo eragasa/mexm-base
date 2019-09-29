@@ -6,8 +6,11 @@ __version__ = 20171102
 import copy
 import numpy as np
 from collections import OrderedDict
-from pypospack.potential import PairPotential
-from pypospack.potential import determine_symbol_pairs
+
+from mexm.potential import PairPotential
+from mexm.potential import get_symbol_pairs
+from mexm.potential import MEXM_CHARGE_FORMAT
+from mexm.potential import MEXM_PAIR_FORMAT
 
 class BuckinghamPotential(PairPotential):
     """ Implementation of the Buckingham Potential
@@ -18,14 +21,17 @@ class BuckinghamPotential(PairPotential):
     Args:
         symbols(list): a list of chemicals
     """
-    PAIR_POTENTIAL_PARAMETERS = ['A','rho','C']
+
+    pair_potential_parameters = ['A', 'rho', 'C']
     potential_type = 'buckingham'
     def __init__(self,symbols):
 
+        potential_type = BuckinghamPotential.potential_type
+        is_charge = True
         PairPotential.__init__(self,
                 symbols,
-                potential_type='buckingham',
-                is_charge=True)
+                potential_type=potential_type,
+                is_charge=is_charge)
 
         # override the base attributes
         self.pair_potential_parameters = self.PAIR_POTENTIAL_PARAMETERS
