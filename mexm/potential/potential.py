@@ -9,8 +9,6 @@ from collections import OrderedDict
 from mexm.exceptions import BadParameterException
 
 from mexm.elements import ELEMENTS
-from mexm.potential import MEXM_CHARGE_FORMAT
-from mexm.potential import MEXM_PAIR_FORMAT
 
 class Potential(object):
     """base class for potential
@@ -36,16 +34,16 @@ class Potential(object):
         # these attributes will be initialized by _init_parameter_names
         self.symbol_pairs = None
         self.parameter_names = None
-        self._init_parameter_names()
+        self._initialize_parameter_names()
 
         # these attributes will be initialized by _init_parameter_names
         self.parameters = None
-        self._init_parameters()
+        self._initialize_parameters()
 
-    def _init_parameter_names(self):
+    def _initialize_parameter_names(self):
         raise NotImplementedError
 
-    def _init_parameters(self):
+    def _initialize_parameters(self):
         raise NotImplementedError
 
     def evaluate(self, r, parameters, r_cut=False):

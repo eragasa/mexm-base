@@ -16,9 +16,9 @@ import numpy as np
 from pypospack.exceptions import BadParameterException
 from pypospack.eamtools import EamSetflFile
 
-MEXM_CHARGE_FORMAT = "{s}_charge"
-MEXM_PAIR_FORMAT = '{s1}{s2}_{p}'
-MEXM_THREEBODY_FORMAT = '{s1}{s2}{s3}_{p}'
+MEXM_1BODY_FORMAT = "{s}_{p}"
+MEXM_2BODY_FORMAT = '{s1}{s2}_{p}'
+MEXM_3BODY_FORMAT = '{s1}{s2}{s3}_{p}'
 
 def get_symbol_pairs(symbols):
     """determine symbol pairs

@@ -1,6 +1,11 @@
 from collections import OrderedDict
-from pypospack.potential import Potential
-from pypospack.potential import determine_symbol_pairs
+
+from mexm.potential import MEXM_1BODY_FORMAT
+from mexm.potential import MEXM_2BODY_FORMAT
+
+from mexm.potential import Potential
+from mexm.potential import get_symbol_pairs
+
 class PairPotential(Potential):
     def __init__(self,symbols,potential_type,is_charge):
         Potential.__init__(self,
@@ -11,33 +16,31 @@ class PairPotential(Potential):
         #self.pair_potential_parameters = None
         #self.symbol_pairs = None
 
-    def _init_parameter_names(self):
-        return self.initialize_parameter_names(self,self.symbols)
-
-    def _init_parameters(self):
-        return self.initialize_parameters()
-
-    def initialize_parameter_names(self,symbols=None):
+    def _initialize_parameter_names(self,symbols=None):
         if symbols is None:
             symbols = self.symbols
 
-        self.symbol_pairs = list(determine_symbol_pairs(symbols))
+        self.symbol_pairs = list(get_symbol_pairs(symbols))
 
         # initialize attribute to populate
         self.parameter_names = []
         if self.is_charge:
             for s in self.symbols:
-                fmt = self.PYPOSPACK_CHRG_FORMAT
-                self.parameter_names.append(fmt.format(s=s))
+                parameter_name = MEXM_1BODY_FORMAT.format(s=s, p='chrg')
+                self.parameter_names.append(parameter_name)
 
         for sp in self.symbol_pairs:
             for p in self.pair_potential_parameters:
-                fmt = self.PYPOSPACK_PAIR_FORMAT
-                self.parameter_names.append(fmt.format(s1=sp[0],s2=sp[1],p=p))
+                parameter_name = MEXM_2BODY_FORMAT.format(
+                    s1=sp[0],
+                    s2=sp[2],
+                    p=p
+                )
+                self.parameter_names.append(parameter_name)
 
         return self.parameter_names
 
-    def initialize_parameters(self):
+    def _initialize_parameters(self):
         self.parameters = OrderedDict()
         for v in self.parameter_names:
             self.parameters[v] = None

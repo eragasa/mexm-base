@@ -7,13 +7,13 @@ class PotentialTester(Potential):
 
     pair_parameter_names = ['A', 'B']
 
-    def _init_parameter_names(self):
+    def _initialize_parameter_names(self):
         self.symbol_pairs = get_symbol_pairs(self.symbols)
         self.parameter_names = get_pair_parameter_names(
                 symbols = self.symbols,
                 pair_parameter_names = PotentialTester.pair_parameter_names)
 
-    def _init_parameters(self):
+    def _initialize_parameters(self):
         self.parameters = OrderedDict(
             [(k,None) for k in self.parameter_names]
         )
