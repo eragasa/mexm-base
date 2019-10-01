@@ -10,6 +10,11 @@ from mexm.exceptions import BadParameterException
 
 from mexm.elements import ELEMENTS
 
+from mexm.potential import MEXM_1BODY_FORMAT
+from mexm.potential import MEXM_2BODY_FORMAT
+from mexm.potential import MEXM_3BODY_FORMAT
+from mexm.potential import get_symbol_pairs
+
 class Potential(object):
     """base class for potential
 
@@ -43,8 +48,30 @@ class Potential(object):
     def _initialize_parameter_names(self):
         raise NotImplementedError
 
-    def _initialize_parameters(self):
+    def _initialize_2body_parameter_names(self):
+        symbol_pairs = get_symbol_pairs(self.symbols)
+        for sp in symbol_pairs:
+            for p in type(self).two_body_parameters:
+                parameter_name = MEXM_2BODY_FORMAT.format(
+                    s1=sp[0],
+                    s2=sp[1],
+                    p=p
+                )
+                self.parameter_names.append(parameter_name)
+
+    def _initialize_3body_parameter_names(self):
         raise NotImplementedError
+
+    def _initialize_3body_parameter_names_bond_order(self):
+        raise NotImplementedError
+
+    def _initialize_3body_parameter_names_central_atom(self):
+        raise NotImplementedError
+
+    def _initialize_parameters(self):
+        self.parameters = OrderedDict()
+        for p in self.parameter_names:
+            self.parameters[p] = None
 
     def evaluate(self, r, parameters, r_cut=False):
         """evaluate the potential
@@ -56,7 +83,7 @@ class Potential(object):
         """
         raise NotImplementedError
 
-    def write_lammps_potential_file(self):
+    def write_lammps_potential_file(self, path):
         """writes the lammps_potential file
 
         This method exists to write the lammps potential file to disk.  This
