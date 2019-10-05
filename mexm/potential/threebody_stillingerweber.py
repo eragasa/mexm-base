@@ -5,24 +5,28 @@ __license__ = "Simplified BSD License"
 __version__ = "1.0"
 
 from collections import OrderedDict
-from pypospack.potential import ThreeBodyPotential
+from mexm.potential import MEXM_2BODY_FORMAT
+from mexm.potential import MEXM_3BODY_FORMAT
+from mexm.potential import ThreeBodyPotential
 
 class StillingerWeberPotential(ThreeBodyPotential):
-    threebody_parameter_names = [
-        'epsilon', 'sigma', 'a' 'lambda', 'gamma', 'costheta0', 'A',
-        'B', 'p', 'q', 'tol']
+    two_body_parameters = ['A','B','p','q','epsilon','sigma', 'a']
+    three_body_parameters = ['lambda', 'costheta0', 'tol']
     potential_type = 'stillingerweber'
+    is_charge = False
+
+    """Implementation of the Stillinger-Weber potential
+    Args:
+        symbols: list of string
+    Attributes:
+        symbols
+        potential_type
+        is_charge
+    References:
+        http://lammps.sandia.gov/doc/pair_sw.html
+    """
+
     def __init__(self,symbols):
-        """
-        Args:
-            symbols: list of string
-        Attributes:
-            symbols
-            potential_type
-            is_charge
-        References:
-            http://lammps.sandia.gov/doc/pair_sw.html
-        """
         _potential_type = 'stillingerweber'
         _is_charge = False
 
@@ -33,43 +37,33 @@ class StillingerWeberPotential(ThreeBodyPotential):
 
         self.lmps_parameter_filename = "lmps_parameter_filename"
 
-    def _init_parameter_names(self):
-        # TODO: This is only written for a single element potential
-        _symbols = self.symbols
-        _n_symbols = len(_symbols)
-        for i in range(_n_symbols):
-            for j in range(_n_symbols):
-                for k in range(_n_symbols):
-                    el1 = _symbols[i]
-                    el2 = _symbols[j]
-                    el3 = _symbols[k]
-                    self._add_parameter_names(el1,el2,el3)
-
-    def _add_parameter_names(self,el1,el2,el3):
-        s = "{}{}{}".format(el1,el2,el3)
-        
-        sw_param_names = [
-                'epsilon',
-                'sigma',
-                'a',
-                'lambda',
-                'gamma',
-                'costheta0',
-                'A',
-                'B',
-                'p',
-                'q',
-                'tol'
-            ]
-        
+    def _initialize_parameter_names(self):
         self.parameter_names = []
-        for p in sw_param_names:
-            self.parameter_names.append("{}_{}".format(s,p))
+        print('initialize_2body_parameter_names')
+        self._initialize_2body_parameter_names()
+        print(self.parameter_names)
+        self._initialize_3body_parameter_names()
+        print(self.parameter_names)
 
-    def _init_parameters(self):
-        self.parameters = OrderedDict()
-        for p in self.parameter_names:
-            self.parameters[p] = None
+    def _initialize_3body_parameter_names(self):
+        self.three_body_triplets = []
+        for i, s1 in enumerate(self.symbols):
+            for j, s2 in enumerate(self.symbols):
+                for k, s3 in enumerate(self.symbols):
+                    if j <= k:
+                        triplet = [s1, s2, s3]
+                        self.three_body_triplets.append(triplet)
+
+        for triplet in self.three_body_triplets:
+            for p in StillingerWeberPotential.three_body_parameters:
+                parameter_name = MEXM_3BODY_FORMAT.format(
+                    s1=triplet[0],
+                    s2=triplet[1],
+                    s3=triplet[2],
+                    p=p
+                )
+                self.parameter_names.append(parameter_name)
+
 
     def lammps_potential_section_to_string(self,parameters=None):
 
@@ -98,7 +92,7 @@ class StillingerWeberPotential(ThreeBodyPotential):
         #str_out += "neigh_modify every 1 delay 0 check yes\n"
 
         return str_out
-   
+
     def write_lammps_parameter_file(self,dst_dir,dst_filename):
         assert isinstance(dst_dir,str)
         assert isinstance(dst_filename,str)
@@ -111,7 +105,7 @@ class StillingerWeberPotential(ThreeBodyPotential):
         if parameters is not None:
             for p in self.parameters:
                 self.parameters[p] = parameters[p]
-        
+
         str_out = ''
         for i, s1 in enumerate(self.symbols):
             for j, s2 in enumerate(self.symbols):
@@ -132,5 +126,3 @@ class StillingerWeberPotential(ThreeBodyPotential):
                     str_out += '\n'
 
         return str_out
-       
-

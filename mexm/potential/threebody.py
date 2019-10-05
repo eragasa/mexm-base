@@ -1,18 +1,13 @@
 from collections import OrderedDict
-from pypospack.potential import Potential
+from mexm.potential import Potential
 
 class ThreeBodyPotential(Potential):
 
-    def _init_parameter_names(self):
+    def _initialize_parameter_names(self):
         # TODO: This is only written for a single element potential
-        for i in range(len(self.symbols)):
-            for j in range(len(self.symbols)):
-                for k in range(len(self.symbols)):
-                    el1 = self.symbols[i]
-                    el2 = self.symbols[j]
-                    el3 = self.symbols[k]
-                    self._add_parameter_names(el1, el2, el3)
-
+        self._initialize_2body_parameter_names()
+        self._initialize_3body_parameter_names()
+        
     def _add_parameter_names(self,el1,el2,el3):
         s = "{}{}{}".format(el1,el2,el3)
 

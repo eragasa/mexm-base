@@ -95,6 +95,8 @@ from mexm.potential.eam_density_function import EamDensityFunction
 from mexm.potential.eam_embedding_function import EamEmbeddingFunction
 from mexm.potential.eam_embedding_eos import EamEmbeddingEquationOfState
 
+from mexm.potential.potential_configuration import PotentialConfiguration
+
 #------------------------------------------------------------------------------
 # These are pair potentials.
 #------------------------------------------------------------------------------
@@ -115,8 +117,8 @@ pair_potential_names = [
 # These are three body potentials, but I don't currently have a base class prototype
 # for three body potentials, so they inherent from the Potential base class
 #------------------------------------------------------------------------------
-from pypospack.potential.threebody_tersoff import TersoffPotential
-from pypospack.potential.threebody_stillingerweber import StillingerWeberPotential
+from mexm.potential.threebody_tersoff import TersoffPotential
+from mexm.potential.threebody_stillingerweber import StillingerWeberPotential
 
 threebody_potential_names = [
         "sw",

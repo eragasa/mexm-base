@@ -195,7 +195,7 @@ class BuckinghamPotential(PairPotential):
         for s in self.symbols:
             chrg=self.parameters['{}_chrg'.format(s)]
             str_out += "{s} core {chrg}\n".format(s=s,chrg=chrg)
-
+        str_out += "\n"
         str_out += 'buck\n'
 
         for symbols in self.symbol_pairs:
