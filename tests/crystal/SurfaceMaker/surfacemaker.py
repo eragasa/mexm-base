@@ -36,10 +36,11 @@ try:
                                   symbol='Fe',
                                   pbc=[0,0,1])
 except ValueError as e:
-    print(ELEMENTS['Fe'].atomic_radius)
+    assert str(e) == 'Cannot guess the fcc lattice constant of an element with crystal structure bcc.'
+    print(ELEMENTS['Fe'].covrad)
+    print(ELEMENTS['Fe'].atmrad)
 
 def get_lattice_directions(miller):
     pass
 
 miller_surface = [1,1,1]
-print(ase_atoms)
