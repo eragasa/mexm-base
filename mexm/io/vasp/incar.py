@@ -1,8 +1,14 @@
 import os, shutil, pathlib
 import re
 import copy
-import pypospack.crystal as crystal
 import numpy as np
+from collections import OrderedDict
+
+class VaspIncarError(Exception):
+    def __init__(self,*args,**kwargs):
+        """Error class for reading/writing VASP INCAR IO issues """
+        Exception.__init__(self,*args,**kwargs)
+
 
 class Incar(object):
 
@@ -406,10 +412,16 @@ class Incar(object):
 # ****    SOME HELPER FUNCTIONS
 # *****************************************************************************
 
-tag_dictionary = {
-    'ISTART':IstartTags
-}
 
+class IncarComments():
+    tag_dictionary = {
+        'ISTART':IstartTags,
+        'ISYM':IsymTags,
+        'SYMPREC':SymprecTag
+    }
+
+    def get_comment(tag_name, tag_option):
+        return tag_dictionary[tag_name].get_comment(tag_option)
 
 class IncarBaseTags():
     tag_dictionary = OrderedDict()
@@ -428,114 +440,191 @@ class IncarBaseTags():
         except KeyError:
             msg = "unknown option, {}".format(option)
             raise VaspIncarError(msg)
+
+class IncarBaseFloatTag(IncarBaseTags):
+    tag_name = 'fake tag'
+    comment = 'fake comment'
+
+    @classmethod
+    def is_valid_option(cls, option):
+        if any([
+                isinstance(option,int),
+                isinstance(option,float)
+                ]):
+            return True
+        else:
+            return False
+
+    @classmethod
+    def get_comment(cls,option):
+        return cls.comment
+
 class IstartTags(IncarBaseTags):
 
-    tag_dictionary = [
+    tag_dictionary = OrderedDict([
         (0:'begin from scratch'),
         (1:'continuation job, constant energy cutoff'),
         (2:'continuation job, constant basis set'),
-    ]
+    ])
 
+class IsymTags(IncarBaseTags):
 
-def initialize_incar_comments():
-    comments_dict = {}
-    comments_dict["SYSTEM"] = ''
-    comments_dict["ISTART"] = {}
-    comments_dict["ISTART"][0] = 'begin from scratch'
-    comments_dict["ISTART"][1] = 'continuation job, constant energy cutoff'
-    comments_dict["ISTART"][2] = 'continuation job, constant basis set'
+    tag_dictionary = OrderedDict([
+        (-1,'symmetry off'),
+        (0,'symmetry_on'),
+        (1,'symmetry_on'),
+        (2,'symmetry_on, efficient symmetrization')
+        (3,'symmetry_on, only forces and stress tensor')
+    ])
 
-    comments_dict["ISYM"] = {}
-    comments_dict["ISYM"][-1] = 'symmetry off'
-    comments_dict["ISYM"][0] = 'symmetry on'
-    comments_dict["ISYM"][1] = 'symmetry on'
-    comments_dict["ISYM"][2] = 'symmetry on, efficient symmetrization'
-    comments_dict["ISYM"][3] = 'symmetry on, only forces and stress tensor'
+class SymprecTags(IncarBaseFloatTag):
+    tag_name = 'SYMPREC'
+    comment = 'determines how accurate positions must be'
 
-    comments_dict["SYMPREC"] = 'determines how accurate positions must be'
+class IchargTags(IncarBaseTags):
+    tag_dictionary = OrderedDict([
+        (0,'Calculate charge density from initial wave functions.'),
+        (1,'Read the charge density from file CHGCAR'),
+        (2,'Take superposition of atomic charge densities')
+    ])
 
-    comments_dict["ICHARG"] = {}
-    comments_dict["ICHARG"][0] = 'Calculate charge density from initial wave functions.'
-    comments_dict["ICHARG"][1] = 'Read the charge density from file CHGCAR'
-    comments_dict["ICHARG"][2] = 'Take superposition of atomic charge densities'
+class IsmearTags(IncarBaseTags):
+    tag_name = 'ISMEAR'
+    tag_dictionary = OrderedDict([
+        (-5,'tetrahedron method with Blochl corrections'),
+        (-4,'tetrahedron method'),
+        (0,'method of Gaussian smearing'),
+        (1,'method of Methfessel-Paxton order 1'),
+        (2,'method of Methfessel-Paxton order 2')
+    ])
 
-    comments_dict["ISMEAR"] = {}
-    comments_dict["ISMEAR"][-5] = 'tetrahedron method with Blochl corrections'
-    comments_dict["ISMEAR"][-4] = 'tetrahedron method'
-    comments_dict["ISMEAR"][0] = 'method of Gaussian smearing'
-    comments_dict["ISMEAR"][1] = 'method of Methfessel-Paxton order 1'
-    comments_dict["ISMEAR"][2] = 'method of Methfessel-Paxton order 2'
+class SigmaTags(IncarBaseFloatTags):
+    tag_name = 'SIGMA'
+    comment = 'width of the smearing in eV.'
 
-    comments_dict["SIGMA"] = 'width of the smearing in eV.'
+class NelmTags(IncarBaseFloatTags):
+    tag_name = 'NELM'
+    comment = 'maximum number of electronic SC'
 
-    comments_dict["NELM"] = 'maximum number of electronic SC'
-    comments_dict["ENCUT"] = 'Cut-off energy for plane wave basis set in eV'
-    comments_dict["EDIFF"] = 'convergence condition for SC-loop in eV'
+class EncutTags(IncarBaseFloatTags):
+    tag_name = 'ENCUT'
+    comment = 'Cut-off energy for plane wave basis set in eV'
 
-    comments_dict["PREC"] = {}
-    comments_dict["PREC"]['Accurate'] = 'avoid wrap around errors'
-    comments_dict["PREC"]['High'] = 'avoid wrap around errors'
+class EdiffTags(IncarBaseFloatTags):
+    tag_name = 'EDIFF'
+    comment = 'convergence condition for SC-loop in eV'
 
-    comments_dict["ALGO"] = {}
-    comments_dict["ALGO"]["Normal"] = 'blocked Davidson iteration scheme'
-    comments_dict["ALGO"]["VeryFast"] = 'RMM-DIIS'
-    comments_dict["ALGO"]["Fast"] = 'blocked Davidson, followed by RMM_DIIS'
+class EdiffgTags(IncarBaseFloatTags):
+    tag_name = 'EDIFFG'
+    comment_force_relaxation = 'force convergence requirements in ev A'
+    comment_energy_relaxation = 'energy convergence in eV'
 
-    comments_dict["LREAL"] = {}
-    comments_dict["LREAL"]['.FALSE.'] = 'projection done in reciprocal space'
-    comments_dict["LREAL"]['On'] = 'method of King-Smith, et al. Phys. Rev B 44, 13063 (1991).'
-    comments_dict["LREAL"]['Auto'] = 'unpublished method of G. Kresse'
+    @classmethod
+    def get_comment(cls,option):
+        return cls.comment
+        if option == 0:
+            msg = 'cannot select zero, must select a convergence value'
+            raise ValueError(msg)
+        elif self.ediffg < 0:
+            return cls.comment_force_relaxation
+        else:
+            return cls.comment_energy_relaxation
 
-    comments_dict['LORBIT'] = {}
-    comments_dict['LORBIT'][0] = 'DOSCAR and PROCAR'
-    comments_dict['LORBIT'][1] = 'DOSCAR and lm-decomposted PROCAR'
-    comments_dict['LORBIT'][2] = 'DOSCAR,lm_decomposed PROCAR, phase factors'
-    comments_dict['LORBIT'][5] = 'DOSCAR, PROCAR'
-    comments_dict['LORBIT'][10] = 'DOSCAR, PROCAR'
-    comments_dict['LORBIT'][11] = 'DOSCAR, lm-decomposed PROCAR'
-    comments_dict['LORBIT'][12] = 'DOSCAR, lm-decomposed PROCAR, phase factors'
+class PrecTags(IncarBaseTags):
+    tag_name = 'PREC'
+    tag_dictionary = OrderedDict([
+        ('Accurate', 'avoid wrap around errors'),
+        ('High', 'avoid wrap around errors')
+    ])
 
-    comments_dict["ISPIN"] = {}
-    comments_dict["ISPIN"][1] = 'non-spin polarized calculations'
-    comments_dict["ISPIN"][2] = 'spin polarized calculations'
+class AlgoTags(IncarBaseTags):
+    tag_name = 'ALGO'
+    tag_dictionary = OrderedDict([
+        ('Normal', 'blocked Davidson iteration scheme'),
+        ('VeryFast', 'RMM-DIIS'),
+        ('Fast', 'blocked Davidson, followed by RMM_DIIS')
+    ])
 
-    comments_dict["IBRION"] = {}
-    comments_dict["IBRION"][0] = 'molecular dynamics'
-    comments_dict["IBRION"][1] = 'ionic relaxation by RMM-DIIS'
-    comments_dict["IBRION"][2] = 'ionic relaxation by CG'
-    comments_dict["IBRION"][3] = 'ionic relaxation by damped MD'
-    comments_dict["IBRION"][5] = 'phonons, by frozen ion, without symmetry'
-    comments_dict["IBRION"][6] = 'phonons, by frozen ion, with symmetry'
-    comments_dict["IBRION"][7] = 'phonons, by perturbation theory, no symmetry'
-    comments_dict["IBRION"][8] = 'phonons, by perturbtion theory, with symmetry'
+class LrealTags(IncarBaseTags):
+    tag_name = 'LREAL'
+    tag_dictionary = OrderedDict([
+        ('.FALSE.', 'projection done in reciprocal space')
+        ('On', 'method of King-Smith, et al. Phys. Rev B 44, 13063 (1991).')
+        ('Auto', 'unpublished method of G. Kresse')
+    ])
 
-    comments_dict["ISIF"] = {}
-    comments_dict["ISIF"][2] = 'relaxation, ions=T, cellshape=F, cellvolume=F'
-    comments_dict["ISIF"][3] = 'relaxation, ions=T, cellshape=T, cellvolume=T'
-    comments_dict["ISIF"][4] = 'relaxation, ions=T, cellshape=T, cellvolume=F'
-    comments_dict["ISIF"][5] = 'relaxation, ions=F, cellshape=T, cellvolume=F'
-    comments_dict["ISIF"][6] = 'relaxation, ions=F, cellshape=T, cellvolume=T'
-    comments_dict["ISIF"][7] = 'relaxation, ions=F, cellshape=F, cellvolume=T'
+class LorbitTags(IncarBaseTags):
+    tag_name = 'LORBIT'
+    tag_dictionary = OrderedDict([
+        (0, 'DOSCAR and PROCAR'),
+        (1, 'DOSCAR and lm-decomposted PROCAR'),
+        (2, 'DOSCAR, lm_decomposed PROCAR, phase factors'),
+        (5, 'DOSCAR, PROCAR'),
+        (10, 'DOSCAR, PROCAR'),
+        (11, 'DOSCAR, lm-decomposed PROCAR'),
+        (12, 'DOSCAR, lm-decomposed PROCAR, phase factors'),
+    ])
 
-    comments_dict["POTIM"] = 'scaling factor in relaxation'
-    comments_dict["NSW"] = 'maximum number of ionic relaxation steps'
-    comments_dict["LWAVE"] = {}
-    comments_dict["LWAVE"]['.TRUE.'] = 'write WAVECAR'
-    comments_dict["LWAVE"]['.FALSE.'] = 'do not write WAVECAR'
+class IspinTags(IncarBaseTags):
+    tag_name = 'ISPIN'
+    tag_dictionary = OrderedDict([
+        (1, 'non-spin polarized calculations'),
+        (2, 'spin polarized calculations')
+    ])
 
-    comments_dict["LCHARG"] = {}
-    comments_dict["LCHARG"]['.TRUE.'] = 'write CHGCAR, write CHG'
-    comments_dict["LCHARG"]['.FALSE.'] = 'no CHGCAR, no CHG'
+class IBrionTags(IncarBaseTags):
+    tag_name = 'IBRION'
+    tag_dictionary = OrderedDict([
+        (0, 'molecular dynamics'),
+        (1, 'ionic relaxation by RMM-DIIS'),
+        (2, 'ionic relaxation by CG'),
+        (3, 'ionic relaxation by damped MD'),
+        (5, 'phonons, by frozen ion, without symmetry'),
+        (6, 'phonons, by frozen ion, with symmetry'),
+        (7, 'phonons, by perturbation theory, no symmetry'),
+        (8, 'phonons, by perturbtion theory, with symmetry')
+    ])
 
-    comments_dict['LVTOT'] = {}
-    comments_dict['LVTOT']['.TRUE.'] = 'write LOCPOT'
-    comments_dict['LVTOT']['.FALSE.'] = 'no LOCPOT'
-    return comments_dict
+class IsifTags(IncarBaseTags):
+    tag_name = 'ISIF'
+    tag_dictionary = OrderedDict([
+        (2, 'relaxation, ions=T, cellshape=F, cellvolume=F'),
+        (3, 'relaxation, ions=T, cellshape=T, cellvolume=T'),
+        (4, 'relaxation, ions=T, cellshape=T, cellvolume=F'),
+        (5, 'relaxation, ions=F, cellshape=T, cellvolume=F'),
+        (6, 'relaxation, ions=F, cellshape=T, cellvolume=T'),
+        (7, 'relaxation, ions=F, cellshape=F, cellvolume=T')
+    ])
 
-# standard recommendations
-potcar_std = { 'H':'H',
-               'He':'He',
-               'Li':'Li_sv',
-               'Be':'Be',
-               'B':'B',
-               'C':'C'}
+class EdiffTags(IncarBaseFloatTags):
+    tag_name = 'EDIFF'
+    comment = 'convergence condition for SC-loop in eV'
+
+class PotimTags(IncarBaseFloatTags):
+    tag_name = 'POTIM'
+    comment = 'scaling factor in relaxation'
+
+class NswTags(IncarBaseFloatTags):
+    tag_name = 'NSW'
+    comment = 'maximum number of ionic relaxation steps'
+
+class LwaveTags(IncarBaseTags):
+    tag_name = 'LWAVE'
+    tag_dictionary = OrderedDict([
+        ('.TRUE.', 'write WAVECAR'),
+        ('.FALSE.', 'do not write WAVECAR')
+    ])
+
+class LchargTags(IncarBaseTags):
+    tag_name = 'LCHARG'
+    tag_dictionary = OrderedDict([
+        ('.TRUE.', 'write CHGCR, write CHG'),
+        ('.FALSE.', 'no CHGCAR, no CHG')
+    ])
+
+class LvtotTags(IncarBaseTags):
+    tag_name = 'LVTOT'
+    tag_dictionary = OrderedDict([
+        ('.TRUE.', 'write LOCPOT'),
+        ('.FALSE.', 'no LOCPOT')
+    ])

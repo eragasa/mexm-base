@@ -8,3 +8,12 @@ Deus Ex Machina. (1) a Latin phrase originally described an ancient plot device 
 Materials Ex Machina represents the current state of computational materials science in a variety of different ways.  Certain tools such as Density Functional Theory are being used as exhaustive search tools for finding new materials from techniques generally referred to as in silico high-throughput computing.  Computational searches for optimal alloys using tools such as AT-AT provide impetus for a computational driven approach to new materials design.
 
 Computational material science is also a difficult field because much of the information to do high quality simulations simply does not exist, and approaches to creating high quality simulations is usually not documented in peer-reviewed journal articles, tutorials usually only cover trivial material problems, and reference textbooks concentrate on theory rather the ability to do useful simulations.
+
+Environment variables which need to be set:
+
+LAMMPS_SERIAL_BIN
+LAMMPS_MPI_BIN
+GULP_SERIAL_BIN
+VASP_BIN
+
+I am not terribly familiar with the automating the SLURM submission engine at this time, so the functionality is pretty basic.

@@ -20,10 +20,6 @@ from mexm.io.vasp.incar import VaspIncarError
 from mexm.io.vasp.poscar import VaspPoscarError
 from mexm.io.vasp.potcar import VaspPotcarError
 
-class VaspPotcarError(Exception):
-    def __init__(self,*args,**kwargs):
-        """ Error class for reading/writing VASP POTCAR IO issues """
-        Exception.__init__(self,*args,**kwargs)
 
 # *****************************************************************************
 # ****    SOME CONVENIENCE FUNCTIONS                                       ****

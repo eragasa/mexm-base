@@ -24,9 +24,13 @@ class Potcar(object):
     protected by copy right.  If the potcar_dir is not set, then pypospack
     will use the environment variables:
 
+    For linux style sytems:
     >>> export VASP_LDA_DIR=$(cd ~/opt/vasp/potentials/LDA;pwd)
     >>> export VASP_GGA_DIR=$(cd ~/opt/vasp/potentials/GGA;pwd)
 
+    for windows systems:
+    >>> setx VASP_LDA_DIR "C:\vasp\LDA" /M
+    >>> setx VASP_GGA_DIR "C:\vasp\GGA" /M
     """
     def __init__(self, symbols = None,
                        filename= None,
@@ -180,3 +184,14 @@ class Potcar(object):
                                          self._encut_max[i],
                                          self._xc[i])
         return str_out
+
+def get_recommmended_potcars(symbols):
+    # standard recommendations
+    potcar_std = {
+        'H':'H',
+        'He':'He',
+        'Li':'Li_sv',
+        'Be':'Be',
+        'B':'B',
+        'C':'C'
+    }
