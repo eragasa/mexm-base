@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-
-"""Input and output functions and classes for VASP """
-__author__ = "Eugene J. Ragasa"
-__copyright__ = "Copyright (C) 2016,2017"
-__license__ = "Simplified BSD License"
-__version__ = "1.0"
-
 import os, shutil, pathlib
 import re
 import copy

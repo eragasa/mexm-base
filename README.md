@@ -15,5 +15,3 @@ LAMMPS_SERIAL_BIN
 LAMMPS_MPI_BIN
 GULP_SERIAL_BIN
 VASP_BIN
-
-I am not terribly familiar with the automating the SLURM submission engine at this time, so the functionality is pretty basic.
