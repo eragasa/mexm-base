@@ -10,7 +10,7 @@ slurm_configuration_dict = OrderedDict([
     ('job_name', 'default_job'),
     ('qos', 'phillpot-b'),
     ('mail_type', 'END'),
-    ('mail_user', 'eragasa@ufl.edu'),
+    ('mail_name', 'eragasa@ufl.edu'),
     ('ntasks', 16),
     ('output_path', 'job.out'),
     ('error_path', 'job.err'),
@@ -25,23 +25,6 @@ def dev____init____no_args():
 def test____init____no_args():
     slurm_configuration = SlurmConfiguration()
 
-def dev__set_slurm_configuraion__with_args():
-    slurm_configuration = SlurmConfiguration()
-    slurm_configuration.set_slurm_configuration(
-        job_name='default_job',
-        qos='phillpot-b',
-        mail_type='END',
-        mail_name='eragasa@ufl.edu',
-        ntasks='16',
-        output_path='job.out',
-        error_path='job.err',
-        time='1:00:00',
-        memory='4gb'
-    )
-
-def dev__set_slurm_configuration__w_kwargs():
-    slurm_configuration = SlurmConfiguration()
-    slurm_configuration.set_slurm_configuration(**slurm_configuration_dict)
 
 slurm_configuration = SlurmConfiguration()
 slurm_configuration.set_vasp_configuration(
