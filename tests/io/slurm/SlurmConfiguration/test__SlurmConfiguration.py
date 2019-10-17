@@ -17,6 +17,10 @@ slurm_configuration_dict = OrderedDict([
     ('time', '1:00:00'),
     ('memory', '4gb')
 ])
+slurm_vasp_configuration_dict = OrderedDict([
+    ('modules', ['intel/2016.0.19', 'impi']),
+    ('run_string', 'srun --mpi=pmi2 $VASP_BIN > vasp.log')
+])
 
 def dev____init____no_args():
     slurm_configuration = SlurmConfiguration()
