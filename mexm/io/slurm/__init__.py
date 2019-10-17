@@ -14,7 +14,7 @@ class SlurmConfiguration():
             will be retrieved from MEXM_SLURM_CONIG_PATH,
     """
 
-    def __init__(self, path):
+    def __init__(self, path=None):
         self.configuration = OrderedDict()
 
         if path is not None:
@@ -28,9 +28,9 @@ class SlurmConfiguration():
         return obj_slurm
 
     def read(self, path):
-        with open(path, OrderedDictYAMLLoader) as f:
+        with open(path, 'r') as f:
             obj_dict = yaml.load(f, OrderedDictYAMLLoader)
-            self.__configure_from_dict(obj_dict=obj_dict)
+            self.configure_from_dict(obj_dict=obj_dict)
 
     def write(self,path):
         with open(path, 'w') as f:
@@ -42,7 +42,7 @@ class SlurmConfiguration():
     def to_dict(self):
         return self.configuration
 
-    def __configure_from_dict(self, obj_dict):
+    def configure_from_dict(self, obj_dict):
         assert isinstance(obj_dict, dict)
 
         self.configuration = deepcopy(obj_dict)
@@ -86,27 +86,27 @@ class SlurmConfiguration():
         ])
 
     def set_vasp_configuration(self,
-                               modules: List[str],
-                               runjob_line):
+                               modules,
+                               run_string):
         self.configuration['vasp'] = OrderedDict([
-            ('modules', deepcopy(modules),
-            ('runjob_line', runjob_line))
+            ('modules', deepcopy(modules)),
+            ('run_string', run_string)
         ])
 
     def set_phonts_configuration(self,
                                  modules,
-                                 runjob_line):
+                                 run_string):
         self.configuration['phonts'] = OrderedDict([
-            ('modules', deecopy(modules)),
-            ('runjob_line', runjob_line)
+            ('modules', deepcopy(modules)),
+            ('run_string', run_string)
         ])
 
     def set_lammps_configuration(self,
                                  modules,
-                                 runjob_line):
+                                 run_string):
         self.configuration['lammps'] = OrderedDict([
-            ('modules', deecopy(modules)),
-            ('runjob_line', runjob_line)
+            ('modules', deepcopy(modules)),
+            ('run_string', run_string)
         ])
 
 class SlurmSubmissionScript(object):
@@ -122,7 +122,7 @@ class SlurmSubmissionScript(object):
             self.configuration = SlurmConfiguration.initailize_from_dict(
                     obj_dict=slurm_configuration
             )
-        elif slurm_configuration='empty':
+        elif slurm_configuration == 'empty':
             self.configuration = SlurmConfiguration
 
     @property
