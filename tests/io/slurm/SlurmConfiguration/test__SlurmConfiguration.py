@@ -25,7 +25,7 @@ slurm_phonts_configuration_dict = OrderedDict([
     ('modules', ['intel/2016.0.19', 'impi']),
     ('run_string', 'srun --mpi=pmi2 $PHONTS_BIN > phonts.log')
 ])
-slurm_set_lammps_configuration_dict = OrderedDict([
+slurm_lammps_configuration_dict = OrderedDict([
     ('modules', ['openmpi']),
     ('run_string', 'srun --mpi=pmi2 $LAMMPS_SERIAL_BIN > lammps.out')
 ])
