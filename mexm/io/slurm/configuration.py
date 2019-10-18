@@ -18,10 +18,10 @@ class SlurmConfiguration():
             self.read(path=path)
 
     @staticmethod
-    def initailize_from_dict(obj_dict):
+    def initialize_from_dict(obj_dict):
         """ factory method which initializes and object from a dict """
         obj_slurm = SlurmConfiguration()
-        obj_slurm.__configure_from_dict(obj_dict=obj_dict)
+        obj_slurm.configure_from_dict(obj_dict=obj_dict)
         return obj_slurm
 
     def read(self, path):
