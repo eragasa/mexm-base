@@ -30,12 +30,7 @@ slurm_set_lammps_configuration_dict = OrderedDict([
     ('run_string', 'srun --mpi=pmi2 $LAMMPS_SERIAL_BIN > lammps.out')
 ])
 
-def dev____init____no_args():
-    slurm_configuration = SlurmConfiguration()
-    print(slurm_configuration)
 
-def test____init____no_args():
-    slurm_configuration = SlurmConfiguration()
 
 def dev__SlurmConfiguration():
     o = SlurmConfiguration()

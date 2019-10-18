@@ -64,7 +64,7 @@ def test__set_slurm_configuration__with_kwargs():
     o.set_slurm_configuration(**slurm_configuration_dict)
 
     assert isinstance(o.slurm_configuration, OrderedDict)
-    
+
 
 if __name__ == "__main__":
     dev__set_slurm_configuration__with_args()
