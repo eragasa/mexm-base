@@ -2,6 +2,8 @@ from copy import deepcopy
 from collections import OrderedDict
 from mexm.io.filesystem import OrderedDictYAMLLoader
 
+class SlurmConfigurationException(Exception): pass
+
 class SlurmConfiguration():
     """
     Args:
@@ -46,6 +48,11 @@ class SlurmConfiguration():
 
     @property
     def slurm_configuration(self):
+        try:
+            slurm_configuration = self.configuration['slurm']
+        except KeyError:
+            msg = "SLURM configuration has not been provided"
+            raise SlurmConfigurationException(msg)
         return self.configuration['slurm']
 
     @slurm_configuration.setter

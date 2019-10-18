@@ -1,5 +1,7 @@
 import pytest
 
+import sys, os
+
 from mexm.io.slurm import SlurmConfiguration
 from mexm.io.slurm import SlurmSubmissionScript
 
@@ -29,5 +31,18 @@ slurm_configuration.set_lammps_configuration(
     run_string='srun --mpi=pmi2 $LAMMPS_SERIAL_BIN > lammps.out'
 )
 
-def dev__SlurmSubmissionScript__empty():
-    script = SlurmSubmissionScript()
+def dev__SlurmSubmissionScript():
+
+    script = SlurmSubmissionScript(configuration=slurm_configuration)
+    script_str = script.slurm_script_to_string()
+    print(script_str)
+
+    slurm_script_path = "runjob.slurm"
+    if os.path.isfile(slurm_script_path):
+        os.remove(slurm_script_path)
+    script.write(path=slurm_script_path)
+    assert os.remove
+    os.remove(slurm_script_path)
+
+if __name__ == "__main__":
+    dev__SlurmSubmissionScript()

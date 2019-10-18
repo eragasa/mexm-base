@@ -14,7 +14,6 @@ def dev____init____no_args():
                          )
     )
 
-
 def test____init____no_args():
     o = SlurmSubmissionScript()
 
