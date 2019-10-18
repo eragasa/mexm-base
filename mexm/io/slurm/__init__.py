@@ -7,33 +7,36 @@ from mexm.io.slurm.configuration import SlurmConfiguration
 from mexm.io.slurm.submissionscript import SlurmSubmissionScript
 
 class VaspSubmissionScript(SlurmSubmissionScript):
+    """ class for creating SLURM submission scripts for VASP
+
+    These classes do require that a SlurmConfiguration file have been already
+    created, and provided as the path argument.
+    """
 
     def __init__(self, path=None):
         SlurmSubmissionScript.__init__(self, path)
+        self.modules = self.configuration.vasp_configuration['modules']
+        self.run_string = self.configuration.vasp_configuration['run_string']
 
-    def slurm_section_to_string(self):
-        job_name = self.job_name
-        qos_name = self.qos_name
-        mail_type = self.mail_type
-        mail_user = self.mail_user
-        ntasks = self.ntasks
-        distribution = self.distribution
-        time = self.time
-        output = self.output_path
-        error = self.error_path
+class LammpsSubmissionScript(SlurmSubmissionScript):
+    """ class for creating SLURM submission scripts for LAMMPS
 
-        return_str = '#!/bin/bash\n'
-        return_str += '#SBATCH --job-name={}\n'.format(job_name)
-        return_str += '#SBATCH --qos={}\n'.format(qos_name)
-        return_str += '#SBATCH --mail-type={}\n'.format(mail_type)
-        return_str += '#SBATCH --mail-user={}\n'.format(mail_user)
-        return_str += '#SBATCH --ntasks={}\n'.format(ntasks)
-        return_str += '#SBATCH --distribution=cyclic:cyclic\n'
-        return_str += '#SBATCH --time={}\n'.format(time)
-        return_str += '#SBATCH --output={}\n'.format(output)
-        return_str += '#SBATCH --error={}\n'.format(error)
+    These classes do require that a SlurmConfiguration file have been already
+    created, and provided as the path argument.
+    """
 
-        return return_str
+    def __init__(self, path=None):
+        SlurmSubmissionScript.__init__(self, path)
+        self.modules = self.configuration.lammps_configuration['modules']
+        self.run_string = self.configuration.lammps_configuration['run_string']
 
-    def write(self, path):
-        self.slurm_section_to_string()
+class PhontSubmissionScript(SlurmSubmissionsScript):
+    """ class for creating SLURM submission scripts for PHONTS
+
+    These classes do require that a SlurmConfiguration file have been already
+    created, and provided as the path argument.
+    """
+    def __init__(self, path=None):
+        SlurmSubmissionScript.__init__(self,path)
+        self.modules = slef.configuration.phonts_configuration['modules']
+        self.run_string = self.configuration.phonts_configuration['run_string']
