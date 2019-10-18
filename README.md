@@ -12,6 +12,9 @@ Computational material science is also a difficult field because much of the inf
 Environment variables which need to be set:
 
 LAMMPS_SERIAL_BIN
+
 LAMMPS_MPI_BIN
+
 GULP_SERIAL_BIN
+
 VASP_BIN
