@@ -1,60 +1,9 @@
-import copy
-import numpy as np
-import scipy.constants as spc
-from collections import OrderedDict
-import pypospack.io.filesystem as filesystem
-# import pyflamestk.potentials
-#import pyflamestk.tableofelements as toe
-
-def get_eam_radii_vector(r_max,N_r):
-    assert type(r_max) == float
-    assert type(N_r) == float
-
-    if N_r%5 != 0:
-        raise ValueError('N_r must be divisible by 5')
-
-    _r = r_max * np.linspace(1,N_r,N_r)/N_r
-    _dr = r_max / N_r
-
-    return _r, _dr
-
-class EamCurveFitter(object):
-    
-    def __init__(self, element_names):
-
-        self.elements = {}
-        self.pair_potentials = {}
-        for element_name in element_names:
-          print(element_name)
-          self.elements[element_name] = Element("Ni")
-
-        # initialize varaibles
-        self.embedding_energy = {}
-        self.pair_potential = {}
-        self.electron_density = {}
-        
-        print("initializing variables...")
-
-        for el_i in self.elements.keys():
-          print('electron_density: rho_{}'.format(el_i))
-          print('embedding_energy: F_{}'.format(el_i))
-          self.embedding_energy[el_i] = []
-          self.electron_density[el_i] = []
-
-        for el_i in self.elements.keys():
-          for el_j in self.elements.keys():
-            print('pair_potential: p_{}{}'.format(el_i,el_j))
-            self.pair_potentials['{}{}'.format(el_i,el_j)] = []
-
-class EamFuncflFile(object):
-    pass
-
 class EamSetflFile(object):
     """
 
     This class wites a setfl file.
-   
-    There are three components to the EAM model: the embedding energy, the 
+
+    There are three components to the EAM model: the embedding energy, the
     electron density, and interatomic pair potential.  LAMMPS uses a very
     old format for reading/writing EAM files.
 
@@ -62,8 +11,8 @@ class EamSetflFile(object):
     functional forms, in units eV.  However, they are written to be compliant
     with the setfl format which requires the element to be stored as V(r)*r.
 
-    Both the electron density function and the potential energy has a 
-    physical requirement that V(r_cut) = 0 and rho(r_cut) = 0.  The 
+    Both the electron density function and the potential energy has a
+    physical requirement that V(r_cut) = 0 and rho(r_cut) = 0.  The
     application of a cutoff function not implemented by this class, and
     it is responsibility of the code using this class to ensure this.
 
@@ -76,7 +25,7 @@ class EamSetflFile(object):
         comments(list of str):  The setfl file format has a three line comment
            section at the beginning of the file.
         filename(str):  This is the filename to either read/write too.
-        symbols(list of str):  This is a list of symbols modelled by the 
+        symbols(list of str):  This is a list of symbols modelled by the
            Embedded Atom Model.
         n_symbols(int): This is the number of elements for the setfl file.
         N_r(int): The number of points sampled for the distance from the nuclei
@@ -87,25 +36,25 @@ class EamSetflFile(object):
            and the electron density function are evaluated.
         d_rho(float): Distance between the points where the delectron density
            is sampled.
-        r(numpy.ndarray):  This is a :numpy.ndarray: array of possible 
-           evaluations from d_r to r_max with N_r intervals.  It does not 
+        r(numpy.ndarray):  This is a :numpy.ndarray: array of possible
+           evaluations from d_r to r_max with N_r intervals.  It does not
            include r = 0.
         rho(numpy.ndarray): This is an :numpy.ndarray: array of possible
            evaluations from d_rho to rho_max with N_rho interals.  It does
            not include rho = 0.
-        func_embedding(OrderedDict): This is a dictionary containing the 
+        func_embedding(OrderedDict[str,EamDensityFunction]): This is a dictionary containing the
            embedding function.  The embedding function is indexed by elements in
-           the symbols attribute.  The embedding function is stored as an 
+           the symbols attribute.  The embedding function is stored as an
            :numpy.ndarray: of length N_r.  This attribute is initialized as None.
-        func_density(OrderedDict): This is a dictionary containing the electron
+        func_density(OrderedDict[str,EamDensityFunction]): This is a dictionary containing the electron
            density function indexed by elements in the symbols attribute.  The
            density function is stored as an :numpy.ndarray: of length N_r.  This
            attribute is initialized as None.
         func_pair_potential(OrderedDict):  They has the format 'sym_i.sym_j' which
            are generated from unique combinations from the symbols attribute. The
-           pairs are selected as s_i, s_j \in S, where i <= j.  This attribute is 
+           pairs are selected as s_i, s_j \in S, where i <= j.  This attribute is
            initialized as none.
-           
+
     Ref:
         https://sites.google.com/a/ncsu.edu/cjobrien/tutorials-and-guides/eam
         http://www.ctcms.nist.gov/potentials/
@@ -131,14 +80,14 @@ class EamSetflFile(object):
         self.N_pairsection_lines = None
 
         # these attributes shoulde be treated as public
-        self._comments = [
-                "file automatically written by pypospack",
-                "--- this line empty ---",
-                "--- this line empty ---"]
+        self.comments_ = [
+            "file automatically written by pypospack",
+            "--- this line empty ---",
+            "--- this line empty ---"
+        ]
 
         self.filename = None
-        self._symbols = None
-        self._n_symbols = None
+        self.symbols_= None
         self.symbol_dict = None
 
         self.r = None
@@ -147,134 +96,99 @@ class EamSetflFile(object):
         self.func_pairpotential = None
         self.func_density = None
 
-        self._N_rho = None
+        self.N_rho_ = None
         self.d_rho = None
-        self.max_rho = None 
-        self._N_r = None
+        self.max_rho = None
+
+        self.N_r_ = None
         self.d_r = None
         self.max_r = None
 
         self.rcut_g = None
 
+    @staticmethod
+    def get_interatomic_distance_vector(r_max, N_r):
+        assert isinstance(r_max, float)
+        assert isinstance(N_r, float)
+        assert N_r % 5 == 0
+
+        r = r_max * np.linspace(1, N_r, N_r)/N_r
+        dr = r_max / N_r
+
+        return r, dr
+
+    @staticmethod
+    def get_electron_density_vector(rho_max, N_rho):
+        assert isinstance(rho_max, float)
+        assert isintance(N_r, float)
+        assert N_r % 5 == 0
+
+        rho = rho_max * np.linspace(1, N_rho, N_rho)/N_rho
+        drho = rho_max/ N_rho
+        return rho, drho
+
     @property
     def symbols(self):
-        return self._symbols
+        return self.symbols_
 
     @symbols.setter
     def symbols(self,symbols):
-        if isinstance(symbols,list):
-            _symbols = list(symbols)
-        else:
-            raise ValueError("symbols must be a list of strings")
+        assert isinstance(symbols, list)
+        assert all([isinstance(k,str) for k in symbols])
 
-        if not all([isinstance(s,str) for s in _symbols]):
-            raise ValueError("symbols must be a list of strings")
-
-        self._symbols = _symbols
-        self._n_symbols = len(self.symbols)
+        self.symbols_= _symbols
 
     @property
     def n_symbols(self):
         """
         (int): number of elements which this file describes
         """
-        return self._n_symbols
-    
+        return len(self.symbols)
+
     @property
     def N_rho(self):
-        return self._N_rho
+        return self.N_rho_
 
     @N_rho.setter
-    def N_rho(self,nrho):
-        if type(nrho) != int:
-            err_msg = (
-                    "N_rho must be an integer greater than zero, attempted to "
-                    "set this property to {}")
-            err_msg = err_msg.format(str(self.N_rho))
-            raise ValueError(err_msg)
-        if nrho <= 0:
-            err_msg = (
-                    "N_rho must be an integer greater than zero, attempted to "
-                    "set this property to {}")
-            err_msg = err_msg.format(str(self.N_rho))
-            raise ValueError(err_msg)
-        if nrho % self.N_VALUES_PER_LINE_RHO != 0:
-            err_msg = (
-                    "N_rho must be divisible by N_VALUES_PER_LINE_RHO, attempted "
-                    "to set N_rho to {} which is not divisible by {}")
-            err_msg = err_msg.format(
-                    self.N_rho,
-                    self.N_VALUES_PER_LINE_RHO)
-            raise ValueError(err_msg)
+    def N_rho(self, N_rho):
+        assert isinstance(N_rho, int)
+        assert N_rho > 0
+        assert N_rho % self.N_VALUES_PER_LINE_RHO == 0
 
-        self._N_rho = nrho
+        self.N_rho = nrho
 
     @property
     def N_r(self):
-        return self._N_r
+        return self.N_r_
 
     @N_r.setter
     def N_r(self,nr):
-        if type(nr) != int:
-            err_msg = (
-                    "N_r must be an integer greater than zero, attempted to "
-                    "set this property to {}")
-            err_msg = err_msg.format(str(nr))
-            raise ValueError(err_msg)
-        if nr <= 0:
-            err_msg = (
-                    "N_r must be an integer greater than zero, attempted to "
-                    "set this property to {}")
-            err_msg = err_msg.format(str(nr))
-            raise ValueError(err_msg)
+        assert isinstance(nr, int)
+        assert nr > 0
+        assert nr % self.N_VALUES_PER_LINE_R!= 0
 
-        if nr % self.N_VALUES_PER_LINE_R!= 0:
-            err_msg = (
-                    "N_r must be divisible by N_VALUES_PER_LINE_RHO, attempted "
-                    "to set N_r to {} which is not divisible by {}")
-            err_msg = err_msg.format(
-                    nr,
-                    self.N_VALUES_PER_LINE_R)
-            raise ValueError(err_msg)
+        self.N_r_ = nr
 
-        self._N_r = nr
-    
     @property
     def comments(self):
-        return self._comments
+        return self.comments_
 
     @comments.setter
-    def comments(self,value):
-        if isinstance(value,list):
-            _comments = list(value)
-        else:
-            raise ValueError("comments must be list of length 3")
-        
-        if len(_comments) != 3:
-            raise ValueError("comments must be a list of length 3")
+    def comments(self, comments):
+        assert isinstance(comments, list)
+        assert len(comments) == 3
 
         # if any comment is not a string then cast into string
-        for i,c in enumerate(_comments):
-            if not isinstance(c,str):
-                _comments[i] = str(c)
+        comments_ = [str(c) for k in comments]
 
-        self._comments = list(_comments)
-    
-    def write(self,
-            filename,
-            symbols,
-            r,
-            rcut,
-            rho,
-            pair,
-            embedding,
-            density):
-        """
-        write a setfl file
+        self.comments_ = list(comments_)
+
+    def write(self, path, symbols, r, rcut, rho, pair, embedding, density):
+        """ write the setfl file
 
         Args:
-            filename(str)
-            symbols(list)
+            path(str):
+            symbols(list[str])
             r(np.ndarray)
             rcut(numpy.ndarray)
             rho(numpy.ndarray)
@@ -282,7 +196,7 @@ class EamSetflFile(object):
             embedding(collections.OrderedDict)
             density(collections.OrderedDict)
         """
-        assert isinstance(filename,str)
+        assert isinstance(path,str)
         assert type(symbols) is list
         assert all([type(s) is str for s in symbols])
         assert isinstance(r,np.ndarray)
@@ -298,8 +212,8 @@ class EamSetflFile(object):
         assert all([ev.shape == rho.shape for en,ev in embedding.items()])
         assert all([dv.shape == r.shape for dn,dv in density.items()])
 
-        if filename is not None:
-            self.filename = filename
+        if path is not None:
+            self.path = path
 
         self.symbols = symbols
         self.r = r
@@ -314,14 +228,14 @@ class EamSetflFile(object):
         self.d_rho = rho[1] - rho[0]
         self.N_rho = rho.size
 
-        _str_out = "\n".join([
+        str_out = "\n".join([
             self.get_str_setfl_header_section().strip(),
             self.get_str_setfl_atomic_section().strip(),
             self.get_str_setfl_pairpotential_section().strip()
             ])
 
         with open(self.filename,'w') as f:
-            f.write(_str_out)
+            f.write(str_out)
 
     def get_str_setfl_header_section(self):
         _str_out = "\n".join([
@@ -340,10 +254,10 @@ class EamSetflFile(object):
         _str_out = "\n".join(self.comments)
 
         return _str_out
-    
+
     def get_str_setfl_header_section__n_symbols_line(self,symbols=None):
         assert type(symbols) in [list,type(None)]
-        
+
         if symbols is not None: self.symbols = symbols
         assert all([type(s) is str for s in self.symbols])
 
@@ -351,7 +265,7 @@ class EamSetflFile(object):
         _str_out = " ".join(line_args)
 
         return _str_out
-    
+
     def get_str_setfl_header_section__nargs_line(self,
             N_rho=None,
             d_rho=None,
@@ -391,15 +305,15 @@ class EamSetflFile(object):
         return _str_out
 
     def get_str_setfl__atomic_description(self,symbol):
-        _atomic_information = OrderedDict()        
+        _atomic_information = OrderedDict()
         if symbol == 'Ni':
-            _atomic_information['an'] = 28   
+            _atomic_information['an'] = 28
             _atomic_information['amu'] = 5.871
             _atomic_information['a0'] =  3.518121
             _atomic_information['latt_type'] = 'fcc'
         else:
             raise ValueError("symbol not in database")
-        
+
         _str_out = "".join([
                 self.SETFL_INT_FORMAT.format(_atomic_information['an']),
                 self.SETFL_NUM_FORMAT.format(_atomic_information['amu']),
@@ -413,7 +327,7 @@ class EamSetflFile(object):
         _embed = self.embedding[symbol]
         _sz = _embed.size
         _n = self.N_VALUES_PER_LINE_RHO
-        
+
         _format = _n*self.SETFL_NUM_FORMAT + "\n"
         _lines = [_format.format(*_embed[i:i+5]) for i in range(0,_sz,_n)]
         _str_out = "".join(_lines)
@@ -421,11 +335,11 @@ class EamSetflFile(object):
         return _str_out
 
     def get_str_setfl__density_function(self,symbol):
-        
+
         _dens = self.density[symbol]
         _sz = _dens.size
         _n = self.N_VALUES_PER_LINE_R
-        
+
         _format = _n*self.SETFL_NUM_FORMAT + "\n"
         _lines = [_format.format(*_dens[i:i+5]) for i in range(0,_sz,_n)]
         _str_out = "".join(_lines)
@@ -445,11 +359,11 @@ class EamSetflFile(object):
         _pair = self.pair[pn] * self.r
         _sz = _pair.size
         _n = self.N_VALUES_PER_LINE_R
-        
+
         _format = _n*self.SETFL_NUM_FORMAT + "\n"
         _lines = [_format.format(*_pair[i:i+5]) for i in range(0,_sz,_n)]
         _str_out = "".join(_lines)
-   
+
         return _str_out
 
     def read(self,
@@ -485,7 +399,7 @@ class EamSetflFile(object):
 
         self.r = self.max_r*np.linspace(1,self.N_r,self.N_r)/self.N_r
         self.rho = self.max_rho*np.linspace(1,self.N_rho,self.N_rho)/self.N_rho
-   
+
         if self.N_rho % self.N_VALUES_PER_LINE_RHO != 0:
             raise ValueError("N_rho not divisible by {}".format(
                 self.N_VALUES_PER_LINE_RHO))
@@ -493,7 +407,7 @@ class EamSetflFile(object):
             raise ValueError("N_r not divisible by {}".format(
                 self.N_VALUES_PER_LINE_R))
 
-        N_density_lines = self.N_rho / self.N_VALUES_PER_LINE_RHO 
+        N_density_lines = self.N_rho / self.N_VALUES_PER_LINE_RHO
         N_embedding_lines = self.N_r / self.N_VALUES_PER_LINE_R
         N_pairpotential_lines = self.N_r / self.N_VALUES_PER_LINE_R
 
@@ -517,7 +431,7 @@ class EamSetflFile(object):
                     pairs.append([s1,s2])
 
         self.N_pairs = len(pairs)
-        self.N_pairsection_lines = self.N_pairs * N_pairpotential_lines 
+        self.N_pairsection_lines = self.N_pairs * N_pairpotential_lines
 
     def process_setfl_comments(self):
         """
@@ -541,7 +455,7 @@ class EamSetflFile(object):
     def process_setfl_n_symbols(self):
         line = self.lines[3]
         args = line.split()
-        
+
         n_symbols = int(args[0])
         symbols = []
         for i in range(1,len(args)):
@@ -611,7 +525,7 @@ class EamSetflFile(object):
         N_atomicsection_lines = self.N_atomicsection_lines
         N_atomicdefinition_lines = 1
         for i_sym, sym in enumerate(self.symbols):
-            # NOTICE: The use of the notion self.lines[i-1] 
+            # NOTICE: The use of the notion self.lines[i-1]
             # I decided to calculate the line we are on using an index of one,
             # then using (i-1) to convert to the python convertion of an
             # index starting a 0
@@ -624,7 +538,7 @@ class EamSetflFile(object):
                     'atomic_mass':float(args[1]),
                     'lattice_constant':float(args[2]),
                     'lattice_type':args[3]})
-            
+
             # read embedding function
             f_embed = []
             for i_line in range(N_density_lines):
@@ -635,7 +549,7 @@ class EamSetflFile(object):
                 args = self.lines[i-1].strip().split()
                 f_embed += [float(arg) for arg in args]
                 self.func_embedding[sym] = np.array(f_embed)
-            
+
             # read density function
             f_dens  = []
             for i_line in range(N_embedding_lines):
@@ -650,10 +564,10 @@ class EamSetflFile(object):
 
     def process_setfl_pairpotential_section(self):
         """
-        
-        The SETFL convention for storing V(r) is as r*V(r).  This was probably 
-        important during the time when computational cycles were expensive.  
-        However, we divide this storage value by r to get the potential in 
+
+        The SETFL convention for storing V(r) is as r*V(r).  This was probably
+        important during the time when computational cycles were expensive.
+        However, we divide this storage value by r to get the potential in
         eV.
         """
         start_line = self.N_headersection_lines + self.N_atomicsection_lines + 1
@@ -725,7 +639,7 @@ class EamSetflFile(object):
         assert type(_N_r) is int
         assert _N_r > 0
         assert _N_r % self.N_LINES_PER_LINE_R == 0
-   
+
         N_pairs = 0
         for i1 in range(self.n_symbols):
             for j1 in range(self.n_symbols):
@@ -735,4 +649,3 @@ class EamSetflFile(object):
                 N_pairs * (self.N_r /self.N_LINES_PER_LINE_R)
 
         return N_lines_potential_section
-
