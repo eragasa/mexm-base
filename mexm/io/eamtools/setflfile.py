@@ -238,22 +238,25 @@ class EamSetflFile(object):
             f.write(str_out)
 
     def get_str_setfl_header_section(self):
-        _str_out = "\n".join([
+        str_out = "\n".join([
             self.get_str_setfl_header_section__comments(),
             self.get_str_setfl_header_section__n_symbols_line(),
             self.get_str_setfl_header_section__nargs_line()
             ])
-        return _str_out
+        return str_out
 
     def get_str_setfl_header_section__comments(self,comments=None):
-        assert type(comments) in [list,type(None)]
+        assert any([
+            comments is None,
+            isinstance(comments, list)
+        ])
 
         if comments is not None:
             self.comments = comments
         assert all([type(c) is str for c in self.comments])
-        _str_out = "\n".join(self.comments)
+        str_out = "\n".join(self.comments)
 
-        return _str_out
+        return str_out
 
     def get_str_setfl_header_section__n_symbols_line(self,symbols=None):
         assert type(symbols) in [list,type(None)]
