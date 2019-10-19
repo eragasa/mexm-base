@@ -127,16 +127,31 @@ class EamSetflFile(object):
         drho = rho_max/ N_rho
         return rho, drho
 
+    @staticmethod
+    def get_symbol_pairs(symbols):
+        assert isinstance(symbols, list)
+
+        mexm_setfl_symbol_pair_format = '{}{}'
+
+        symbol_pairs = []
+        for i1, s1 in enumerate(symbols):
+            for i2, s2 in enumerate(symbols):
+                if i1 <= i2:
+                    symbol_pair = mexm_setfl_symbol_pair_format.format(s1, s2)
+                    symbol_pairs.append(symbol_pair)
+
+        return symbol_pairs
+
     @property
     def symbols(self):
         return self.symbols_
 
     @symbols.setter
-    def symbols(self,symbols):
+    def symbols(self, symbols):
         assert isinstance(symbols, list)
         assert all([isinstance(k,str) for k in symbols])
 
-        self.symbols_= _symbols
+        self.symbols_= symbols
 
     @property
     def n_symbols(self):
@@ -155,17 +170,17 @@ class EamSetflFile(object):
         assert N_rho > 0
         assert N_rho % self.N_VALUES_PER_LINE_RHO == 0
 
-        self.N_rho = nrho
+        self.N_rho_ = N_rho
 
     @property
     def N_r(self):
         return self.N_r_
 
     @N_r.setter
-    def N_r(self,nr):
-        assert isinstance(nr, int)
-        assert nr > 0
-        assert nr % self.N_VALUES_PER_LINE_R!= 0
+    def N_r(self, N_r):
+        assert isinstance(N_r, int)
+        assert N_r > 0
+        assert N_r % self.N_VALUES_PER_LINE_R!= 0
 
         self.N_r_ = nr
 
