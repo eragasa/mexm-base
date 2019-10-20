@@ -1,0 +1,5 @@
+pip install numpy
+pip install pandas
+pip install mpi4py
+# for the ability to read cif files
+pip install PyCifRW=4.1

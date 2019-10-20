@@ -2,7 +2,7 @@ import pytest
 from collections import OrderedDict
 import numpy as np
 from mexm.util import is_number
-from mexm.crystal import Atom
+from mexm.structure import Atom
 
 def test__init__():
     case = OrderedDict([

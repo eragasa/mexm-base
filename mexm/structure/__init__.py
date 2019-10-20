@@ -13,70 +13,20 @@ __copyright__ = "Copyright (C) 2016,2017,2018,2019"
 __license__ = "MIT License"
 __version__ = "1.0"
 
-import copy, subprocess, yaml, os
+import subprocess, yaml, os
+from copy import copy, deepcopy
 import numpy as np
 import numpy.linalg as linalg
-#import ase.atoms
-
-from mexm.crystal.lattice import Lattice
-from mexm.crystal.atom import Atom
-from mexm.crystal.simulationcell import SimulationCell
-
-iso_chem_symbols = ['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al',
-        'Si','P','S','Cl','Ar','K', 'Ca','Sc','Ti','V', 'Cr','Mn','Fe','Co',
-        'Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y', 'Zr','Nb',
-        'Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe','Cs',
-        'Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm',
-        'Yb','Lu','Hf','Ta','W', 'Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi',
-        'Po','At','Rn','Fr','Ra','Ac','Th','Pa','U', 'Np','Pu','Am','Cm','Bk',
-        'Cf','Es','Fm','Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds','Rg',
-        'Uub','Uut','Uuq','Uup','Uuh','Uus','Uuo']
-
-def get_atomic_weight(symbol):
-    atomic_weights = {
-        'Ar':39.948,
-        'Mg':24.305,
-        'O' :15.9994,
-        'Si':28.0855,
-        'Ni':58.6934,
-        'Al':26.981539
-    }
-
-    try:
-        amu = atomic_weights[symbol]
-    except KeyError as e:
-        if symbol in iso_chem_symbols:
-            msg = "The atomic weight of symbol {} has not been implemented"
-            raise NotImplementedError(msg.format(symbol))
-        else:
-            msg = "The symbol {} is not a valid ISO chemical symbol"
-    return amu
-
-def cartesian2direct(x,H):
-    """ transforms cartesian coordinates to direct coordinates
-
-    Args:
-        x (numpy.ndarray): the cartesian coordinates
-        H (numpy.ndarray): the H matrix of lattice vectors
-
-    Return:
-        (numpy.ndarray): the direct coordinate vector
-    """
-    if isinstance(x,list):
-        x = np.array(x)
-        x.shape = (3,1)
-    elif isinstance(x,np.ndarray):
-        x = np.copy(x)
-        x.shape = (3,1)
-
-    u = np.dot(linalg.inv(H.T),x)
-    u.shape = (3,)
-    return u
 
 
-from mexm.crystal.atom import Atom
-from mexm.crystal.simulationcell import SimulationCell
-from mexm.crystal.structuredb import StructureDatabase
+from mexm.structure.utils import get_atomic_weight
+from mexm.structure.lattice import Lattice
+from mexm.structure.atom import Atom
+from mexm.structure.simulationcell import SimulationCell
+from mexm.structure.structuredb import StructureDatabase
+
+# functions
+from mexm.structure.simulationcell import convert_coordinates
 
 def make_super_cell(structure, sc):
     """makes a supercell from a given cell
@@ -87,35 +37,34 @@ def make_super_cell(structure, sc):
         sc (:obj:`list` of :obj:`int`): the number of repeat units in the h1, h2, and h3
             directions
     """
-    assert isinstance(structure,SimulationCell)
+    assert isinstance(structure, SimulationCell)
+    assert isinstance(sc, list)
+    assert all([instance(k,int) for k in sc])
 
     supercell = SimulationCell()
     supercell.structure_comment = "{}x{}x{}".format(sc[0],sc[1],sc[2])
 
-    # set lattice parameter
-    supercell.a0 = structure.a0
+    supercell.lattice = Lattice(
+        a0 = structure.a0,
+        H = structure.H
+    )
+    supercell.h1 = structure.h1 * sc[0]
+    supercell.h2 = structure.h2 * sc[1]
+    supercell.h3 = structure.h3 * sc[2]
 
-    # set h_matrix
-    H = np.zeros(shape=[3,3])
-    for i in range(3):
-        H[i,:] = structure.H[i,:] * sc[i]
-    supercell.H = H.copy()
 
     # add supercell atoms
     for i in range(sc[0]):
         for j in range(sc[1]):
             for k in range(sc[2]):
                 for atom in structure.atomic_basis:
-                    symbol = atom.symbol
-                    position = atom.position
-                    position = [(i+position[0])/sc[0],\
-                                (j+position[1])/sc[1],\
-                                (k+position[2])/sc[2]]
-                    magmom = atom.magmom
-                    supercell.add_atom(
-                        symbol=symbol,
-                        position=position,
-                        magmom=magmom)
+                    sc_atom  = deepcopy(atom)
+                    sc_atom.position = [
+                        (i+position[0])/sc[0],
+                        (j+position[1])/sc[1],
+                        (k+position[2])/sc[2]\
+                    ]
+                    supercell.atomic_basis.append(deepcopy(sc_atom))
 
     # return a copy of the supercell
     return supercell
