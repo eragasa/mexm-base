@@ -47,9 +47,71 @@ class Potential(object):
         self.parameters = None
         self._initialize_parameters()
 
+    @classmethod
+    def get_parameter_names_global(cls, hybrid_format=True):
+        parameter_names = []
+        for parameter_name in cls.parameter_names_global:
+            kwargs ={
+                'potential_type':cls.potential_type,
+                'parameter_name':parameter_name
+            }
+            if hybrid_format:
+                parameter_names.append(MEXM_HYBRID_GLOBAL_FMT.format(**kwargs))
+            else:
+                parameter_names.append(MEXM_GLOBAL_FMT.format(**kwargs))
+
+        return parameter_names
+
+    @classmethod
+    def get_parameter_names_1body(cls, symbols, hybrid_format=True):
+        assert isinstance(symbols, list)
+        assert isinstance(hybrid_format, bool)
+
+        parameter_names = []
+        for symbol in symbols:
+            for parameter_name in cls.parameter_names_1body:
+                kwargs = {
+                    'symbol':symbol,
+                    'potential_type':cls.potential_type,
+                    'parameter_name':parameter_name
+                }
+                if hybrid_format:
+                    parameter_names.append(MEXM_HYBRID_1BODY_FMT.format(**kwargs))
+                else:
+                    parameter_names.append(MEXM_1BODY_FMT.format(**kwargs))
+
+        return parameter_names
+
+    @classmethod
+    def get_parameter_names_2body(cls, symbols, hybrid_format=True):
+        assert isinstance(symbols, list)
+        assert isinstance(hybrid_format, bool)
+
+        symbol_pairs = get_symbol_pairs(symbols)
+        parameter_names = []
+        for symbol_pair in symbol_pairs:
+            for parameter_name in cls.parameter_names_2body:
+                kwargs = {
+                    'symbol1':symbol_pair[0],
+                    'symbol2':symbol_pair[1],
+                    'potential_type':cls.potential_type,
+                    'parameter_name':parameter_name
+                }
+                if hybrid_format:
+                    parameter_names.append(MEXM_HYBRID_2BODY_FMT.format(**kwargs))
+                else:
+                    parameter_names.append(MEXM_2BODY_FMT.format(**kwargs))
+        return parameter_names
 
     def _initialize_parameter_names(self):
         raise NotImplementedError
+
+    def _initialize_1body_parameter_names(self):
+        for s in self.symbols:
+            for p in BuckinghamPotential.one_body_parameters:
+                parameter_name = MEXM_1BODY_FMT.format(s=s,p=p)
+                self.parameter_names.append(parameter_name)
+
 
     def _initialize_2body_parameter_names(self):
         symbol_pairs = get_symbol_pairs(self.symbols)
@@ -104,6 +166,51 @@ class Potential(object):
         """
 
         raise NotImplementedError
+
+    def lammps_potential_section_set_masses_to_string(self, symbols=None):
+        if symbols is None:
+            symbols_ = self.symbols
+        else:
+            symbols_ = symbols
+
+        str_out = ''
+        for i, s in enumerate(symbols_):
+            group_id = i+1
+            amu = self._get_mass(s)
+            str_out += "mass {} {}\n".format(group_id, amu)
+
+        return str_out
+
+    def lammps_potential_section_set_group_id_to_string(self, symbols=None):
+        if symbols is None:
+            symbols_ = self.symbols
+        else:
+            symbols_ = symbols
+
+        str_out = ''
+        for i, s in enumerate(symbols_):
+            group_id = i+1
+            symbol = s
+            str_out += "group {} type {}\n".format(
+                symbol,
+                group_id
+            )
+
+        return str_out
+
+    def lammps_potential_section_set_charges_to_string(self, symbols=None):
+        if symbols is None:
+            symbols_ = self.symbols
+        else:
+            symbols_ = symbols
+
+        str_out = ""
+        for i,s in enumerate(symbols_):
+            charge_parameter_name = '{}_chrg'.format(s)
+            charge = self.parameters[charge_parameter_name]
+            str_out += "set group {} charge {}\n".format(s,charge)
+
+        return str_out
 
     def write_gulp_potential_section(self):
         """writes the gulp potential for a GULP string"""

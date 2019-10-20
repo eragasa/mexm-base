@@ -1,4 +1,4 @@
-from mexm.crystal import SimulationCell
+from mexm.structure import SimulationCell
 
 class VaspPoscarError(Exception):
     def __init__(self,*args,**kwargs):

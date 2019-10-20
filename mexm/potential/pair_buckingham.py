@@ -9,13 +9,14 @@ from collections import OrderedDict
 
 from mexm.potential import PairPotential
 from mexm.potential import get_symbol_pairs
-from mexm.potential import MEXM_1BODY_FMT
-from mexm.potential import MEXM_2BODY_FMT
+from mexm.potential import (
+        MEXM_GLOBAL_FMT, MEXM_1BODY_FMT, MEXM_2BODY_FMT,
+        MEXM_HYBRID_GLOBAL_FMT, MEXM_HYBRID_1BODY_FMT, MEXM_HYBRID_2BODY_FMT)
 
 class BuckinghamPotential(PairPotential):
-    global_parameters = ['cutoff']
-    one_body_parameters = ['chrg', 'cutoff']
-    two_body_parameters = ['A', 'rho', 'C', 'cutoff']
+    parameter_names_global = ['cutoff']
+    parameter_names_1body = ['chrg', 'cutoff']
+    parameter_names_2body = ['A', 'rho', 'C', 'cutoff']
     potential_type = 'buckingham'
     is_charge = True
 
@@ -28,12 +29,12 @@ class BuckinghamPotential(PairPotential):
         symbols(list): a list of chemicals
 
     Notes:
-        global_parameters:
+        parameter_names_global:
             cutoff (float): in Angstroms
         single_body_parameters:
             chrg (float): Coulombic charge in electron charge units
             cutoff (float): in Angstroms
-        two_body_parameters:
+        parameter_names_2body:
             A (float):
             rho (float):
             C (float):
@@ -51,31 +52,10 @@ class BuckinghamPotential(PairPotential):
     #override Potential method
     def _initialize_parameter_names(self):
         self.symbol_pairs = list(get_symbol_pairs(self.symbols))
-        self.parameter_names = []
-
-        self._initialize_global_parameters()
-        self._initialize_1body_parameter_names()
-        self._initialize_2body_parameter_names()
-
-    def _initialize_global_parameters(self):
-        for p in BuckinghamPotential.global_parameters:
-            self.parameter_names.append(p)
-
-    def _initialize_1body_parameter_names(self):
-        for s in self.symbols:
-            for p in BuckinghamPotential.one_body_parameters:
-                parameter_name = MEXM_1BODY_FMT.format(s=s,p=p)
-                self.parameter_names.append(parameter_name)
-
-    def _initialize_2body_parameter_names(self):
-        for sp in self.symbol_pairs:
-            for p in BuckinghamPotential.two_body_parameters:
-                parameter_name = MEXM_2BODY_FMT.format(
-                    s1=sp[0],
-                    s2=sp[1],
-                    p=p
-                )
-                self.parameter_names.append(parameter_name)
+        self.parameter_names = BuckinghamPotential.get_parameter_names(
+                symbols=self.symbols,
+                hybrid_format=False
+        )
 
     #override Potential method
     def _initialize_parameters(self):
@@ -86,51 +66,7 @@ class BuckinghamPotential(PairPotential):
     def evaluate(self,r,parameters,r_cut=False):
         raise NotImplementedError
 
-    # same as parent class
-    def lammps_potential_section_set_masses_to_string(self, symbols=None):
-        if symbols is None:
-            symbols_ = self.symbols
-        else:
-            symbols_ = symbols
 
-        str_out = ''
-        for i, s in enumerate(symbols_):
-            group_id = i+1
-            amu = self._get_mass(s)
-            str_out += "mass {} {}\n".format(group_id, amu)
-
-        return str_out
-
-    def lammps_potential_section_set_group_id_to_string(self, symbols=None):
-        if symbols is None:
-            symbols_ = self.symbols
-        else:
-            symbols_ = symbols
-
-        str_out = ''
-        for i, s in enumerate(symbols_):
-            group_id = i+1
-            symbol = s
-            str_out += "group {} type {}\n".format(
-                symbol,
-                group_id
-            )
-
-        return str_out
-
-    def lammps_potential_section_set_charges_to_string(self, symbols=None):
-        if symbols is None:
-            symbols_ = self.symbols
-        else:
-            symbols_ = symbols
-
-        str_out = ""
-        for i,s in enumerate(symbols_):
-            charge_parameter_name = '{}_chrg'.format(s)
-            charge = self.parameters[charge_parameter_name]
-            str_out += "set group {} charge {}\n".format(s,charge)
-
-        return str_out
 
 
     def lammps_potential_section_to_string(self,parameters=None):
@@ -146,14 +82,9 @@ class BuckinghamPotential(PairPotential):
         if parameters is not None:
             self.parameters = parameters
 
-        str_out = self.lammps_potential_section_set_masses_to_string()
-        str_out += "\n"
-
-        str_out += self.lammps_potential_section_set_group_id_to_string()
-        str_out += "\n"
-
-        str_out += self.lammps_potential_section_set_charges_to_string()
-        str_out += "\n"
+        str_out = self.lammps_potential_section_set_masses_to_string() + "\n"
+        str_out += self.lammps_potential_section_set_group_id_to_string() +"\n"
+        str_out += self.lammps_potential_section_set_charges_to_string() + "\n"
 
         global_cutoff = self.parameters['cutoff']
         str_out += 'pair_style buck/coul/long {}\n'.format(global_cutoff)
@@ -161,25 +92,20 @@ class BuckinghamPotential(PairPotential):
         for pair in get_symbol_pairs(self.symbols):
             s1 = pair[0]
             s2 = pair[1]
-
-            group_id_s1 = self.symbols.index(s1)
-            group_id_s2 = self.symbols.index(s2)
-
             str_A = '{}{}_A'.format(s1, s2)
             str_rho = '{}{}_rho'.format(s1, s2)
             str_C = '{}{}_C'.format(s1, s2)
             str_cutoff = '{}{}_cutoff'.format(s1, s2)
 
+            group_id_s1 = self.symbols.index(s1)
+            group_id_s2 = self.symbols.index(s2)
             A = float(self.parameters[str_A])
             rho = float(self.parameters[str_rho])
             C = float(self.parameters[str_C])
             cutoff = float(self.parameters[str_cutoff])
 
-            str_out += "pair_coeff {} {} {} {} {} {}\n".format(
-                group_id_s1, group_id_s2,
-                A, rho, C,
-                cutoff
-            )
+            args = [group_id_s1, group_id_s2, A, rho, C, cutoff]
+            str_out += "pair_coeff {} {} {} {} {} {}\n".format(*args)
 
         return str_out
 

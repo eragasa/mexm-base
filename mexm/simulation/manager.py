@@ -1,3 +1,3 @@
 class SimulationManager(): pass
 class SerialSimulationManager(): pass
-class 
+class MpiSimulationManager(): pass

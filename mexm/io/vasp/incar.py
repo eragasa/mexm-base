@@ -413,15 +413,6 @@ class Incar(object):
 # *****************************************************************************
 
 
-class IncarComments():
-    tag_dictionary = {
-        'ISTART':IstartTags,
-        'ISYM':IsymTags,
-        'SYMPREC':SymprecTag
-    }
-
-    def get_comment(tag_name, tag_option):
-        return tag_dictionary[tag_name].get_comment(tag_option)
 
 class IncarBaseTags():
     tag_dictionary = OrderedDict()
@@ -462,9 +453,9 @@ class IncarBaseFloatTag(IncarBaseTags):
 class IstartTags(IncarBaseTags):
 
     tag_dictionary = OrderedDict([
-        (0:'begin from scratch'),
-        (1:'continuation job, constant energy cutoff'),
-        (2:'continuation job, constant basis set'),
+        (0,'begin from scratch'),
+        (1,'continuation job, constant energy cutoff'),
+        (2,'continuation job, constant basis set'),
     ])
 
 class IsymTags(IncarBaseTags):
@@ -473,11 +464,11 @@ class IsymTags(IncarBaseTags):
         (-1,'symmetry off'),
         (0,'symmetry_on'),
         (1,'symmetry_on'),
-        (2,'symmetry_on, efficient symmetrization')
+        (2,'symmetry_on, efficient symmetrization'),
         (3,'symmetry_on, only forces and stress tensor')
     ])
 
-class SymprecTags(IncarBaseFloatTag):
+class SymprecTag(IncarBaseFloatTag):
     tag_name = 'SYMPREC'
     comment = 'determines how accurate positions must be'
 
@@ -498,23 +489,23 @@ class IsmearTags(IncarBaseTags):
         (2,'method of Methfessel-Paxton order 2')
     ])
 
-class SigmaTags(IncarBaseFloatTags):
+class SigmaTag(IncarBaseFloatTag):
     tag_name = 'SIGMA'
     comment = 'width of the smearing in eV.'
 
-class NelmTags(IncarBaseFloatTags):
+class NelmTag(IncarBaseFloatTag):
     tag_name = 'NELM'
     comment = 'maximum number of electronic SC'
 
-class EncutTags(IncarBaseFloatTags):
+class EncutTag(IncarBaseFloatTag):
     tag_name = 'ENCUT'
     comment = 'Cut-off energy for plane wave basis set in eV'
 
-class EdiffTags(IncarBaseFloatTags):
+class EdiffTag(IncarBaseFloatTag):
     tag_name = 'EDIFF'
     comment = 'convergence condition for SC-loop in eV'
 
-class EdiffgTags(IncarBaseFloatTags):
+class EdiffgTag(IncarBaseFloatTag):
     tag_name = 'EDIFFG'
     comment_force_relaxation = 'force convergence requirements in ev A'
     comment_energy_relaxation = 'energy convergence in eV'
@@ -548,8 +539,8 @@ class AlgoTags(IncarBaseTags):
 class LrealTags(IncarBaseTags):
     tag_name = 'LREAL'
     tag_dictionary = OrderedDict([
-        ('.FALSE.', 'projection done in reciprocal space')
-        ('On', 'method of King-Smith, et al. Phys. Rev B 44, 13063 (1991).')
+        ('.FALSE.', 'projection done in reciprocal space'),
+        ('On', 'method of King-Smith, et al. Phys. Rev B 44, 13063 (1991).'),
         ('Auto', 'unpublished method of G. Kresse')
     ])
 
@@ -596,35 +587,45 @@ class IsifTags(IncarBaseTags):
         (7, 'relaxation, ions=F, cellshape=F, cellvolume=T')
     ])
 
-class EdiffTags(IncarBaseFloatTags):
+class EdiffTag(IncarBaseFloatTag):
     tag_name = 'EDIFF'
     comment = 'convergence condition for SC-loop in eV'
 
-class PotimTags(IncarBaseFloatTags):
+class PotimTag(IncarBaseFloatTag):
     tag_name = 'POTIM'
     comment = 'scaling factor in relaxation'
 
-class NswTags(IncarBaseFloatTags):
+class NswTag(IncarBaseFloatTag):
     tag_name = 'NSW'
     comment = 'maximum number of ionic relaxation steps'
 
-class LwaveTags(IncarBaseTags):
+class LwaveTag(IncarBaseTags):
     tag_name = 'LWAVE'
     tag_dictionary = OrderedDict([
         ('.TRUE.', 'write WAVECAR'),
         ('.FALSE.', 'do not write WAVECAR')
     ])
 
-class LchargTags(IncarBaseTags):
+class LchargTag(IncarBaseTags):
     tag_name = 'LCHARG'
     tag_dictionary = OrderedDict([
         ('.TRUE.', 'write CHGCR, write CHG'),
         ('.FALSE.', 'no CHGCAR, no CHG')
     ])
 
-class LvtotTags(IncarBaseTags):
+class LvtotTag(IncarBaseTags):
     tag_name = 'LVTOT'
     tag_dictionary = OrderedDict([
         ('.TRUE.', 'write LOCPOT'),
         ('.FALSE.', 'no LOCPOT')
     ])
+
+class IncarComments():
+    tag_dictionary = {
+        'ISTART':IstartTags,
+        'ISYM':IsymTags,
+        'SYMPREC':SymprecTag
+    }
+
+    def get_comment(tag_name, tag_option):
+        return tag_dictionary[tag_name].get_comment(tag_option)
