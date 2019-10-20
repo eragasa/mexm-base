@@ -57,10 +57,10 @@ class StillingerWeberPotential(ThreeBodyPotential):
         for triplet in self.three_body_triplets:
             for p in StillingerWeberPotential.three_body_parameters:
                 parameter_name = MEXM_3BODY_FMT.format(
-                    s1=triplet[0],
-                    s2=triplet[1],
-                    s3=triplet[2],
-                    p=p
+                    symbol1=triplet[0],
+                    symbol2=triplet[1],
+                    symbol3=triplet[2],
+                    parameter_name=p
                 )
                 self.parameter_names.append(parameter_name)
 

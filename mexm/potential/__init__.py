@@ -74,7 +74,12 @@ def get_pair_parameter_names(symbols,pair_parameter_names):
     parameter_names = []
     for s in get_symbol_pairs(symbols):
         for p in pair_parameter_names:
-            parameter_names.append(MEXM_PAIR_FORMAT.format(s1=s[0],s2=s[1],p=p))
+            parameter_names.append(MEXM_2BODY_FMT.format(
+                symbol1=s[0],
+                symbol2=s[1],
+                parameter_name=p
+                )
+            )
 
     return parameter_names
 

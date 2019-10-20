@@ -1,6 +1,6 @@
 import pytest
 from collections import OrderedDict
-from mexm.potential import MEXM_3BODY_FORMAT
+from mexm.potential import MEXM_3BODY_FMT
 from mexm.potential import StillingerWeberPotential
 
 @pytest.mark.parametrize(

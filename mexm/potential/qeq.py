@@ -18,7 +18,7 @@ class Qeq(Potential):
         self.symbols = symbols
 
         self.parameter_names = Qeq.get_parameter_names(symbols)
-        self.parameters = OrderedDict()
+        self.parameters_ = OrderedDict()
 
     @property
     def parameters(self):
@@ -27,7 +27,7 @@ class Qeq(Potential):
     @parameters.setter
     def parameters(self, parameters):
         assert isinstance(parameters, OrderedDict)
-        self.parameters = copy.deepcopy(parameters)
+        self.parameters_ = deepcopy(parameters)
 
     @classmethod
     def get_parameter_names(cls, symbols, hybrid_format=True):

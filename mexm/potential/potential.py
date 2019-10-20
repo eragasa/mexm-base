@@ -118,9 +118,9 @@ class Potential(object):
         for sp in symbol_pairs:
             for p in type(self).two_body_parameters:
                 parameter_name = MEXM_2BODY_FMT.format(
-                    s1=sp[0],
-                    s2=sp[1],
-                    p=p
+                    symbol1=sp[0],
+                    symbol2=sp[1],
+                    parameter_name=p
                 )
                 self.parameter_names.append(parameter_name)
 
