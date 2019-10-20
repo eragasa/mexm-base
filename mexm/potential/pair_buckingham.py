@@ -67,9 +67,6 @@ class BuckinghamPotential(PairPotential):
     def evaluate(self,r,parameters,r_cut=False):
         raise NotImplementedError
 
-
-
-
     def lammps_potential_section_to_string(self,parameters=None):
         """get the string for the lammps potential section
 
