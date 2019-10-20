@@ -14,11 +14,12 @@ from mexm.potential import (
         MEXM_HYBRID_GLOBAL_FMT, MEXM_HYBRID_1BODY_FMT, MEXM_HYBRID_2BODY_FMT)
 
 class BuckinghamPotential(PairPotential):
+    potential_type = 'buckingham'
+    is_charge = True
+
     parameter_names_global = ['cutoff']
     parameter_names_1body = ['chrg', 'cutoff']
     parameter_names_2body = ['A', 'rho', 'C', 'cutoff']
-    potential_type = 'buckingham'
-    is_charge = True
 
     """ Implementation of the Buckingham Potential
 
