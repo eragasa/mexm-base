@@ -13,7 +13,6 @@ from mexm.io.vasp.incar import VaspIncarError
 from mexm.io.vasp.poscar import VaspPoscarError
 from mexm.io.vasp.potcar import VaspPotcarError
 
-
 # *****************************************************************************
 # ****    SOME CONVENIENCE FUNCTIONS                                       ****
 # *****************************************************************************
@@ -35,11 +34,18 @@ def make_super_cell(obj, scp):
     sc = base.make_super_cell(copy.deepcopy(obj), list(scp))
     return copy.deepcopy(Poscar(sc))
 
+# input files
 from mexm.io.vasp.incar import Incar
-from mexm.io.vasp.outcar import Outcar
 from mexm.io.vasp.poscar import Poscar
 from mexm.io.vasp.kpoints import Kpoints
 from mexm.io.vasp.potcar import Potcar
+
+# output files
+from mexm.io.vasp.contcar import Contcar
+from mexm.io.vasp.outcar import Outcar
+class Chgcar(): pass
+class Oszicar(): pass
+
 # *****************************************************************************
 # ****     CORE CLASSES                                                    ****
 # *****************************************************************************

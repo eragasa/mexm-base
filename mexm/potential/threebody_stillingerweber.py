@@ -5,8 +5,8 @@ __license__ = "Simplified BSD License"
 __version__ = "1.0"
 
 from collections import OrderedDict
-from mexm.potential import MEXM_2BODY_FORMAT
-from mexm.potential import MEXM_3BODY_FORMAT
+from mexm.potential import MEXM_2BODY_FMT
+from mexm.potential import MEXM_3BODY_FMT
 from mexm.potential import ThreeBodyPotential
 
 class StillingerWeberPotential(ThreeBodyPotential):
@@ -56,7 +56,7 @@ class StillingerWeberPotential(ThreeBodyPotential):
 
         for triplet in self.three_body_triplets:
             for p in StillingerWeberPotential.three_body_parameters:
-                parameter_name = MEXM_3BODY_FORMAT.format(
+                parameter_name = MEXM_3BODY_FMT.format(
                     s1=triplet[0],
                     s2=triplet[1],
                     s3=triplet[2],

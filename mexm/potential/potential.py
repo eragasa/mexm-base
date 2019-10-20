@@ -10,12 +10,14 @@ from mexm.exceptions import BadParameterException
 
 from mexm.elements import ELEMENTS
 
-from mexm.potential import MEXM_1BODY_FORMAT
-from mexm.potential import MEXM_2BODY_FORMAT
-from mexm.potential import MEXM_3BODY_FORMAT
+from mexm.potential import MEXM_GLOBAL_FMT
+from mexm.potential import MEXM_1BODY_FMT
+from mexm.potential import MEXM_2BODY_FMT
+from mexm.potential import MEXM_3BODY_FMT
 from mexm.potential import get_symbol_pairs
 
 class Potential(object):
+    potential_type = "potential"
     """base class for potential
 
     Args:
@@ -45,6 +47,7 @@ class Potential(object):
         self.parameters = None
         self._initialize_parameters()
 
+
     def _initialize_parameter_names(self):
         raise NotImplementedError
 
@@ -52,7 +55,7 @@ class Potential(object):
         symbol_pairs = get_symbol_pairs(self.symbols)
         for sp in symbol_pairs:
             for p in type(self).two_body_parameters:
-                parameter_name = MEXM_2BODY_FORMAT.format(
+                parameter_name = MEXM_2BODY_FMT.format(
                     s1=sp[0],
                     s2=sp[1],
                     p=p

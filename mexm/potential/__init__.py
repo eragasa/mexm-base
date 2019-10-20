@@ -16,9 +16,15 @@ import numpy as np
 from pypospack.exceptions import BadParameterException
 from pypospack.eamtools import EamSetflFile
 
-MEXM_1BODY_FORMAT = "{s}_{p}"
-MEXM_2BODY_FORMAT = '{s1}{s2}_{p}'
-MEXM_3BODY_FORMAT = '{s1}{s2}{s3}_{p}'
+# static global formatting variaables
+MEXM_GLOBAL_FMT = '{parameter_name}'
+MEXM_1BODY_FMT = "{symbol}_{parameter_name}"
+MEXM_2BODY_FMT = '{symbol1}{symbol2}_{parameter_name}'
+MEXM_3BODY_FMT = '{symbol1}{symbol2}{symbol3}_{parameter_name}'
+MEXM_HYBRID_GLOBAL_FMT = "{potential_type}_{parameter_name}"
+MEXM_HYBRID_1BODY_FMT = '{symbol}_{potential_type}_{parameter_name}'
+MEXM_HYBRID_2BDOY_FMT = "{symbol1}{symbol2}_{potential_type}_{parameter_name}"
+MEXM_HYBRID_3BODY_FMT = "{symbol1}{symbol2}{symbol3}_{potential_type}_{parameter_name}"
 
 def get_symbol_pairs(symbols):
     """determine symbol pairs

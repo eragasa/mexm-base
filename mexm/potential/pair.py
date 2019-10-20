@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
-from mexm.potential import MEXM_1BODY_FORMAT
-from mexm.potential import MEXM_2BODY_FORMAT
+from mexm.potential import MEXM_1BODY_FMT
+from mexm.potential import MEXM_2BODY_FMT
 
 from mexm.potential import Potential
 from mexm.potential import get_symbol_pairs
@@ -26,12 +26,12 @@ class PairPotential(Potential):
         self.parameter_names = []
         if self.is_charge:
             for s in self.symbols:
-                parameter_name = MEXM_1BODY_FORMAT.format(s=s, p='chrg')
+                parameter_name = MEXM_1BODY_FMT.format(s=s, p='chrg')
                 self.parameter_names.append(parameter_name)
 
         for sp in self.symbol_pairs:
             for p in self.pair_potential_parameters:
-                parameter_name = MEXM_2BODY_FORMAT.format(
+                parameter_name = MEXM_2BODY_FMT.format(
                     s1=sp[0],
                     s2=sp[2],
                     p=p

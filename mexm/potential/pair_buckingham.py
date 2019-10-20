@@ -9,8 +9,8 @@ from collections import OrderedDict
 
 from mexm.potential import PairPotential
 from mexm.potential import get_symbol_pairs
-from mexm.potential import MEXM_1BODY_FORMAT
-from mexm.potential import MEXM_2BODY_FORMAT
+from mexm.potential import MEXM_1BODY_FMT
+from mexm.potential import MEXM_2BODY_FMT
 
 class BuckinghamPotential(PairPotential):
     global_parameters = ['cutoff']
@@ -64,13 +64,13 @@ class BuckinghamPotential(PairPotential):
     def _initialize_1body_parameter_names(self):
         for s in self.symbols:
             for p in BuckinghamPotential.one_body_parameters:
-                parameter_name = MEXM_1BODY_FORMAT.format(s=s,p=p)
+                parameter_name = MEXM_1BODY_FMT.format(s=s,p=p)
                 self.parameter_names.append(parameter_name)
 
     def _initialize_2body_parameter_names(self):
         for sp in self.symbol_pairs:
             for p in BuckinghamPotential.two_body_parameters:
-                parameter_name = MEXM_2BODY_FORMAT.format(
+                parameter_name = MEXM_2BODY_FMT.format(
                     s1=sp[0],
                     s2=sp[1],
                     p=p
