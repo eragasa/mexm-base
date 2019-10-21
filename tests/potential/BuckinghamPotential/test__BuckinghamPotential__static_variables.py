@@ -10,7 +10,7 @@ def test__static_variables():
     assert isinstance(BuckinghamPotential.is_charge, bool)
 
     assert BuckinghamPotential.parameter_names_global == ['cutoff']
-    assert BuckinghamPotential.parameter_names_1body == ['chrg', 'cutoff']
+    assert BuckinghamPotential.parameter_names_1body == ['chrg']
     assert BuckinghamPotential.parameter_names_2body == ['A', 'rho', 'C', 'cutoff']
     assert BuckinghamPotential.potential_type == 'buckingham'
     assert BuckinghamPotential.is_charge

@@ -18,7 +18,7 @@ class BuckinghamPotential(PairPotential):
     is_charge = True
 
     parameter_names_global = ['cutoff']
-    parameter_names_1body = ['chrg', 'cutoff']
+    parameter_names_1body = ['chrg']
     parameter_names_2body = ['A', 'rho', 'C', 'cutoff']
 
     """ Implementation of the Buckingham Potential
@@ -95,8 +95,8 @@ class BuckinghamPotential(PairPotential):
             str_C = '{}{}_C'.format(s1, s2)
             str_cutoff = '{}{}_cutoff'.format(s1, s2)
 
-            group_id_s1 = self.symbols.index(s1)
-            group_id_s2 = self.symbols.index(s2)
+            group_id_s1 = self.symbols.index(s1) + 1
+            group_id_s2 = self.symbols.index(s2) + 1
             A = float(self.parameters[str_A])
             rho = float(self.parameters[str_rho])
             C = float(self.parameters[str_C])
