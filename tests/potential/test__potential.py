@@ -57,10 +57,30 @@ def test__potential():
     potential_map = PotentialManager.get_potential_map()
     for k, v in potential_map.items():
         potential_name = k
-        symbols = potential_configurations[potential_name]['configuration']['symbols']
+        configuration = potential_configurations[k]['configuration']
+        symbols = configuration['symbols']
+
+        try:
+            func_pair = configuration['func_pair']
+        except KeyError:
+            func_pair = None
+
+        try:
+            func_density = configuration['func_density']
+        except KeyError:
+            func_density =none
+
+        try:
+            func_embedding = configuration['func_embedding']
+        except KeyError:
+            func_embedding = None
+
         potential = PotentialManager.get_potential_by_name(
             potential_name = potential_name,
-            symbols = symbols
+            symbols = symbols,
+            func_pair = func_pair,
+            func_density = func_density,
+            func_embedding = func_embedding
         )
 
 def dev__potential__list_potentials():

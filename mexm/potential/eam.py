@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import copy
 import numpy as np
+from mexm.manager import PotentialManager
 from mexm.potential import Potential
 from mexm.potential import PairPotential
 from mexm.potential import EamDensityFunction
@@ -112,15 +113,10 @@ class EamPotential(Potential):
 
 
     def _initialize_parameter_names(self):
-        if all([self.obj_pair is not None,
-                self.obj_density is not None,
-                self.obj_embedding is not None]):
-            p_params = ['p_{}'.format(p) for p in self.obj_pair.parameter_names]
-            d_params = ['d_{}'.format(p) for p in self.obj_density.parameter_names]
-            e_params = ['e_{}'.format(p) for p in self.obj_embedding.parameter_names]
-            self.parameter_names = list(p_params + d_params + e_params)
-        else:
-            raise MexmPotentialError("cannot initialize parameter_names")
+        p_params = ['p_{}'.format(p) for p in self.obj_pair.parameter_names]
+        d_params = ['d_{}'.format(p) for p in self.obj_density.parameter_names]
+        e_params = ['e_{}'.format(p) for p in self.obj_embedding.parameter_names]
+        self.parameter_names = list(p_params + d_params + e_params)
 
     def _init_parameters(self):
         if self.parameter_names is None:
@@ -215,12 +211,12 @@ class EamPotential(Potential):
         for p in self.parameters:
             self.parameters[p] = parameters[p]
 
-        self.r_cut = rcut
+        self.rcut = rcut
         self.r = copy.deepcopy(r)
         self.rho = copy.deepcopy(rho)
         self.evaluate_pair(r=r,rcut=rcut)
         self.evaluate_density(r=r,rcut=rcut)
-        self.evaluate_embedding(rho)
+        self.evaluate_embedding(rho=rho, rhocut=rcut)
 
     def _log(self,msg):
         print(msg)
@@ -228,81 +224,27 @@ class EamPotential(Potential):
     def set_obj_pair(self,func_pair):
 
         assert isinstance(func_pair,str)
-
-        if func_pair == 'morse':
-            self.obj_pair = MorsePotential(symbols=self.symbols)
-        elif func_pair == 'bornmayer':
-            self.obj_pair = BornMayerPotential(symbols=self.symbols)
-        else:
-            s  = ["func_pair must be a PairPotential"]
-            s += ["    type(func_pair)={}".format(str(type(func_pair)))]
-            s += ["    func_pair={}".format(func_pair)]
-            s = "\n".join(s)
-
-            # TODO: should create a custom error handler
-            self._log(s)
-            raise ValueError(s)
-
-        if not isinstance(self.obj_pair,PairPotential):
-            s  = ["func_pair must be a PairPotential"]
-            s += ["    type(func_pair)={}".format(str(type(func_pair)))]
-            s += ["    func_pair={}".format(func_pair)]
-            s = "\n".join(s)
-
-            # TODO: should create a custom error handler
-            self._log(s)
-            raise ValueError(s)
+        self.obj_pair = PotentialManager.get_Potential_by_name(
+                func_pair,
+                self.symbols
+        )
+        assert isinstance(self.obj_pair, PairPotential)
 
     def set_obj_density(self,func_density):
 
         assert isinstance(func_density,str)
-
-        if func_density == 'eam_dens_exp':
-            self.obj_density = ExponentialDensityFunction(symbols=self.symbols)
-        else:
-            msg_err = "func_dens must be an EamDensityfunction"
-            raise ValueError(msg_err)
-
-        #<--- ensure that the potential configured is an EamDensityFunction
-        if not isinstance(self.obj_density,EamDensityFunction):
-            msg_err = (
-                "func_dens must be an EamDensityFunction\n"
-                 "\tfunc_density={}\n"
-                 "\ttype(attr.obj_density)={}\n").format(
-                         func_density,
-                         type(self.obj_density))
-            raise ValueError(msg_err)
+        self.obj_density = PotentialManager.get_potential_by_name(
+                func_density,
+                self.symbols
+        )
 
     def set_obj_embedding(self,func_embedding):
 
         assert isinstance(func_embedding,str)
-
-        # this programming is a little sloppy.  some software architecture needs to be implemented here
-        # for a more clean object oriented approach
-        if func_embedding == 'eam_embed_universal':
-            self.obj_embedding = UniversalEmbeddingFunction(symbols=self.symbols)
-        elif func_embedding == 'eam_embed_bjs':
-            self.obj_embedding = BjsEmbeddingFunction(symbols=self.symbols)
-        elif func_embedding == 'eam_embed_fs':
-            self.obj_embedding = FinnisSinclairEmbeddingFunction(symbols=self.symbols)
-        elif func_embedding == 'eam_embed_eos_rose':
-            self.obj_embedding = RoseEquationOfStateEmbeddingFunction(symbols=self.symbols)
-        else:
-            msg_err = "func_embedding must be a EamEmbeddingFunction"
-            raise ValueError(msg_err)
-
-        # If the Embedding Function is determined from the Equation of State, then
-        # the density function and the pair function need to be provided to the
-        # embedding function object since these values are determine by numerical
-        # inversion of the equation of state
-
-        if isinstance(self.obj_embedding,EamEmbeddingEquationOfState):
-            self.density_fn = self.obj_density
-            self.pair_fn = self.obj_pair
-
-        if not isinstance(self.obj_embedding,EamEmbeddingFunction):
-            msg_err = "func_embedding must be a EamEmbeddingFunction"
-            raise ValueError(msg_err)
+        self.obj_embedding = PotentialManager.get_potential_by_name(
+                func_embedding,
+                self.symbols
+        )
 
     def evaluate_pair(self,r,parameters=None,rcut=None):
         assert isinstance(r,np.ndarray)

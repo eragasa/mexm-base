@@ -18,17 +18,53 @@ class PotentialManager(object):
         return potential_map
 
     @staticmethod
-    def get_potential(module_name, class_name, symbols):
+    def get_potential(module_name,
+                      class_name,
+                      symbols,
+                      func_pair=None,
+                      func_density=None,
+                      func_embedding=None):
         module_ = importlib.import_module(module_name)
         class_ = getattr(module_, class_name)
-        return class_(symbols=symbols)
+
+        if class_.__name__ == 'EamPotential':
+            kwargs ={
+                'symbols':symbols,
+                'func_pair':func_pair,
+                'func_density':func_density,
+                'func_embedding':func_embedding
+            }
+            return class_(**kwargs)
+        else:
+            return class_(symbols=symbols)
 
     @staticmethod
-    def get_potential_by_name(potential_name, symbols):
+    def get_potential_by_name(potential_name,
+                              symbols,
+                              func_pair=None,
+                              func_density=None,
+                              func_embedding=None):
         potential_map = PotentialManager.get_potential_map()
         module_name = potential_map[potential_name]['module']
         class_name = potential_map[potential_name]['class']
-        return PotentialManager.get_potential(module_name, class_name, symbols)
+
+        if class_name== 'eam':
+            kwargs ={
+                'module_name':module_name,
+                'class_name':class_name,
+                'symbols':symbols,
+                'func_pair':func_pair,
+                'func_density':func_density,
+                'func_embedding':func_embedding
+            }
+            return PotentialManager.get_potential(**kwargs)
+        else:
+            kwargs ={
+                'module_name':module_name,
+                'class_name':class_name,
+                'symbols':symbols,
+            }
+            return PotentialManager.get_potential(**kwargs)
 
     @staticmethod
     def get_potential_types():
