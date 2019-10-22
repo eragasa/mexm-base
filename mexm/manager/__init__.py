@@ -1,0 +1,1 @@
+from mexm.manager.potentialmanager import PotentialManager
