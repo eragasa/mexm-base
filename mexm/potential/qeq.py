@@ -10,6 +10,7 @@ MEXM_CHARGE_SUMMATION_TYPES = ['ewald']
 
 class Qeq(Potential):
     potential_type = 'qeq'
+    is_base_potential = True
     parameter_names_global = ['Nevery', 'cutoff', 'tolerance', 'maxiter']
     parameter_names_1body = ['chi', 'eta', 'gamma', 'zeta', 'qcore']
 

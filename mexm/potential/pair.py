@@ -7,6 +7,8 @@ from mexm.potential import Potential
 from mexm.potential import get_symbol_pairs
 
 class PairPotential(Potential):
+    potential_type = 'pair'
+    is_base_potential = True
     def __init__(self,symbols,potential_type,is_charge):
         Potential.__init__(self,
                 symbols=symbols,

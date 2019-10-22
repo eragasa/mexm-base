@@ -15,6 +15,7 @@ from mexm.potential import (
 
 class BuckinghamPotential(PairPotential):
     potential_type = 'buckingham'
+    is_base_potential = False
     is_charge = True
 
     parameter_names_global = ['cutoff']

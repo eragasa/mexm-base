@@ -13,6 +13,7 @@ class StillingerWeberPotential(ThreeBodyPotential):
     two_body_parameters = ['A','B','p','q','epsilon','sigma', 'a']
     three_body_parameters = ['lambda', 'costheta0', 'tol']
     potential_type = 'stillingerweber'
+    is_base_potential = False
     is_charge = False
 
     """Implementation of the Stillinger-Weber potential

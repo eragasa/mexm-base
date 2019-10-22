@@ -6,8 +6,8 @@ __version__ = 20171102
 import copy,inspect
 import numpy as np
 from collections import OrderedDict
-from pypospack.potential import EamDensityFunction
-from pypospack.potential import determine_symbol_pairs
+from mexm.potential import EamDensityFunction
+from mexm.potential import determine_symbol_pairs
 
 def func_cutoff_mishin2004(r, rc, hc, h0):
     if isinstance(r,float):
@@ -21,18 +21,18 @@ def func_cutoff_mishin2004(r, rc, hc, h0):
 
         x0 = r/h0
         psi_0 = (x0**4)/(1+x0**4)
-        
+
         psi = psi_c * psi_0 * ind_rc
     else:
         ind_rc = np.ones(r.size)
         ind_rc[r > rc] = 0
-        
+
         xrc = (r-rc)/hc
         psi_c = (xrc**4)/(1+xrc**4)
 
         x0 = r/h0
         psi_0 = (x0**4)/(1+x0**4)
-        
+
         psi = psi_c * psi_0 * ind_rc
 
     return psi

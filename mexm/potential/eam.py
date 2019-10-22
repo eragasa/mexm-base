@@ -15,6 +15,9 @@ from pypospack.potential import BornMayerPotential
 from pypospack.potential import MorsePotential
 
 class EamPotential(Potential):
+    potential_type = 'eam'
+    is_base_potential = False
+    is_charge = False
     """embedded energy method potential
     This class is for the modelling of an EAM potential
     Args:

@@ -5,10 +5,9 @@ import os, copy, importlib, subprocess
 import shutil
 from collections import OrderedDict
 
-import pypospack.io.vasp as vasp
-import pypospack.io.lammps as lammps
+from mexm.io.vasp import Poscar
+from mexm.io.lammps import LammpsStructure
 
-from pypospack.task import Task
 from mexm.simulation import Simulation
 
 from pypospack.io.eamtools import EamSetflFile
@@ -438,8 +437,9 @@ class LammpsSimulation(Simulation):
 
     def post(self):
         lammps_result_names = ['tot_energy','num_atoms',
-                        'xx','yy','zz','xy','xz','yz',
-                        'tot_press','pxx','pyy','pzz','pxy','pxz','pyz']
+            'xx','yy','zz','xy','xz','yz',
+            'tot_press','pxx','pyy','pzz','pxy','pxz','pyz'
+        ]
 
         self.results = OrderedDict()
         self.get_variables_from_lammps_output(
@@ -582,29 +582,29 @@ class LammpsSimulation(Simulation):
                 self._lammps_input_out_section()])
         return(str_out)
 
-    def write_structure_file(self,filename=None):
-        if filename is not None:
-            self.lammmps_structure_path = filename
-
-        _filename = os.path.join(
-                self.task_directory,
-                self.lammps_structure_path)
+    def get_atom_style(self):
         if self.potential.is_charge:
-            _atom_style = 'charge'
+            atom_style = 'charge'
         else:
-            _atom_style = 'atomic'
-        _symbol_list = self.potential.symbols
+            atom_style = 'atomic'
+        return atom_style
 
-        # instatiate using lammpsstructure file
-        self.lammps_structure = lammps.LammpsStructure(\
-                obj=self.structure)
+    def write_structure_file(self, lammps_structure_path=None):
+        if lammps_structure_path is not None:
+            self.lammmps_structure_path = lammps_structure_path
 
-        self.lammps_structure.write(\
-                filename=_filename,
-                symbol_list=_symbol_list,
-                atom_style=_atom_style)
+        kwargs = {
+            path:os.path.join(self.task_directory,
+                              self.lammps_structure_path)
+            atom_style=self.get_atomic_style()
+        }
 
-    def modify_structure(self):pass
+        self.lammps_structure = LammpsStructure.initialize_from_mexm(self.structure)
+        self.lammps_structure.write(**kwargs)
+
+    def modify_structure(self, new_info):
+        if new_info[0] == 'a0':
+            self.structure.a0 = new_info[1]
 
     def configure_potential_from_OrderedDict(self, obj_dict):
         assert isinstance(obj_dict, OrderedDict)
@@ -613,6 +613,7 @@ class LammpsSimulation(Simulation):
         assert isinstance(obj_potential, Potential)
 
         if type(obj_Potential) == EamPotential:
+            pass
 
 
     def configure_potential(self,potential=None):
@@ -633,14 +634,13 @@ class LammpsSimulation(Simulation):
                     potential['embedding_type'] = 'eam_universal_embedding'
         """
         assert isinstance(potential,OrderedDict) or potential is None
-
         _potential = None
         if isinstance(potential,OrderedDict):
             self.configuration['potential']=copy.deepcopy(potential)
             _potential = self.configuration['potential']
         elif potential is None:
             if isinstance(self.potential,Potential):
-                return
+                pass
             else:
                 _potential = self.configuration['potential']
 

@@ -12,6 +12,9 @@ def function_exponential_density(r, rho0, beta,r0):
 
     return rho0 * np.exp(-beta*(r-r0))
 class ExponentialDensityFunction(EamDensityFunction):
+    potential_type = eamdens_exp
+    is_base_potential = False
+    potential_names_1body = ['rho0', 'beta', 'r0', 'cutoff']
     """
     Args:
         symbols(list of str)

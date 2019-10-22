@@ -18,6 +18,7 @@ from mexm.potential import get_symbol_pairs
 
 class Potential(object):
     potential_type = "potential"
+    is_base_potential = True
     """base class for potential
 
     Args:

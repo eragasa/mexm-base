@@ -1,8 +1,8 @@
-from pypospack.potential import Potential
+from mexm.potential import Potential
 
 class EamDensityFunction(Potential):
-
     potential_type = 'eam_density_base'
+    is_base_potential = True
     def __init__(self,
             symbols,
             potential_type='eamdens'):

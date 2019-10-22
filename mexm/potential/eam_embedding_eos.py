@@ -1,7 +1,7 @@
 import inspect
 from collections import OrderedDict
 
-from pypospack.potential import EamEmbeddingFunction
+from mexm.potential import EamEmbeddingFunction
 
 def get_omega(a0,lattice_type='fcc'):
     V=a0**3
