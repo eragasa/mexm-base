@@ -7,7 +7,7 @@ import copy,inspect
 import numpy as np
 from collections import OrderedDict
 from mexm.potential import EamDensityFunction
-from mexm.potential import determine_symbol_pairs
+from mexm.potential import get_symbol_pairs
 
 def func_cutoff_mishin2004(r, rc, hc, h0):
     if isinstance(r,float):

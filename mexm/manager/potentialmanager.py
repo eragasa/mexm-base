@@ -25,8 +25,9 @@ class PotentialManager(object):
 
     @staticmethod
     def get_potential_by_name(potential_name, symbols):
-        module_name = PotentialToClassMap[potential_name]
-        class_name = PotentialToClassMap[potential_name]
+        potential_map = PotentialManager.get_potential_map()
+        module_name = potential_map[potential_name]['module']
+        class_name = potential_map[potential_name]['class']
         return PotentialManager.get_potential(module_name, class_name, symbols)
 
     @staticmethod

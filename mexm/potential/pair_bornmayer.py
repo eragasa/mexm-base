@@ -6,10 +6,14 @@ __version__ = 20180301
 import copy
 import numpy as np
 from collections import OrderedDict
-from pypospack.potential import PairPotential
-from pypospack.potential import determine_symbol_pairs
+from mexm.potential import PairPotential
+from mexm.potential import get_symbol_pairs
+from mexm.potential import MEXM_2BODY_FMT, MEXM_HYBRID_2BODY_FMT
 
 class BornMayerPotential(PairPotential):
+    potential_type = 'bornmayer'
+    is_base_potential = False
+    parameter_names = ['phi0','gamma','r0']
     """ Implementation of a Born-Mayer repulsive potential
 
     Args:
@@ -27,13 +31,13 @@ class BornMayerPotential(PairPotential):
                 potential_type=self.potential_type,
                 is_charge=False)
 
-    def _init_parameter_names(self):
+    def _initialize_parameter_names(self):
         self.symbol_pairs = list(determine_symbol_pairs(self.symbols))
         self.parameter_names = []
         for s in self.symbol_pairs:
             for p in self.pair_potential_parameters:
                 self.parameter_names.append(
-                        self.PYPOSPACK_PAIR_FORMAT.format(s1=s[0],s2=s[1],p=p))
+                    MEXM_2BODY_FMT.format(s1=s[0],s2=s[1],p=p))
         return list(self.parameter_names)
 
     def _init_parameters(self):
@@ -48,7 +52,7 @@ class BornMayerPotential(PairPotential):
         assert isinstance(parameters,OrderedDict)
         assert type(r_cut) in [int,float,type(None)]
 
-        # <----------------------------copy a local of the parameters 
+        # <----------------------------copy a local of the parameters
         for k in self.parameters:
             self.parameters[k] = parameters[k]
 
@@ -81,26 +85,26 @@ class BornMayerPotential(PairPotential):
                 _V= _V - _V_rc - _dVdr_at_rc * (r-_rcut)
                 # <----- V=0, where r <= _rcut
                 _V[np.where(r>=_rcut)] = 0.0
-        
+
                 self.potential_evaluations[_pair_name] = copy.deepcopy(_V)
-        
+
         return copy.deepcopy(self.potential_evaluations)
-    
+
     # same as parent class
     def lammps_potential_section_to_string(self):
         """string of the potential section in the lammps file"""
         raise NotImplementedError
-    
+
     # same as parent class
     def gulp_potential_section_to_string(self):
         """string of the potential section in the gulp file"""
         raise NotImplementedError
-    
+
     # same as parent class
     def phonts_potential_section_to_string(self):
         """string of the potential section in the phonts file"""
-        raise NotImplementedError 
-    
+        raise NotImplementedError
+
     # same as parent class
     def write_lammps_potential_file(self):
         """write the lammps potential file to potential.mod"""
@@ -114,5 +118,5 @@ class BornMayerPotential(PairPotential):
     def references(self):
         reference_dict = {}
         reference_dict['LammpsMorse'] \
-                = "http://lammps.sandia.gov/doc/pair_morse.html" 
+                = "http://lammps.sandia.gov/doc/pair_morse.html"
         return reference_dict

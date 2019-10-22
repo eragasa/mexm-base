@@ -138,9 +138,8 @@ threebody_potential_names = [
 #------------------------------------------------------------------------------
 # These are analyical EAM density functions
 #------------------------------------------------------------------------------
-from pypospack.potential.eamdens_exponential import ExponentialDensityFunction
-from pypospack.potential.eamdens_mishin2003 import Mishin2003DensityFunction
-from pypospack.potential.eamdens_mishin2004 import Mishin2004DensityFunction
+from mexm.potential.eamdens_exponential import ExponentialDensityFunction
+from mexm.potential.eamdens_mishin2004 import Mishin2004DensityFunction
 eam_density_names = [
     'eam_dens_exp',
     'eam_dens_mishin2004'
@@ -172,7 +171,7 @@ eam_embedding_eos_names = [
 
 eam_embedding_names = eam_embedding_analytical_names + eam_embedding_eos_names
 
-from pypospack.potential.eam import EamPotential
+from mexm.potential.eam import EamPotential
 
 def PotentialObjectMap(potential_type='all'):
     potential_map = OrderedDict()

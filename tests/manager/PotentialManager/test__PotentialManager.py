@@ -42,6 +42,7 @@ def dev__PotentialManager__get_potential_map():
 def test__PotentialManager__get_potential_map():
     potential_map = PotentialManager.get_potential_map()
     isinstance(potential_map, OrderedDict)
+    
 if __name__ == "__main__":
     dev__PotentialManager__get_potential_types()
     dev__PotentialManager__get_potential_names()

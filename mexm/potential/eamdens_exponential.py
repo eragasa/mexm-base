@@ -6,13 +6,13 @@ __version__ = 20171102
 import copy
 import numpy as np
 from collections import OrderedDict
-from pypospack.potential import EamDensityFunction
+from mexm.potential import EamDensityFunction
 
 def function_exponential_density(r, rho0, beta,r0):
-
     return rho0 * np.exp(-beta*(r-r0))
+
 class ExponentialDensityFunction(EamDensityFunction):
-    potential_type = eamdens_exp
+    potential_type = 'eamdens_exp'
     is_base_potential = False
     potential_names_1body = ['rho0', 'beta', 'r0', 'cutoff']
     """

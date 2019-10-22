@@ -3,10 +3,8 @@ mexm exception classes
 """
 
 class MexmException(Exception):
-
-    def __init__(self, msg, original_exception):
-        super(MexmException, self).__init__(
-            msg + (': {}'.format(original_exception)))
+    def __init__(self, msg, original_exception=None):
+        super(MexmException, self).__init__(msg)
         self.original_exception = original_exception
 
 class BaseException(Exception):

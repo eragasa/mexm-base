@@ -7,8 +7,12 @@ import copy
 import numpy as np
 from collections import OrderedDict
 from pypospack.potential import EamEmbeddingFunction
+from mexm.potential import MEXM_HYBRID_1BODY_FMT
 
 class BjsEmbeddingFunction(EamEmbeddingFunction):
+    potential_type='eamembed_bjs'
+    is_base_potential = False
+    parameter_names_1body = ['F0','gamma','F1']
     """
     Args:
         symbols(list of str)

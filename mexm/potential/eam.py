@@ -1,23 +1,20 @@
 from collections import OrderedDict
 import copy
 import numpy as np
-from pypospack.potential import Potential
-from pypospack.potential import PairPotential
-from pypospack.potential import EamDensityFunction
-from pypospack.potential import ExponentialDensityFunction
-from pypospack.potential import EamEmbeddingFunction
-from pypospack.potential import FinnisSinclairEmbeddingFunction
-from pypospack.potential import EamEmbeddingEquationOfState
-from pypospack.potential import RoseEquationOfStateEmbeddingFunction
-from pypospack.eamtools import EamSetflFile
+from mexm.potential import Potential
+from mexm.potential import PairPotential
+from mexm.potential import EamDensityFunction
+from mexm.potential import EamEmbeddingFunction
+from mexm.io.eamtools import EamSetflFile
 
-from pypospack.potential import BornMayerPotential
-from pypospack.potential import MorsePotential
+from mexm.exceptions import MexmException
+class MexmPotentialError(Exception): pass
 
 class EamPotential(Potential):
     potential_type = 'eam'
     is_base_potential = False
     is_charge = False
+
     """embedded energy method potential
     This class is for the modelling of an EAM potential
     Args:
@@ -65,7 +62,7 @@ class EamPotential(Potential):
         # these will be numpy arrays
         self.r = None
         self.rho = None
-        self.pair= None
+        self.pair = None
         self.density = None
         self.embedding = None
 
@@ -76,13 +73,11 @@ class EamPotential(Potential):
                 symbols="".join(self.symbols))
         self.setfl = None
 
-        if filename is None:
+        if func_pair is not None:
             self.set_obj_pair(func_pair=func_pair)
-            self.set_obj_density(func_density=func_density)
-            self.set_obj_embedding(func_embedding=func_embedding)
-        else:
-            pass
-            #raise NotImplementedError()
+        if func_density is not None:
+            self.get_obj_density(func_density=func_density)
+        if func_embedding is not None: self.get_obj_embedding(fun_embedding=func_embedding)
 
         Potential.__init__(self,
                 symbols=symbols,
@@ -116,7 +111,7 @@ class EamPotential(Potential):
         return str_out
 
 
-    def _init_parameter_names(self):
+    def _initialize_parameter_names(self):
         if all([self.obj_pair is not None,
                 self.obj_density is not None,
                 self.obj_embedding is not None]):
@@ -125,7 +120,7 @@ class EamPotential(Potential):
             e_params = ['e_{}'.format(p) for p in self.obj_embedding.parameter_names]
             self.parameter_names = list(p_params + d_params + e_params)
         else:
-            self.parameter_names = None
+            raise MexmPotentialError("cannot initialize parameter_names")
 
     def _init_parameters(self):
         if self.parameter_names is None:
