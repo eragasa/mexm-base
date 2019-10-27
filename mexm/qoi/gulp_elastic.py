@@ -4,4 +4,5 @@ from mexm.qoi import ElasticProperties
 class GulpElasticProperties(ElasticProperties):
     qoi_type = 'gulp_elastic'
 
-    def __init__(self, qoi_name, structures)
+    def __init__(self, qoi_name, structures):
+        raise NotImplementedError
