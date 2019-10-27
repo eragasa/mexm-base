@@ -50,4 +50,5 @@ LewisCatlow1985 = OrderedDict([
     ('potential_type','buckingham'),
     ('symbols',all_cations),
     ('parameters',parameters)
+    ('references',['lewiscatlow1985_buck','catlow1977')
 ])

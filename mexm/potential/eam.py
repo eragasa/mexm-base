@@ -1,7 +1,6 @@
 from collections import OrderedDict
 import copy
 import numpy as np
-from mexm.manager import PotentialManager
 from mexm.potential import Potential
 from mexm.potential import PairPotential
 from mexm.potential import EamDensityFunction

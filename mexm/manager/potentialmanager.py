@@ -3,7 +3,6 @@ from collections import OrderedDict
 from mexm.potential import PotentialConfiguration
 from mexm.potential import Potential
 
-
 class PotentialManager(object):
 
     @staticmethod
@@ -76,7 +75,6 @@ class PotentialManager(object):
         n_potentials = -1
         while (len(potential_list) > n_potentials):
             n_potentials = len(potential_list)
-            print(n_potentials)
             for p in potential_list:
                 potential_list += [k for k in p.__subclasses__() if k not in potential_list]
         return potential_list

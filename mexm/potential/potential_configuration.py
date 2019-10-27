@@ -19,6 +19,14 @@ class PotentialConfiguration(object):
 
         return potential_configuration
 
+    def initialize_from_dict(potential):
+        assert isinstance(potential, dict)
+        potential_configuration = PotentialConfiguration()
+        potential_configuraiton.potential_type = potential['potential_type']
+        potential_configuration.symbols = potential['symbols']
+        if 'parameters' in potential:
+            potential_configuration.parameters = potential['parameters']
+
     @property
     def potential_type(self):
        return self._potential_dict['potential_type']

@@ -51,6 +51,10 @@ def func_density_mishin2004_w_cutoff(r, r0, A0, B0, C0, y, gamma, rc, hc, h0):
     return psi*phi
 
 class Mishin2004DensityFunction(EamDensityFunction):
+    potential_type = 'eamdens_mishin2004'
+    references = [
+    
+    ]
     """
     Args:
         symbols(list of str)
