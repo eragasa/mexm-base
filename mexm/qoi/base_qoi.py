@@ -2,6 +2,7 @@ from copy import deepcopy
 
 class Qoi(object):
     qoi_type = 'base_qoi'
+    qois_calculated = []
     is_abstract_class = True
 
     """ Abstract Quantity of Interest

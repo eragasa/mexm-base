@@ -2,29 +2,28 @@ from collections import OrderedDict
 from mexm.qoi import ElasticProperties
 
 class LammpsElasticProperties(ElasticProperties):
-    qoi_type = 'lmps_elastic'
-
+    qoi_type = 'lammps_elastic'
+    qois_calculated = [
+        'c11_lammps',
+        'c12_lammps',
+        'c13_lammps',
+        'c22_lammps',
+        'c33_lammps',
+        'c44_lammps',
+        'c55_lammps',
+        'c66_lammps'
+        'bulk_lammps'
+        'shear_lammps'
+    ]
 
     def __init__(self,qoi_name,structures):
-        assert isinstance(qoi_name,str)
-
+        assert isinstance(qoi_name, str)
+        assert isinstance(structures, dict)
         _qoi_name = qoi_name
-        _qoi_type = 'lmps_elastic'
 
-        _structures = OrderedDict()
-        if isinstance(structures,str):
-            _structures['ideal'] = structures
-        elif isinstance(structures,dict):
-            _structures['ideal'] = structures['ideal']
-        elif isinstance(structures,list):
-            _structures['ideal'] = structures[0]
-        else:
-            msg_err = (
-                "structures must be either str, dict, or list"
-            )
-            raise ValueError(msg_err)
-
-        Qoi.__init__(self, qoi_name=qoi_name, structures=_structures)
+        ElasticProperties.__init__(self,
+                                   qoi_name=qoi_name,
+                                   structures=structures)
 
     def determine_simulations(self):
         ideal_structure_name = self.structures['ideal']
@@ -39,9 +38,13 @@ class LammpsElasticProperties(ElasticProperties):
     def calculate_qois(self,simulation_results):
         ideal_sim_name = self.simulation_definitions['ideal']
 
-        for k in ['c11','c12','c13','c22','c33','c44','c55','c66']:
-            qoi_name = '{}.{}'.format(ideal_sim_name, k)
-            self.qois[qoi_name] = simulation_results[qoi_name]
+        sim_result_names = ['c11','c12','c13','c22','c33','c44','c55','c66']
+        for i, k in enumerate(qoi_names):
+            result_name = '{}.{}'.format(ideal_sim_name,
+                                         k)
+            qoi_name = '{}.{}'.format(ideal_sim_name,
+                                      LammpsElasticProperties.qois_calculated[i])
+            self.qois[qoi_name] = simulation_results[result_name]
 
         c11 = simulation_results['{}.{}'.format(ideal_sim_name,'c11')]
         c12 = simulation_results['{}.{}'.format(ideal_sim_name,'c12')]
@@ -58,5 +61,5 @@ class LammpsElasticProperties(ElasticProperties):
         bulk = (c11+2*c12)/3
         shear = (c11-c12)/2
 
-        self.qois['{}.bulk_modulus'.format(ideal_sim_name)] = bulk
-        self.qois['{}.shear_modulus'.format(ideal_sim_name)] = shear
+        self.qois['{}.bulk_lammps'.format(ideal_sim_name)] = bulk
+        self.qois['{}.shear_lammps'.format(ideal_sim_name)] = shear
