@@ -3,7 +3,7 @@ from mexm.qoi import Qoi
 
 class DefectFormationEnergy(Qoi):
     qoi_type = 'base_defect'
-    qois_calculated = ['E_formation']
+    calculated_qoi_names = ['E_formation']
     is_base_class = True
 
     ideal_simulation_type = 'min_all'
@@ -29,17 +29,18 @@ class DefectFormationEnergy(Qoi):
             simulation_structure=ideal_structure_name
         )
 
-        defect_structure_name = self.structure['defect']
+        defect_structure_name = self.structures['defect']
         defect_simulation_type = self.defect_simulation_type
         defect_simulation_name = '{}.{}'.format(
             defect_structure_name,
             defect_simulation_type
         )
-        self.add_simuation(
+        self.add_simulation(
             simulation_id='defect',
             simulation_name=defect_simulation_name,
             simulation_type=defect_simulation_type,
-            simulation_structure=defect_simulation_structure
+            simulation_structure=defect_structure_name,
+            bulk_structure=ideal_structure_name
         )
 
     def calculate_qois(self, results):
