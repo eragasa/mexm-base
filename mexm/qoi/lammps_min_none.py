@@ -2,6 +2,7 @@ from collections import OrderedDict
 from mexm.qoi import StaticStructure
 
 class LammpsStaticStructure(StaticStructure):
+    qoi_type = 'lmps_min_none'
     qois_calculated = [
             'lammps_Ecoh_min_none',
             'lammps_a1_min_none',
@@ -35,13 +36,12 @@ class LammpsStaticStructure(StaticStructure):
                                  qoi_name=qoi_name,
                                  structures=structures)
 
-    def determine_tasks(self):
+    def determine_simulations(self):
         ideal_structure_name = self.structures['ideal']
         ideal_simulation_type = 'lmps_min_none'
         ideal_simulation_name = "{}.{}".format(
-                _structure_ideal_name,
-                _task_type)
-        _task_requires = None
+                ideal_structure_name,
+                ideal_simulation_type)
         self.add_simulation(
                 simulation_id='ideal',
                 simulation_name=ideal_simulation_name,
@@ -118,5 +118,6 @@ class LammpsStaticStructure(StaticStructure):
         self.qois['{}.p_31_min_none'.format(_prefix)] = _p31
         self.qois['{}.p_32_min_none'.format(_prefix)] = _p32
         self.qois['{}.p_33_min_none'.format(_prefix)] = _p33
+
     def get_required_variables(self):
         return list(self.variables.keys())

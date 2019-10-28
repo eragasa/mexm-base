@@ -35,7 +35,7 @@ class LammpsStructuralRelaxation(StructuralRelaxation):
                                       qoi_name=qoi_name,
                                       structures=_structures)
 
-    def determine_tasks(self):
+    def determine_simulations(self):
         ideal_structure_name = self.structures['ideal']
         ideal_simulation_type = 'lmps_min_all'
         ideal_simulation_name = "{}.{}".format(
@@ -54,8 +54,6 @@ class LammpsStructuralRelaxation(StructuralRelaxation):
         e_min_none = simulation_results['{}.{}'.format(ideal_sim_name,'toten')]
         n_atoms = simulation_results['{}.{}'.format(ideal_sim_name,'natoms')]
         ecoh = e_min_none / n_atoms
-
-
 
         p_tot = simulation_results['{}.{}'.format(ideal_sim_name,'totpress')]
 
