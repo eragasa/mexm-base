@@ -1,53 +1,52 @@
 from collections import OrderedDict
-from pypospack.qoi import Qoi
+from mexm.qoi import StaticStructure
 
-class StaticStructureCalculations(Qoi):
+class LammpsStaticStructure(StaticStructure):
     qois_calculated = [
-            'Ecoh_min_none',
-            'a1_min_none','a2_min_none','a3_min_none',
-            'a11_min_none','a12_min_none','a13_min_none',
-            'a21_min_none','a22_min_none','a23_min_none',
-            'a31_min_none','a32_min_none','a33_min_none',
-            'p_11_min_none','p_12_min_none','p_13_min_none',
-            'p_21_min_none','p_22_min_none','p_23_min_none',
-            'p_31_min_none','p_32_min_none','P_33_min_none'
+            'lammps_Ecoh_min_none',
+            'lammps_a1_min_none',
+            'lammps_a2_min_none',
+            'lammps_a3_min_none',
+            'lammps_a11_min_none',
+            'lammps_a12_min_none',
+            'lammps_a13_min_none',
+            'lammps_a21_min_none',
+            'lammps_a22_min_none',
+            'lammps_a23_min_none',
+            'lammps_a31_min_none',
+            'lammps_a32_min_none',
+            'lammps_a33_min_none',
+            'lammps_p11_min_none',
+            'lammps_p12_min_none',
+            'lammps_p13_min_none',
+            'lammps_p21_min_none',
+            'lammps_p22_min_none',
+            'lammps_p23_min_none',
+            'lammps_p31_min_none',
+            'lammps_p32_min_none',
+            'lammps_p33_min_none'
     ]
 
     def __init__(self,qoi_name,structures):
         assert isinstance(qoi_name,str)
-        _qoi_name = qoi_name
+        assert isinstance(structures, dict)
 
-        _qoi_type = 'lmps_relax_none'
-
-        _structures = OrderedDict()
-        if isinstance(structures,str):
-            _structures['ideal'] = structures
-        elif isinstance(structures,dict):
-            _structures['ideal'] = structures['ideal']
-        elif isinstance(structures,list):
-            _structures['ideal'] = structures[0]
-        else:
-            msg_err = (
-                "structures must be either str, dict, or list"
-            )
-            raise ValueError(msg_err)
-
-        Qoi.__init__(self,
-                qoi_name=qoi_name,
-                qoi_type=_qoi_type,
-                structures=_structures)
+        StaticStructure.__init__(self,
+                                 qoi_name=qoi_name,
+                                 structures=structures)
 
     def determine_tasks(self):
-        _structure_ideal_name = self.structures['ideal']
-        _task_type = 'lmps_min_none'
-        _task_name = "{}.{}".format(
+        ideal_structure_name = self.structures['ideal']
+        ideal_simulation_type = 'lmps_min_none'
+        ideal_simulation_name = "{}.{}".format(
                 _structure_ideal_name,
                 _task_type)
         _task_requires = None
-        self.add_task(
-                task_type=_task_type,
-                task_name=_task_name,
-                task_structure=_structure_ideal_name)
+        self.add_simulation(
+                simulation_id='ideal',
+                simulation_name=ideal_simulation_name,
+                simulation_type=ideal_simulation_type,
+                simulation_structure=ideal_structure_name)
 
     def calculate_qois(self,task_results):
         _prefix = '{}.{}'.format(
@@ -73,7 +72,7 @@ class StaticStructureCalculations(Qoi):
         _a32 = task_results['{}.{}'.format(_prefix,'a32')]
         _a33 = task_results['{}.{}'.format(_prefix,'a33')]
 
-  
+
         # getting the individual components of the pressure tensor
         # H = [ [p11,p12,p13]
         #       [p21,p22,p33]

@@ -19,7 +19,6 @@ class LammpsElasticProperties(ElasticProperties):
     def __init__(self,qoi_name,structures):
         assert isinstance(qoi_name, str)
         assert isinstance(structures, dict)
-        _qoi_name = qoi_name
 
         ElasticProperties.__init__(self,
                                    qoi_name=qoi_name,
