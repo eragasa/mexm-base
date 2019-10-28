@@ -2,8 +2,8 @@ from copy import deepcopy
 
 class Qoi(object):
     qoi_type = 'base_qoi'
-    qois_calculated = []
-    is_abstract_class = True
+    calculated_qoi_names = []
+    is_base_class = True
 
     """ Abstract Quantity of Interest
 
@@ -31,20 +31,20 @@ class Qoi(object):
         self.structures = deepcopy(structures)
         self.simulation_definitions = {}
 
-    def determine_tasks(self):
+    def determine_simulations(self):
         raise NotImplementedError
 
     def calculate_qoi(self):
         raise NotImplementedError
 
     def add_simulation(self,
-                       sim_id,
+                       simulation_id,
                        simulation_name,
                        simulation_type,
                        simulation_structure,
                        bulk_structure=None):
 
-        self.simulation_definitions[sim_id] = {
+        self.simulation_definitions[simulation_id] = {
             'simulation_name':simulation_name,
             'simulation_type':simulation_type,
             'simulation_structure':simulation_structure,

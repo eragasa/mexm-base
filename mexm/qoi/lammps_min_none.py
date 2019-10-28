@@ -48,44 +48,44 @@ class LammpsStaticStructure(StaticStructure):
                 simulation_type=ideal_simulation_type,
                 simulation_structure=ideal_structure_name)
 
-    def calculate_qois(self,task_results):
+    def calculate_qois(self, results):
         _prefix = '{}.{}'.format(
                 self.structures['ideal'],
                 'lmps_min_none')
 
-        _e_min_none = task_results['{}.{}'.format(_prefix,'toten')]
-        _n_atoms = task_results['{}.{}'.format(_prefix,'natoms')]
-        _p_tot = task_results['{}.{}'.format(_prefix,'totpress')]
+        _e_min_none = results['{}.{}'.format(_prefix,'toten')]
+        _n_atoms = results['{}.{}'.format(_prefix,'natoms')]
+        _p_tot = results['{}.{}'.format(_prefix,'totpress')]
 
         # getting the individual components of the H-matrix
         # H = [ [a11,a12,a13]
         #       [a21,a22,a33]
         #       [a31,a32,a33]]
 
-        _a11 = task_results['{}.{}'.format(_prefix,'a11')]
-        _a12 = task_results['{}.{}'.format(_prefix,'a12')]
-        _a13 = task_results['{}.{}'.format(_prefix,'a13')]
-        _a21 = task_results['{}.{}'.format(_prefix,'a21')]
-        _a22 = task_results['{}.{}'.format(_prefix,'a22')]
-        _a23 = task_results['{}.{}'.format(_prefix,'a23')]
-        _a31 = task_results['{}.{}'.format(_prefix,'a31')]
-        _a32 = task_results['{}.{}'.format(_prefix,'a32')]
-        _a33 = task_results['{}.{}'.format(_prefix,'a33')]
+        _a11 = results['{}.{}'.format(_prefix,'a11')]
+        _a12 = results['{}.{}'.format(_prefix,'a12')]
+        _a13 = results['{}.{}'.format(_prefix,'a13')]
+        _a21 = results['{}.{}'.format(_prefix,'a21')]
+        _a22 = results['{}.{}'.format(_prefix,'a22')]
+        _a23 = results['{}.{}'.format(_prefix,'a23')]
+        _a31 = results['{}.{}'.format(_prefix,'a31')]
+        _a32 = results['{}.{}'.format(_prefix,'a32')]
+        _a33 = results['{}.{}'.format(_prefix,'a33')]
 
 
         # getting the individual components of the pressure tensor
         # H = [ [p11,p12,p13]
         #       [p21,p22,p33]
         #       [p31,p32,p33]]
-        _p11 = task_results['{}.{}'.format(_prefix,'p11')]
-        _p12 = task_results['{}.{}'.format(_prefix,'p12')]
-        _p13 = task_results['{}.{}'.format(_prefix,'p13')]
-        _p21 = task_results['{}.{}'.format(_prefix,'p21')]
-        _p22 = task_results['{}.{}'.format(_prefix,'p22')]
-        _p23 = task_results['{}.{}'.format(_prefix,'p23')]
-        _p31 = task_results['{}.{}'.format(_prefix,'p31')]
-        _p32 = task_results['{}.{}'.format(_prefix,'p32')]
-        _p33 = task_results['{}.{}'.format(_prefix,'p33')]
+        _p11 = results['{}.{}'.format(_prefix,'p11')]
+        _p12 = results['{}.{}'.format(_prefix,'p12')]
+        _p13 = results['{}.{}'.format(_prefix,'p13')]
+        _p21 = results['{}.{}'.format(_prefix,'p21')]
+        _p22 = results['{}.{}'.format(_prefix,'p22')]
+        _p23 = results['{}.{}'.format(_prefix,'p23')]
+        _p31 = results['{}.{}'.format(_prefix,'p31')]
+        _p32 = results['{}.{}'.format(_prefix,'p32')]
+        _p33 = results['{}.{}'.format(_prefix,'p33')]
 
         # calculate the length of cells
         # a = a1

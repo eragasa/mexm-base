@@ -19,7 +19,7 @@ def test__Qoi__add_simulation__no_bulk_structure():
     o = Qoi(qoi_name=qoi_name, structures=structures_dict)
 
     kwargs = {
-        'sim_id':'test_sim_id',
+        'simulation_id':'test_sim_id',
         'simulation_name':'test_simulation_name',
         'simulation_type':'simulation_type',
         'simulation_structure':'test_simulation_structure_name',
@@ -40,7 +40,7 @@ def test__Qoi__add_simulation__w_bulk_structure():
     o = Qoi(qoi_name=qoi_name, structures=structures_dict)
 
     kwargs = {
-        'sim_id':'test_sim_id',
+        'simulation_id':'test_sim_id',
         'simulation_name':'test_simulation_name',
         'simulation_type':'simulation_type',
         'simulation_structure':'test_simulation_structure_name',
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     print(o.simulation_definitions)
 
     kwargs = {
-        'sim_id':'test_sim_id',
+        'simulation_id':'test_sim_id',
         'simulation_name':'test_simulation_name',
         'simulation_type':'simulation_type',
         'simulation_structure':'test_simulation_structure_name',

@@ -3,18 +3,10 @@ from mexm.qoi import ElasticProperties
 
 class LammpsElasticProperties(ElasticProperties):
     qoi_type = 'lammps_elastic'
-    qois_calculated = [
-        'c11_lammps',
-        'c12_lammps',
-        'c13_lammps',
-        'c22_lammps',
-        'c33_lammps',
-        'c44_lammps',
-        'c55_lammps',
-        'c66_lammps'
-        'bulk_lammps'
-        'shear_lammps'
+    calculated_qoi_names = [
+        'lammps_{}'.format(k) for k in ElasticProperties.calculated_qoi_names
     ]
+    ideal_simulation_type = 'lmps_elastic'
 
     def __init__(self,qoi_name,structures):
         assert isinstance(qoi_name, str)
@@ -25,14 +17,7 @@ class LammpsElasticProperties(ElasticProperties):
                                    structures=structures)
 
     def determine_simulations(self):
-        ideal_structure_name = self.structures['ideal']
-        ideal_simulation_type = 'lmps_elastic'
-        ideal_simulation_name = '{}.{}'.format(ideal_structure_name,
-                                               ideal_simulation_type)
-        self.add_simulation(sim_id='ideal',
-                            simulation_name=ideal_simulation_name,
-                            simulation_type=ideal_simulation_type,
-                            simulation_structure=ideal_structure_name)
+        super().determine_simulations()
 
     def calculate_qois(self,simulation_results):
         ideal_sim_name = self.simulation_definitions['ideal']
