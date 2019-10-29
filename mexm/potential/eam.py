@@ -5,7 +5,7 @@ from mexm.potential import Potential
 from mexm.potential import PairPotential
 from mexm.potential import EamDensityFunction
 from mexm.potential import EamEmbeddingFunction
-from mexm.io.eamtools import EamSetflFile
+from mexm.io.eamtools import SetflFile
 
 from mexm.exception import MexmException
 class MexmPotentialError(Exception): pass
@@ -15,9 +15,9 @@ class EamPotential(Potential):
     is_base_potential = False
     is_charge = False
 
-    MEXM_EAM_PAIR_FORMAT = "{s1}{s2}_pair_{p}"
-    MEXM_EAM_DENS_FORMAT = "{s1}_dens_{p}"
-    MEXM_EAM_EMBED_FORMAT = "{s1}_embed_{p}"
+    MEXM_EAM_PAIR_FORMAT = "pair_{symbol1}{symbol2}_{parameter_name}"
+    MEXM_EAM_DENS_FORMAT = "dens_{symbol}{parameter_name}"
+    MEXM_EAM_EMBED_FORMAT = "embed_{symbol}_{parameter_name}"
     """embedded energy method potential
     This class is for the modelling of an EAM potential
     Args:
@@ -44,9 +44,6 @@ class EamPotential(Potential):
             func_density=None,
             func_embedding=None,
             filename=None):
-
-        # parameter format strings
-"
 
         # these are pypospack.potential.Potential objects
         self.obj_pair = None
@@ -84,6 +81,25 @@ class EamPotential(Potential):
                 symbols=symbols,
                 potential_type='eam',
                 is_charge = False)
+
+    @classmethod
+    def get_parameter_names(cls,
+                            symbols,
+                            pair_type,
+                            density_type,
+                            embedding_type):
+        from mexm.manager import PotentialManager
+
+        parameter_names = []
+        potential_types = [k.potential_type for k in PotentialManager.get_potential_types()]
+        for potential in PotentialManager.get_potential_types():
+            if potential.potential_type == pair_type:
+                parameter_names = [
+                    'pair_{}'.format(k)
+                    for k in potential.get_parameter_names(symbols)
+                ]
+
+        print(PotentialManager.get_potential_types())
 
     def lammps_potential_section_to_string(self,setfl_dst_filename):
         """provide string for the potential section

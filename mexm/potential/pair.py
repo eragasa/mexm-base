@@ -9,10 +9,9 @@ from mexm.potential import get_symbol_pairs
 class PairPotential(Potential):
     potential_type = 'pair'
     is_base_potential = True
-    def __init__(self,symbols,potential_type,is_charge):
+    def __init__(self, symbols, is_charge=False):
         Potential.__init__(self,
                 symbols=symbols,
-                potential_type=potential_type,
                 is_charge=is_charge)
         self.pair_evaluations = None
         #self.pair_potential_parameters = None
@@ -32,26 +31,8 @@ class PairPotential(Potential):
     def _initialize_parameter_names(self,symbols=None):
         if symbols is None:
             symbols = self.symbols
-
         self.symbol_pairs = list(get_symbol_pairs(symbols))
-
-        # initialize attribute to populate
-        self.parameter_names = []
-        if self.is_charge:
-            for s in self.symbols:
-                parameter_name = MEXM_1BODY_FMT.format(s=s, p='chrg')
-                self.parameter_names.append(parameter_name)
-
-        for sp in self.symbol_pairs:
-            for p in self.pair_potential_parameters:
-                parameter_name = MEXM_2BODY_FMT.format(
-                    s1=sp[0],
-                    s2=sp[2],
-                    p=p
-                )
-                self.parameter_names.append(parameter_name)
-
-        return self.parameter_names
+        self.parameter_names = self.get_parameter_names(symbols, hybrid_format=False)
 
     def _initialize_parameters(self):
         self.parameters = OrderedDict()

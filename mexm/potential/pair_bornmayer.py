@@ -10,10 +10,16 @@ from mexm.potential import PairPotential
 from mexm.potential import get_symbol_pairs
 from mexm.potential import MEXM_2BODY_FMT, MEXM_HYBRID_2BODY_FMT
 
+def func_bornmayer(r,phi0,gamma,r0):
+    return phi0*np.exp(-gamma*(r-r0))
+
+
 class BornMayerPotential(PairPotential):
     potential_type = 'bornmayer'
     is_base_potential = False
-    parameter_names = ['phi0','gamma','r0']
+    parameter_names_global = []
+    parameter_names_1body = []
+    parameter_names_2body = ['phi0','gamma','r0','rcut']
     """ Implementation of a Born-Mayer repulsive potential
 
     Args:
@@ -22,30 +28,16 @@ class BornMayerPotential(PairPotential):
         symbols(list of str)
 
     """
-    potential_type = 'bornmayer'
-    pair_potential_parameters = ['phi0','gamma','r0']
     def __init__(self,symbols):
-        self.pair_potential_parameters = self.pair_potential_parameters
         PairPotential.__init__(self,
                 symbols,
-                potential_type=self.potential_type,
                 is_charge=False)
 
-    def _initialize_parameter_names(self):
-        self.symbol_pairs = list(determine_symbol_pairs(self.symbols))
-        self.parameter_names = []
-        for s in self.symbol_pairs:
-            for p in self.pair_potential_parameters:
-                self.parameter_names.append(
-                    MEXM_2BODY_FMT.format(s1=s[0],s2=s[1],p=p))
-        return list(self.parameter_names)
+    @staticmethod
+    def function(r, phi0, gamma, r0, rcut):
+        return phi0*np.exp(-gamma*(r-r0))
 
-    def _init_parameters(self):
-        self.parameters = OrderedDict()
-        for v in self.parameter_names:
-            self.parameters[v] = None
 
-    # this method overrides the parent stub
     def evaluate(self,r,parameters,r_cut=None):
         # <----------------------------check arguments are correct
         # assert isinstance(r,np.ndarray)
@@ -64,8 +56,6 @@ class BornMayerPotential(PairPotential):
             gamma  = self.parameters['{}{}_gamma'.format(s[0],s[1])]
             r0 = self.parameters['{}{}_r0'.format(s[0],s[1])]
             # <------------------------embedded morse function
-            def func_bornmayer(r,phi0,gamma,r0):
-                return phi0*np.exp(-gamma*(r-r0))
 
             _pair_name = '{}{}'.format(s[0],s[1])
             if r_cut is None:
