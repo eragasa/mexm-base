@@ -15,18 +15,18 @@ def test____init____no_path():
     assert len(o.symbols, 0)
     assert isinstance(o.symbol_pairs, list)
     assert len(o.symbols_pairs, 0)
-    assert o.N_rho = None
-    assert o.d_rho = None
-    assert o.N_r = None
-    assert o.d_r = None
-    assert o.r_cutoff =None
+    assert o.N_rho is None
+    assert o.d_rho is None
+    assert o.N_r is None
+    assert o.d_r is None
+    assert o.r_cutoff is None
 
     assert isinstance(o.lattice_info, dict)
     assert isinstance(o.embedding_functions, dict)
     assert isinstance(o.density_functions, dict)
     assert isinstance(p.pair_functions, dict)
 
-    
+
 def dev__SetflReader():
     setfl = SetflReader()
     setfl.read(path=resource_setfl_path)

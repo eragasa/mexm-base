@@ -1,8 +1,4 @@
-from mexm.io.eamtools import EamSetflFile
-
-
-
-
+from mexm.io.eamtools import BaseEamSetflFile
 class EamPotential():
 
     def to_dict():
@@ -25,13 +21,7 @@ class EamPotential():
         }
 
 
-
-class EamSetflFile():
-    """ class for the setfl
-
-    """
-
-class SetflReader(EamSetflFile):
+class SetflReader(BaseSetflFile):
     """Reader for setfl formatted EAM files.
 
     Args:
@@ -39,13 +29,9 @@ class SetflReader(EamSetflFile):
     """
 
     def __init__(self, path=None):
-        assert any([
-            isinstance(path, str),
-            path is None
-        ])
-
-        EamSetflFile.__init__(self)
-        self.path = path
+        super().__init__(path=path)
+        if self.path is not None:
+            self.read(path=self.path)
 
     def read(self, path=None):
         if path is not None:

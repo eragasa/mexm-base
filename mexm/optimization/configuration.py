@@ -7,7 +7,7 @@ from mexm.io.filesystem import OrderedDictYAMLLoader
 
 #------------------------------------------------------------------------------
 
-class PyposmatConfigurationFile(object):
+class ConfigurationFile(object):
     """Class for reading, writing, and analyzing configuration file
 
     Args:

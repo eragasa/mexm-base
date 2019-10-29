@@ -1,2 +1,2 @@
 from mexm.optimization.configuration import ConfigurationFile
-from mexm.optimization.configuration import QoiConfiguration
+from mexm.optimization.moo import MultiObjectiveOptimization

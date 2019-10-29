@@ -1,6 +1,6 @@
 import os, shutil
 
-from mexm.exceptions import MexmException
+from mexm.exception import MexmException
 
 class MexmSimulationException(MexmException): pass
 
@@ -11,9 +11,32 @@ class Simulation():
                  simulation_path):
         self.name = name
         self.simulation_path = simulation_path
+        self.conditions = {k:{} for k in Simulation.states}
+
         self.create_simulation_directory()
 
         self.status = None
+
+    @property
+    def conditions_INIT(self): return self.conditions['INIT']
+
+    @property
+    def conditions_CONFIG(self): return self.conditions['CONFIG']
+
+    @property
+    def conditions_RUNNING(self): return self.conditions['RUNNING']
+
+    @property
+    def conditions_READY(self): return self.conditions['READY']
+
+    @property
+    def conditions_POST(self): return self.conditions['POST']
+
+    @property
+    def conditions_FINISHED(self): return self.conditions['FINISHED']
+
+    @property
+    def conditions_ERROR(self): return self.conditions['ERROR']
 
     def run(self): raise NotImplementedError
 

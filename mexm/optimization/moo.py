@@ -89,7 +89,9 @@ class MultiObjectiveOptimization(object):
         """ deserialize object to yaml string """
 
         obj_dict = self.to_dict()
-        yaml_str =
+        yaml_str = ""
+        raise NotImplementedError()
+        return yaml_str
 
     def _create_design_variable(self, name):
         self.design_variables[name] = OrderedDict()

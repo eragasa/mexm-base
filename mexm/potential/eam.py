@@ -7,7 +7,7 @@ from mexm.potential import EamDensityFunction
 from mexm.potential import EamEmbeddingFunction
 from mexm.io.eamtools import EamSetflFile
 
-from mexm.exceptions import MexmException
+from mexm.exception import MexmException
 class MexmPotentialError(Exception): pass
 
 class EamPotential(Potential):
@@ -15,6 +15,9 @@ class EamPotential(Potential):
     is_base_potential = False
     is_charge = False
 
+    MEXM_EAM_PAIR_FORMAT = "{s1}{s2}_pair_{p}"
+    MEXM_EAM_DENS_FORMAT = "{s1}_dens_{p}"
+    MEXM_EAM_EMBED_FORMAT = "{s1}_embed_{p}"
     """embedded energy method potential
     This class is for the modelling of an EAM potential
     Args:
@@ -43,9 +46,7 @@ class EamPotential(Potential):
             filename=None):
 
         # parameter format strings
-        self.PYPOSPACK_EAM_PAIR_FORMAT = "{s1}{s2}_eam_pair_{p}"
-        self.PYPOSPACK_EAM_DENSITY_FORMAT = "{s1}_eam_density_{p}"
-        self.PYPOSPACK_EAM_EMBEDDING_FORMAT = "{s1}_eam_embedding_{p}"
+"
 
         # these are pypospack.potential.Potential objects
         self.obj_pair = None

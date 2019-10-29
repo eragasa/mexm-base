@@ -1,7 +1,7 @@
 import pytest
 from collections import OrderedDict
 
-from moo import MultiObjectiveOptimization
+from mexm.optimization import MultiObjectiveOptimization
 
 def dev__add_objective_variable():
     moo = MultiObjectiveOptimization()

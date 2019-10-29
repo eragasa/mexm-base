@@ -4,7 +4,7 @@ import numpy.linalg as linalg
 import ase
 
 from mexm.util import is_number
-from mexm.exceptions import MexmException
+from mexm.exception import MexmException
 from mexm.structure import Atom
 from mexm.structure import Lattice
 

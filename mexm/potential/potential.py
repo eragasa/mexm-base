@@ -6,7 +6,7 @@ __license__ = "Simplified BSD License"
 __version__ = "1.0"
 
 from collections import OrderedDict
-from mexm.exceptions import BadParameterException
+from mexm.exception import BadParameterException
 
 from mexm.elements import ELEMENTS
 

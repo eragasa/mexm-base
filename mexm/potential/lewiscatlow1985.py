@@ -49,6 +49,6 @@ for parameter_name, parameter_value in all_other_parameters.items():
 LewisCatlow1985 = OrderedDict([
     ('potential_type','buckingham'),
     ('symbols',all_cations),
-    ('parameters',parameters)
-    ('references',['lewiscatlow1985_buck','catlow1977')
+    ('parameters',parameters),
+    ('references',['lewiscatlow1985_buck','catlow1977'])
 ])

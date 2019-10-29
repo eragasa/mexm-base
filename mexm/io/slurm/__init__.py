@@ -30,7 +30,7 @@ class LammpsSubmissionScript(SlurmSubmissionScript):
         self.modules = self.configuration.lammps_configuration['modules']
         self.run_string = self.configuration.lammps_configuration['run_string']
 
-class PhontSubmissionScript(SlurmSubmissionsScript):
+class PhontSubmissionScript(SlurmSubmissionScript):
     """ class for creating SLURM submission scripts for PHONTS
 
     These classes do require that a SlurmConfiguration file have been already
