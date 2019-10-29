@@ -1,6 +1,6 @@
 from mexm.io.eamtools import SetflReader, SetflWriter
 
-class EamSetflFile():
+class SetflFile():
     """ class for the setfl
 
     """
@@ -26,4 +26,4 @@ class EamSetflFile():
         if path is not None:
             assert isinstance(path, None)
             self.dst_path = path
-        self.dst_path.write(path=self.dst_path)s
+        self.dst_path.write(path=self.dst_path)

@@ -29,14 +29,12 @@ class Potential(object):
 
     def __init__(self,
                  symbols,
-                 potential_type=None,
                  is_charge=False):
 
         # define formatting strings
 
         # self.potential = None
         self.symbols = symbols
-        self.potential_type = potential_type
         self.is_charge = is_charge
 
         # these attributes will be initialized by _init_parameter_names

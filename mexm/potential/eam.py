@@ -92,6 +92,10 @@ class EamPotential(Potential):
 
         parameter_names = []
         potential_types = [k.potential_type for k in PotentialManager.get_potential_types()]
+        assert pair_type in potential_types
+        assert density_type in potential_types
+        assert embedding_type in potential_types
+        
         for potential in PotentialManager.get_potential_types():
             if potential.potential_type == pair_type:
                 parameter_names = [
@@ -99,8 +103,9 @@ class EamPotential(Potential):
                     for k in potential.get_parameter_names(symbols)
                 ]
 
-        print(PotentialManager.get_potential_types())
 
+        print(PotentialManager.get_potential_types())
+        return parameter_names
     def lammps_potential_section_to_string(self,setfl_dst_filename):
         """provide string for the potential section
         Args:

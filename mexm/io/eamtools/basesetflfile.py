@@ -17,7 +17,7 @@ class BaseSetflFile():
 
         self.Nr = None
         self.dr = None
-        self.r_max = None
+        self.rmax = None
         self.r = {}
 
         self.pair = {}
@@ -25,22 +25,22 @@ class BaseSetflFile():
         self.density = {}
 
     @staticmethod
-    def get_interatomic_distance_vector(r_max, N_r):
-        assert isinstance(r_max, float)
-        assert isinstance(N_r, float)
-        assert N_r % 5 == 0
+    def get_interatomic_distance_vector(rmax, Nr):
+        assert isinstance(rmax, float)
+        assert isinstance(Nr, float)
+        assert Nr % 5 == 0
 
-        r = r_max * np.linspace(1, N_r, N_r)/N_r
-        dr = r_max / N_r
+        r = rmax * np.linspace(1, Nr, Nr)/Nr
+        dr = rmax / Nr
 
         return r, dr
 
     @staticmethod
-    def get_electron_density_vector(rho_max, N_rho):
+    def get_electron_density_vector(rho_max, Nrho):
         assert isinstance(rho_max, float)
-        assert isintance(N_r, float)
-        assert N_r % 5 == 0
+        assert isintance(Nr, float)
+        assert Nr % 5 == 0
 
-        rho = rho_max * np.linspace(1, N_rho, N_rho)/N_rho
-        drho = rho_max/ N_rho
+        rho = rho_max * np.linspace(1, Nrho, Nrho)/Nrho
+        drho = rho_max/ Nrho
         return rho, drho

@@ -13,7 +13,7 @@ import os, pathlib, copy, yaml
 from collections import OrderedDict
 import numpy as np
 
-from pypospack.exceptions import BadParameterException
+from mexm.exception import BadParameterException
 from pypospack.eamtools import EamSetflFile
 
 # static global formatting variaables
@@ -149,7 +149,7 @@ eam_density_names = [
 # These are analytical EAM embedding functions
 #------------------------------------------------------------------------------
 from pypospack.potential.eamembed_bjs import BjsEmbeddingFunction
-from pypospack.potential.eamembed_universal import UniversalEmbeddingFunction
+from mexm.potential.eamembed_universal import UniversalEmbeddingFunction
 from pypospack.potential.eamembed_fs import FinnisSinclairEmbeddingFunction
 
 eam_embedding_analytical_names = [

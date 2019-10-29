@@ -1,4 +1,4 @@
-from mexm.io.eamtools import BaseEamSetflFile
+from mexm.io.eamtools import BaseSetflFile
 class EamPotential():
 
     def to_dict():

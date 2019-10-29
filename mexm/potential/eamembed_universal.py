@@ -6,9 +6,12 @@ __version__ = 20171102
 import copy
 import numpy as np
 from collections import OrderedDict
-from pypospack.potential import EamEmbeddingFunction
+from mexm.potential import EamEmbeddingFunction
 
 class UniversalEmbeddingFunction(EamEmbeddingFunction):
+    potential_type = 'eamembed_universal'
+    is_base_potential = False
+    parameter_names_1body = ['F0','p','q','F1','rho0', 'rhocut']
     """
     Args:
         symbols(list of str)
@@ -19,18 +22,15 @@ class UniversalEmbeddingFunction(EamEmbeddingFunction):
         parameters(OrderedDict): The key is the symbol associated with the
             embedding function.  On initialization, the value of each parameter
             is set to None.
-        embedding(OrderedDict): The key is the symbol associated with the 
+        embedding(OrderedDict): The key is the symbol associated with the
             embedding function.
         N_rho(int)
         d_rho(float)
         rho_max(float)
         rho(numpy.ndarray)
-    """    
+    """
     def __init__(self,symbols):
-        self.embedding_func_parameters = ['F0','p','q','F1','rho0']
-        EamEmbeddingFunction.__init__(self,
-                symbols=symbols,
-                potential_type='eam_embed_univeral')
+        super().__init__(symbols=symbols)
 
     def _init_parameter_names(self):
         self.parameter_names = []
@@ -38,7 +38,7 @@ class UniversalEmbeddingFunction(EamEmbeddingFunction):
             for p in self.embedding_func_parameters:
                 pn = "{}_{}".format(s,p)
                 self.parameter_names.append(pn)
-    
+
     def _init_parameters(self):
         self.parameters = OrderedDict()
         for p in self.parameter_names:
@@ -80,4 +80,3 @@ class UniversalEmbeddingFunction(EamEmbeddingFunction):
                             -(p/(q-p))*((rho/rho0)**q)
                       )+F1*(rho/rho0)
         return copy.deepcopy(self.embedding_evaluations)
-
