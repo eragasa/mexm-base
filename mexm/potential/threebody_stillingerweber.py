@@ -28,12 +28,10 @@ class StillingerWeberPotential(ThreeBodyPotential):
     """
 
     def __init__(self,symbols):
-        _potential_type = 'stillingerweber'
         _is_charge = False
 
         ThreeBodyPotential.__init__(self,
                 symbols=symbols,
-                potential_type=_potential_type,
                 is_charge=_is_charge)
 
         self.lmps_parameter_filename = "lmps_parameter_filename"

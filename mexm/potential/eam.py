@@ -1,13 +1,13 @@
 from collections import OrderedDict
 import copy
 import numpy as np
-from mexm.potential import Potential
-from mexm.potential import PairPotential
-from mexm.potential import EamDensityFunction
-from mexm.potential import EamEmbeddingFunction
+from mexm.potential import (Potential,
+                            PairPotential,
+                            EamDensityFunction,
+                            EamEmbeddingFunction)
 from mexm.io.eamtools import SetflFile
-
 from mexm.exception import MexmException
+
 class MexmPotentialError(Exception): pass
 
 class EamPotential(Potential):
@@ -40,47 +40,48 @@ class EamPotential(Potential):
     """
     def __init__(self,
             symbols,
-            func_pair=None,
-            func_density=None,
-            func_embedding=None,
-            filename=None):
+            pair_type=None,
+            density_type=None,
+            embedding_type=None):
 
-        # these are pypospack.potential.Potential objects
-        self.obj_pair = None
-        self.obj_density = None
-        self.obj_embedding = None
+        self.pair = {
+            'type':pair_type
+        }
+        self.density = {
+            'type':density_type
+        }
+        self.embedding = {
+            'type':embedding_type
+        }
 
+        super().__init__(symbols=symbols, is_charge=False)
+
+        self.r = None
         self.N_r = None
         self.r_max = None
-        self.r_cut = None
 
+        self.rho = None
         self.N_rho = None
         self.rho_max = None
 
-        # these will be numpy arrays
-        self.r = None
-        self.rho = None
-        self.pair = None
-        self.density = None
-        self.embedding = None
 
-        self.symbols = symbols
-
-        self.setfl_filename_src = filename
+        self.setfl_filename_src = None
         self.setfl_filename_dst = "{symbols}.eam.alloy".format(
                 symbols="".join(self.symbols))
         self.setfl = None
 
-        if func_pair is not None:
-            self.set_obj_pair(func_pair=func_pair)
-        if func_density is not None:
-            self.get_obj_density(func_density=func_density)
-        if func_embedding is not None: self.get_obj_embedding(fun_embedding=func_embedding)
+        self._initialize_pair_potential(pair_type)
+        self._initialize_density_function(density_type)
+        self._initialize_embedding_function(embedding_type)
 
-        Potential.__init__(self,
-                symbols=symbols,
-                potential_type='eam',
-                is_charge = False)
+    @property
+    def pair_type(self): return self.pair['type']
+
+    @property
+    def density_type(self): return self.embedding['type']
+
+    @property
+    def embedding_type(self): return self.embedding['type']
 
     @classmethod
     def get_parameter_names(cls,
@@ -90,22 +91,72 @@ class EamPotential(Potential):
                             embedding_type):
         from mexm.manager import PotentialManager
 
-        parameter_names = []
+        parameter_names = ['rhocut', 'rcut']
         potential_types = [k.potential_type for k in PotentialManager.get_potential_types()]
         assert pair_type in potential_types
         assert density_type in potential_types
         assert embedding_type in potential_types
-        
+
         for potential in PotentialManager.get_potential_types():
             if potential.potential_type == pair_type:
-                parameter_names = [
+                parameter_names += [
                     'pair_{}'.format(k)
                     for k in potential.get_parameter_names(symbols)
                 ]
+        for potential in PotentialManager.get_potential_types():
+            if potential.potential_type == density_type:
+                parameter_names += [
+                    'dens_{}'.format(k)
+                    for k in potential.get_parameter_names(symbols)
+                ]
+        for potential in PotentialManager.get_potential_types():
+            if potential.potential_type == embedding_type:
+                parameter_names += [
+                    'embed_{}'.format(k)
+                    for k in potential.get_parameter_names(symbols)
+                ]
 
-
-        print(PotentialManager.get_potential_types())
         return parameter_names
+
+    def _initialize_parameter_names(self):
+        kwargs = {
+            'symbols':self.symbols,
+            'pair_type':self.pair['type'],
+            'density_type':self.density['type'],
+            'embedding_type':self.embedding['type']
+        }
+        self.parameter_names = self.get_parameter_names(**kwargs)
+
+    def _initialize_pair_potential(self, pair_type):
+        from mexm.manager import PotentialManager
+
+        assert isinstance(pair_type, str)
+        self.pair['type'] = pair_type
+        self.pair['obj'] = PotentialManager.get_potential_by_name(
+                pair_type,
+                self.symbols
+        )
+
+    def _initialize_density_function(self, density_type):
+        from mexm.manager import PotentialManager
+
+        assert isinstance(density_type, str)
+        self.density['type'] = density_type
+        self.density['obj'] = PotentialManager.get_potential_by_name(
+                density_type,
+                self.symbols
+        )
+
+    def _initialize_embedding_function(self, embedding_type):
+        from mexm.manager import PotentialManager
+
+        assert isinstance(embedding_type, str)
+        self.embedding['type'] = embedding_type
+        self.embedding['obj'] = PotentialManager.get_potential_by_name(
+                embedding_type,
+                self.symbols
+        )
+
     def lammps_potential_section_to_string(self,setfl_dst_filename):
         """provide string for the potential section
         Args:
@@ -132,20 +183,6 @@ class EamPotential(Potential):
 
         return str_out
 
-
-    def _initialize_parameter_names(self):
-        p_params = ['p_{}'.format(p) for p in self.obj_pair.parameter_names]
-        d_params = ['d_{}'.format(p) for p in self.obj_density.parameter_names]
-        e_params = ['e_{}'.format(p) for p in self.obj_embedding.parameter_names]
-        self.parameter_names = list(p_params + d_params + e_params)
-
-    def _init_parameters(self):
-        if self.parameter_names is None:
-            return
-
-        self.parameters = OrderedDict()
-        for p in self.parameter_names:
-            self.parameters[p] = None
 
     def determine_r_max(self,a0,latt_type):
         _a0 = a0
@@ -242,30 +279,7 @@ class EamPotential(Potential):
     def _log(self,msg):
         print(msg)
 
-    def set_obj_pair(self,func_pair):
 
-        assert isinstance(func_pair,str)
-        self.obj_pair = PotentialManager.get_Potential_by_name(
-                func_pair,
-                self.symbols
-        )
-        assert isinstance(self.obj_pair, PairPotential)
-
-    def set_obj_density(self,func_density):
-
-        assert isinstance(func_density,str)
-        self.obj_density = PotentialManager.get_potential_by_name(
-                func_density,
-                self.symbols
-        )
-
-    def set_obj_embedding(self,func_embedding):
-
-        assert isinstance(func_embedding,str)
-        self.obj_embedding = PotentialManager.get_potential_by_name(
-                func_embedding,
-                self.symbols
-        )
 
     def evaluate_pair(self,r,parameters=None,rcut=None):
         assert isinstance(r,np.ndarray)

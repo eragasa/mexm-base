@@ -172,7 +172,7 @@ eam_embedding_eos_names = [
 eam_embedding_names = eam_embedding_analytical_names + eam_embedding_eos_names
 
 from mexm.potential.eam import EamPotential
-
+    
 def PotentialObjectMap(potential_type='all'):
     potential_map = OrderedDict()
     potential_map['buckingham'] = OrderedDict()

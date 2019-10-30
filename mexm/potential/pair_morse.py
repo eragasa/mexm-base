@@ -81,14 +81,7 @@ class MorsePotential(PairPotential):
     """
 
     def __init__(self, symbols):
-
-        potential_type = MorsePotential.potential_type
-        is_charge = MorsePotential.is_charge
-
-        PairPotential.__init__(self,
-                               symbols=symbols,
-                               potential_type='morse',
-                               is_charge=False)
+        super().__init__(symbols=symbols, is_charge=self.is_charge)
 
 
     # this method overrides the parents stub

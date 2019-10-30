@@ -43,13 +43,9 @@ class BuckinghamPotential(PairPotential):
     """
     def __init__(self,symbols):
 
-        potential_type = BuckinghamPotential.potential_type
-        is_charge = BuckinghamPotential.is_charge
-
         PairPotential.__init__(self,
                 symbols=symbols,
-                potential_type=potential_type,
-                is_charge=is_charge)
+                is_charge=self.is_charge)
 
     #override Potential method
     def _initialize_parameter_names(self):

@@ -23,22 +23,6 @@ def test____init____no_args():
     symbols = ['Ni']
     potential = PotentialTester(symbols=symbols)
 
-    assert potential.potential_type == None
-    assert potential.is_charge == False
-
-
-def test____init____with_args():
-    symbols = ['Ni']
-    potential_type = 'potential_type'
-    is_charge=False
-    expected_potential_type = potential_type
-    expected_is_charge = is_charge
-    expected_parameter_names = ['NiNi_A', 'NiNi_B']
-    potential = PotentialTester(symbols=symbols, potential_type=potential_type)
-    assert potential.potential_type == expected_potential_type
-    assert potential.is_charge == expected_is_charge
-    assert potential.parameter_names == expected_parameter_names
-
 def test___get_mass():
 
     symbols = ['Ni']
@@ -47,7 +31,7 @@ def test___get_mass():
     expected_potential_type = potential_type
     expected_is_charge = is_charge
     expected_parameter_names = ['NiNi_A', 'NiNi_B']
-    potential = PotentialTester(symbols=symbols, potential_type=potential_type)
+    potential = PotentialTester(symbols=symbols)
 
     for s in symbols:
         assert isinstance(potential._get_mass(symbol=s), float)
@@ -60,7 +44,7 @@ def test___get_name():
     expected_potential_type = potential_type
     expected_is_charge = is_charge
     expected_parameter_names = ['NiNi_A', 'NiNi_B']
-    potential = PotentialTester(symbols=symbols, potential_type=potential_type)
+    potential = PotentialTester(symbols=symbols)
 
     for s in symbols:
         assert isinstance(potential._get_name(symbol=s), str)

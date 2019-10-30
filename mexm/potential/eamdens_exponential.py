@@ -14,7 +14,7 @@ def function_exponential_density(r, rho0, beta,r0):
 class ExponentialDensityFunction(EamDensityFunction):
     potential_type = 'eamdens_exp'
     is_base_potential = False
-    potential_names_1body = ['rho0', 'beta', 'r0', 'cutoff']
+    parameter_names_1body = ['rho0', 'beta', 'r0', 'cutoff']
     """
     Args:
         symbols(list of str)
@@ -36,11 +36,7 @@ class ExponentialDensityFunction(EamDensityFunction):
     density_function_parameters = ['rho0','beta','r0']
     def __init__(self,symbols):
         self.density_func_parameters = ['rho0','beta','r0']
-        EamDensityFunction.__init__(
-                self,
-                symbols=symbols,
-                potential_type='eamdens_exp')
-
+        super().__init__(symbols=symbols)
 
     def _init_parameter_names(self):
         self.parameter_names = []

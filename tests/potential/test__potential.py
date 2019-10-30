@@ -20,6 +20,11 @@ for k in BuckinghamPotential.get_parameter_names(
 from mexm.potential import StillingerWeberPotential
 
 potential_configurations = {
+    'bornmayer': {
+        'configuration':{
+            'potential_type':'bornmayer',
+            'symbols':['Ni', 'Al']}
+    },
     'buckingham': {
         'configuration':buckingham_lewiscatlow1985_buck_MgO,
         'expected':{}
@@ -42,9 +47,15 @@ potential_configurations = {
         {
             'potential_type':'eam',
             'symbols':['Ni', 'Al'],
-            'func_pair':'bornmayer',
-            'func_density':'eamdens_exp',
-            'func_embedding':'eamembed_bjs'
+            'pair_type':'bornmayer',
+            'density_type':'eamdens_exp',
+            'embedding_type':'eamembed_universal'
+        }
+    },
+    'eamembed_universal':{
+        'configuration':{
+            'potential_type':'eamembed_universal',
+            'symbols':['Ni', 'Al']
         }
     }
 }
@@ -60,27 +71,24 @@ def test__potential():
         configuration = potential_configurations[k]['configuration']
         symbols = configuration['symbols']
 
-        try:
-            func_pair = configuration['func_pair']
-        except KeyError:
-            func_pair = None
+        pair_type = ""
+        if 'pair_type' in configuration:
+            pair_type = configuration['pair_type']
 
-        try:
-            func_density = configuration['func_density']
-        except KeyError:
-            func_density =none
+        density_type = ""
+        if 'density_type' in configuration:
+            density_type = configuration['density_type']
 
-        try:
-            func_embedding = configuration['func_embedding']
-        except KeyError:
-            func_embedding = None
+        embedding_type = ""
+        if 'embedding_type' in configuration:
+            embedding_type = configuration['embedding_type']
 
         potential = PotentialManager.get_potential_by_name(
             potential_name = potential_name,
             symbols = symbols,
-            func_pair = func_pair,
-            func_density = func_density,
-            func_embedding = func_embedding
+            pair_type = pair_type,
+            density_type = density_type,
+            embedding_type = embedding_type
         )
 
 def dev__potential__list_potentials():

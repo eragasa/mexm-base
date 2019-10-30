@@ -1,6 +1,6 @@
 import importlib
 from collections import OrderedDict
-from mexm.potential import PotentialConfiguration
+# from mexm.potential import PotentialConfiguration
 from mexm.potential import Potential
 
 class PotentialManager(object):
@@ -20,18 +20,18 @@ class PotentialManager(object):
     def get_potential(module_name,
                       class_name,
                       symbols,
-                      func_pair=None,
-                      func_density=None,
-                      func_embedding=None):
+                      pair_type=None,
+                      density_type=None,
+                      embedding_type=None):
         module_ = importlib.import_module(module_name)
         class_ = getattr(module_, class_name)
 
         if class_.__name__ == 'EamPotential':
             kwargs ={
                 'symbols':symbols,
-                'func_pair':func_pair,
-                'func_density':func_density,
-                'func_embedding':func_embedding
+                'pair_type':pair_type,
+                'density_type':density_type,
+                'embedding_type':embedding_type
             }
             return class_(**kwargs)
         else:
@@ -40,21 +40,21 @@ class PotentialManager(object):
     @staticmethod
     def get_potential_by_name(potential_name,
                               symbols,
-                              func_pair=None,
-                              func_density=None,
-                              func_embedding=None):
+                              pair_type=None,
+                              density_type=None,
+                              embedding_type=None):
         potential_map = PotentialManager.get_potential_map()
         module_name = potential_map[potential_name]['module']
         class_name = potential_map[potential_name]['class']
 
-        if class_name== 'eam':
+        if class_name== 'EamPotential':
             kwargs ={
                 'module_name':module_name,
                 'class_name':class_name,
                 'symbols':symbols,
-                'func_pair':func_pair,
-                'func_density':func_density,
-                'func_embedding':func_embedding
+                'pair_type':pair_type,
+                'density_type':density_type,
+                'embedding_type':embedding_type
             }
             return PotentialManager.get_potential(**kwargs)
         else:
