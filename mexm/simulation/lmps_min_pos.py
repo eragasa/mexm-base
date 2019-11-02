@@ -1,43 +1,53 @@
 import os,copy
 from collections import OrderedDict
-from pypospack.io.vasp import Poscar
-from pypospack.task.lammps import LammpsSimulation
+from mexm.io.vasp import Poscar
+from mexm.simulation import LammpsSimulation
+from mexm.simulation import PositionMinimization
 
-class LammpsPositionMinimization(LammpsSimulation):
+class LammpsPositionMinimization(LammpsSimulation, PositionMinimization):
+    simulation_type = 'lammps_min_pos'
+    is_base_class = False
+    results_name = [
+        'toten', 'natoms',
+        'a11', 'a12', 'a13', 'a21', 'a22', 'a23', 'a31', 'a32', 'a33',
+        'totpress',
+        'p11', 'p12', 'p13', 'p21', 'p22', 'p23', 'p31', 'p32', 'p33'
+
+    ]
     """ Class for LAMMPS structural minimization
 
-    This data class defines additional attributes and methods necessary to 
+    This data class defines additional attributes and methods necessary to
     interact with the Workflow manager.
 
     Args:
-        task_name(str): unique id for the task name being define
-        task_directory(str): the directory where this task will create
-            input and output files for LAMMPS
+        name (str)
+        simulation_path (str)
+        structure_path (str)
+        bulk_structure_name (str)
 
     Attributes:
-        config
+        bulk_structure_name (str)
+        bulk_structure_path (str)
         config_map
     """
     def __init__(self,
-            task_name,
-            task_directory,
-            structure_filename,
-            restart=False,
-            fullauto=False):
+                 name,
+                 simulation_path,
+                 structure_path,
+                 bulk_structure_name=None):
         _task_type = 'lmps_min_pos'
 
         self.bulk_structure_name = None
-        self.bulk_structure_filename = None
+        self.bulk_structure_path = None
         self.bulk_structure_lattice = None
 
+
         LammpsSimulation.__init__(self,
-                task_name=task_name,
-                task_directory=task_directory,
-                task_type=_task_type,
-                structure_filename=structure_filename,
-                restart=restart,
-                fullauto=fullauto)
-    
+                                  name=name,
+                                  simulation_path=simulation_path,
+                                  structure_path=structure_path,
+                                  bulk_structure_name=bulk_structure_name)
+
     def postprocess(self):
         LammpsSimulation.postprocess(self)
 
@@ -52,10 +62,10 @@ class LammpsPositionMinimization(LammpsSimulation):
 
     def on_init(self,configuration=None,results=None):
         LammpsSimulation.on_init(self,configuration=configuration)
-        
+
         if 'bulk_structure' in configuration:
             self.bulk_structure_name = configuration['bulk_structure']
-            self.bulk_structure_filename = configuration['bulk_structure_filename']
+            self.bulk_structure_path = configuration['bulk_structure_filename']
             self.bulk_structure_lattice = OrderedDict()
 
             _lattice_parameter_variables = [
@@ -73,17 +83,17 @@ class LammpsPositionMinimization(LammpsSimulation):
             for k in _lattice_parameter_variables:
                 _k = '{}.{}'.format(self.bulk_structure_name,k)
                 self.bulk_lattice_components[_k] = None
-    
+
     def on_config(self,configuration,results=None):
         if self.bulk_structure_name is not None:
             for k,v in results.items():
                 if k in self.bulk_lattice_components:
                     self.bulk_lattice_components[k] = v
         LammpsSimulation.on_config(self,configuration=None,results=None)
-    
+
     def get_conditions_ready(self):
         LammpsSimulation.get_conditions_ready(self)
-        
+
         if self.bulk_structure_name is not None:
             _is_components_exist = []
             for k,v in self.bulk_lattice_components.items():
@@ -91,7 +101,7 @@ class LammpsPositionMinimization(LammpsSimulation):
             _all_components_exist = all(_is_components_exist)
             self.conditions_READY['bulk_lattice_components'] =\
                     _all_components_exist
-    
+
     def on_ready(self,configuration=None,results=None):
         if self.bulk_structure_name is not None:
             self.__modify_structure(results=results)
@@ -115,18 +125,18 @@ class LammpsPositionMinimization(LammpsSimulation):
         a0 = (a11*a11+a12*a12+a13*a13)**0.5
         self.structure.a0 = a0
 
-        
+
     def on_post(self,configuration=None):
         self.__get_results_from_lammps_outputfile()
         LammpsSimulation.on_post(self,configuration=configuration)
-    
+
     def __get_results_from_lammps_outputfile(self):
         _filename = os.path.join(
-                self.task_directory,
+                self.simulation_path,
                 'lammps.out')
         with open(_filename,'r') as f:
             lines = f.readlines()
-        
+
         _variables = [
                 'tot_energy',
                 'num_atoms',
@@ -135,7 +145,7 @@ class LammpsPositionMinimization(LammpsSimulation):
                 'pxx', 'pyy', 'pzz', 'pxy', 'pxz', 'pyz',
                 ]
         _results = OrderedDict()
-        
+
         for i,line in enumerate(lines):
             for name in _variables:
                 if line.startswith('{} = '.format(name)):
@@ -145,8 +155,8 @@ class LammpsPositionMinimization(LammpsSimulation):
                     print('name:{}'.format(name))
                     print('line:{}'.format(line.strip))
                     raise NotImplementedError
-      
-        _task_name = self.task_name
+
+        _task_name = self.name
         self.results = OrderedDict()
         self.results['{}.{}'.format(_task_name,'toten')] = _results['tot_energy']
         self.results['{}.{}'.format(_task_name,'natoms')] = _results['num_atoms']
@@ -186,4 +196,3 @@ class LammpsPositionMinimization(LammpsSimulation):
             '\n'
             )
         return str_out
-
