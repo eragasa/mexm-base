@@ -16,13 +16,18 @@ potential_config = OrderedDict([
     ('potential_name','buckingham'),
     ('symbols',['Mg', 'O'])
 ])
+
 expected_values = {}
 from mexm.potential import BuckinghamPotential
 expected_values['buckingham'] = {
     'potential':BuckinghamPotential
 }
 
-def test____init__():
+def test__LammpsSimulation__properties():
+    assert LammpsSimulation.simulation_type == 'lammps_base'
+    assert LammpsSimulation.is_base_class
+
+def test__LammpsSimulation____init__():
     simulation = LammpsSimulation(**kwargs)
     assert not simulation.is_fullauto
     assert simulation.potential is None

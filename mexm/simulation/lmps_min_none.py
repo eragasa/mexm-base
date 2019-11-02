@@ -1,37 +1,43 @@
 import os,copy
 from collections import OrderedDict
-from pypospack.task.lammps import LammpsSimulation
+from mexm.simulation import LammpsSimulation, StaticCalculation
 
-class LammpsStaticCalculations(LammpsSimulation):
+class LammpsStaticCalculation(LammpsSimulation, StaticCalculation):
+    simulation_type = 'lammps_min_none'
+    is_base_class = False
+    results_names = [
+        'toten', 'natoms',
+        'a11', 'a12', 'a13', 'a21', 'a22', 'a23', 'a31', 'a32', 'a33',
+        'totpress',
+        'p11', 'p12', 'p13', 'p21', 'p22', 'p23', 'p31', 'p32', 'p33'
+    ]
+
     """ Class for LAMMPS structural minimization
 
-    This data class defines additional attributes and methods necessary to 
+    This data class defines additional attributes and methods necessary to
     interact with the Workflow manager.
 
     Args:
-        task_name(str): unique id for the task name being define
-        task_directory(str): the directory where this task will create
-            input and output files for LAMMPS
+        name (str)
+        simulation_path (str)
+        structure_path (str)
+        bulk_structure_name (str)
 
     Attributes:
         config
         config_map
     """
     def __init__(self,
-            task_name,
-            task_directory,
-            structure_filename,
-            restart=False,
-            fullauto=False):
+                 name,
+                 simulation_path,
+                 structure_path,
+                 bulk_structure_name=None):
 
-        _task_type = 'lmps_min_none'
         LammpsSimulation.__init__(self,
-                task_name=task_name,
-                task_directory=task_directory,
-                task_type=_task_type,
-                structure_filename=structure_filename,
-                restart=restart,
-                fullauto=fullauto)
+                                  name=name,
+                                  simulation_path=simulation_path,
+                                  structure_path=structure_path,
+                                  bulk_structure_name=bulk_structure_name)
 
     def postprocess(self):
         LammpsSimulation.postprocess(self)
@@ -50,24 +56,24 @@ class LammpsStaticCalculations(LammpsSimulation):
 
     def on_config(self,configuration,results=None):
         LammpsSimulation.on_config(self,configuration=None,results=None)
-    
+
     def on_post(self,configuration=None):
         self.__get_results_from_lammps_outputfile()
         LammpsSimulation.on_post(self,configuration=configuration)
-    
+
     def on_ready(self,configuration=None,results=None):
         LammpsSimulation.on_ready(
                 self,
                 configuration=configuration,
                 results=results)
-    
+
     def __get_results_from_lammps_outputfile(self):
         _filename = os.path.join(
-                self.task_directory,
+                self.simulation_path,
                 'lammps.out')
         with open(_filename,'r') as f:
             lines = f.readlines()
-        
+
         _variables = [
                 'tot_energy',
                 'num_atoms',
@@ -76,7 +82,7 @@ class LammpsStaticCalculations(LammpsSimulation):
                 'pxx', 'pyy', 'pzz', 'pxy', 'pxz', 'pyz',
                 ]
         _results = OrderedDict()
-        
+
         for i,line in enumerate(lines):
             for name in _variables:
                 if line.startswith('{} = '.format(name)):
@@ -86,7 +92,7 @@ class LammpsStaticCalculations(LammpsSimulation):
                     print('name:{}'.format(name))
                     print('line:{}'.format(line.strip))
                     raise NotImplementedError
-      
+
         _task_name = self.task_name
         self.results = OrderedDict()
         self.results['{}.{}'.format(_task_name,'toten')] = _results['tot_energy']
@@ -117,11 +123,10 @@ class LammpsStaticCalculations(LammpsSimulation):
             '# ---- define settings\n'
             'compute eng all pe/atom\n'
             'compute eatoms all reduce sum c_eng\n'
-            '# ---- run minimization\n'            
+            '# ---- run minimization\n'
             'reset_timestep 0\n'
             'thermo 10\n'
             'thermo_style custom step pe lx ly lz xy xz yz press pxx pyy pzz pxy pxz pyz c_eatoms\n'
             'run 0\n'
             )
         return str_out
-
