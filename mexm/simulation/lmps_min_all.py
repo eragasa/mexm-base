@@ -19,12 +19,12 @@ class LammpsStructuralMinimization(LammpsSimulation, StructuralMinimization):
         config
         config_map
     """
-    def __init__(self,
-            name,
-            simulation_path,
-            structures)
-
-        super(LammpsSimualation).__init__(name, simulation, path, structures)
+    def __init__(self,name,simulation_path,structure_path,bulk_structure_name=None):
+        LammpsSimulation.__init__(self, name, simulation_path, structure_path, bulk_structure_name)
+        #super(LammpsSimulation,self).__init__(name, 
+        #                                      simulation_path,
+        #                                      structure_path,
+        #                                      bulk_structure_name)
 
     def postprocess(self):
         LammpsSimulation.postprocess(self)

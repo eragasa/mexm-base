@@ -20,6 +20,7 @@ from mexm.exception import LammpsSimulationError
 
 class LammpsSimulation(Simulation):
     simulation_type = 'lammps_base'
+    is_base_class = True
     """ Calculates cohesive energy
 
     This is an abstract data class which defines the attributes and methods
@@ -56,18 +57,17 @@ class LammpsSimulation(Simulation):
         lammps_bin(str): location of the serial lammps binary
     """
     def __init__(self,
-            name,
-            simulation_path,
-            structure_path='POSCAR',
-            bulk_structure_name=None,
-            fullauto=False,
-            use_mpi=False,
-            lammps_bin=None):
+                 name,
+                 simulation_path,
+                 structure_path='POSCAR',
+                 bulk_structure_name=None,
+                 fullauto=False,
+                 use_mpi=False,
+                 lammps_bin=None):
 
-        Simulation.__init__(
-                self,
-                name=name,
-                simulation_path=simulation_path)
+
+        super().__init__(name=name, simulation_path=simulation_path)
+        self.bulk_structure_name = bulk_structure_name
         self.is_fullauto = fullauto
 
         self.configuration =  None
