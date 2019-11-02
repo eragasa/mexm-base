@@ -1,25 +1,4 @@
 from mexm.io.eamtools import BaseSetflFile
-class EamPotential():
-
-    def to_dict():
-
-        {
-            'comments':[
-                comments_line_1,
-                comments_line_2,
-                comments_line_3
-            ],
-            'symbols':self.symbols,
-            'potential_type':self.potential_type,
-            'embedding_type':self.embedding_type,
-            'density_type':self.density_type,
-            'pair_type': self.pair_type,
-            'parameters': self.parameters,
-            'embedding_functions': self.embedding_functions,
-            'density_functions': self.density_functions,
-            'pair_functions': self.pair_functions
-        }
-
 
 class SetflReader(BaseSetflFile):
     """Reader for setfl formatted EAM files.
@@ -29,8 +8,9 @@ class SetflReader(BaseSetflFile):
     """
 
     def __init__(self, path=None):
-        super().__init__(path=path)
-        if self.path is not None:
+
+        BaseSetflFile.__init__(self, path=path)
+        if path is not None:
             self.read(path=self.path)
 
     def read(self, path=None):
@@ -46,7 +26,7 @@ class SetflReader(BaseSetflFile):
         symbol_info = lines[3].split()
         self.N_symbols = int(symbol_info[0])
         self.symbols = [str(k) for k in symbol_info[1:]]
-        self.symbol_pairs = SetflReader.get_symbol_pairs(self.symbols)
+        self.symbol_pairs = self.get_symbol_pairs(self.symbols)
 
         # cutoff info
         cutoff_info = lines[4].split()
@@ -100,7 +80,8 @@ class SetflReader(BaseSetflFile):
             # read in pair potential values
             idx_pair_start = start
             idx_pair_end = start + self.N_r
-            body["pair_function"][sp] \
+            values[idx_pair_start:idx_pair_end]
+            body["pair_function"]["".join(sp)] \
                 = [float(k) for k in values[idx_pair_start:idx_pair_end]]
             assert len(body['density_function'][s]) == self.N_r
             start += self.N_r
@@ -109,25 +90,25 @@ class SetflReader(BaseSetflFile):
 
     @property
     def N_rho(self):
-        return self.N_rho_
+        return self.Nrho
 
     @N_rho.setter
-    def N_rho(self, N_rho):
-        assert isinstance(N_rho, int)
-        assert N_rho > 0
+    def N_rho(self, Nrho):
+        assert isinstance(Nrho, int)
+        assert Nrho > 0
 
-        self.N_rho_ = N_rho
+        self.Nrho = Nrho
 
     @property
     def N_r(self):
-        return self.N_r_
+        return self.Nr
 
     @N_r.setter
-    def N_r(self, N_r):
-        assert isinstance(N_r, int)
-        assert N_r > 0
+    def N_r(self, Nr):
+        assert isinstance(Nr, int)
+        assert Nr > 0
 
-        self.N_r_ = N_r
+        self.Nr = Nr
 
 
     def embedding_function(self, symbol):

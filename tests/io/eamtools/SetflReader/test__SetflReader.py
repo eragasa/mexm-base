@@ -9,22 +9,20 @@ resource_setfl_path = os.path.join(
 def test____init____no_path():
     o = SetflReader()
     assert isinstance(o.comments, list)
-    assert len(o.comments, 0)
-    assert o.comments is None
+    assert len(o.comments) == 0
     assert isinstance(o.symbols, list)
-    assert len(o.symbols, 0)
+    assert len(o.symbols) == 0
     assert isinstance(o.symbol_pairs, list)
-    assert len(o.symbols_pairs, 0)
-    assert o.N_rho is None
-    assert o.d_rho is None
+    assert len(o.symbol_pairs) == 0
+    assert o.Nrho is None
+    assert o.drho is None
     assert o.N_r is None
-    assert o.d_r is None
-    assert o.r_cutoff is None
+    assert o.dr is None
 
     assert isinstance(o.lattice_info, dict)
-    assert isinstance(o.embedding_functions, dict)
-    assert isinstance(o.density_functions, dict)
-    assert isinstance(p.pair_functions, dict)
+    assert isinstance(o.embedding, dict)
+    assert isinstance(o.density, dict)
+    assert isinstance(o.pair, dict)
 
 
 def dev__SetflReader():

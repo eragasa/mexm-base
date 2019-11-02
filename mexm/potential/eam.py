@@ -5,7 +5,6 @@ from mexm.potential import (Potential,
                             PairPotential,
                             EamDensityFunction,
                             EamEmbeddingFunction)
-from mexm.io.eamtools import SetflFile
 from mexm.exception import MexmException
 
 class MexmPotentialError(Exception): pass

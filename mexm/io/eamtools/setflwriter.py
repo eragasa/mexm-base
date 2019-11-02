@@ -8,7 +8,7 @@ class SetflWriter(BaseSetflFile):
     PAIR_KEY_FORMAT = "{}.{}"
 
     def __init__(self, path=None):
-        super().__init__(path=path)
+        BaseSetflFile.__init__(self, path=path)
         if self.path is not None:
             self.write(path=path)
 

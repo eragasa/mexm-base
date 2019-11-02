@@ -127,10 +127,10 @@ class LammpsPositionMinimization(LammpsSimulation, PositionMinimization):
 
 
     def on_post(self,configuration=None):
-        self.__get_results_from_lammps_outputfile()
+        self.__getresults__from_lammps_outputfile()
         LammpsSimulation.on_post(self,configuration=configuration)
 
-    def __get_results_from_lammps_outputfile(self):
+    def __getresults__from_lammps_outputfile(self):
         _filename = os.path.join(
                 self.simulation_path,
                 'lammps.out')
@@ -144,42 +144,42 @@ class LammpsPositionMinimization(LammpsSimulation, PositionMinimization):
                 'tot_press',
                 'pxx', 'pyy', 'pzz', 'pxy', 'pxz', 'pyz',
                 ]
-        _results = OrderedDict()
+        results_ = OrderedDict()
 
         for i,line in enumerate(lines):
             for name in _variables:
                 if line.startswith('{} = '.format(name)):
-                    _results[name] = float(line.split('=')[1].strip())
+                    results_[name] = float(line.split('=')[1].strip())
 
                 if line.startswith('ERROR:'):
                     print('name:{}'.format(name))
                     print('line:{}'.format(line.strip))
                     raise NotImplementedError
 
-        _task_name = self.name
+        name_ = self.name
         self.results = OrderedDict()
-        self.results['{}.{}'.format(_task_name,'toten')] = _results['tot_energy']
-        self.results['{}.{}'.format(_task_name,'natoms')] = _results['num_atoms']
+        self.results['{}.{}'.format(name_,'toten')] = results_['tot_energy']
+        self.results['{}.{}'.format(name_,'natoms')] = results_['num_atoms']
         # this only works for orthogonal cells
-        self.results['{}.{}'.format(_task_name,'a11')] = _results['a11']
-        self.results['{}.{}'.format(_task_name,'a12')] = _results['a12']
-        self.results['{}.{}'.format(_task_name,'a13')] = _results['a13']
-        self.results['{}.{}'.format(_task_name,'a21')] = 0
-        self.results['{}.{}'.format(_task_name,'a22')] = _results['a22']
-        self.results['{}.{}'.format(_task_name,'a23')] = _results['a23']
-        self.results['{}.{}'.format(_task_name,'a31')] = 0
-        self.results['{}.{}'.format(_task_name,'a32')] = 0
-        self.results['{}.{}'.format(_task_name,'a33')] = _results['a33']
-        self.results['{}.{}'.format(_task_name,'totpress')] = _results['tot_press']
-        self.results['{}.{}'.format(_task_name,'p11')] = _results['pxx']
-        self.results['{}.{}'.format(_task_name,'p12')] = _results['pxy']
-        self.results['{}.{}'.format(_task_name,'p13')] = _results['pxz']
-        self.results['{}.{}'.format(_task_name,'p21')] = _results['pxy']
-        self.results['{}.{}'.format(_task_name,'p22')] = _results['pyy']
-        self.results['{}.{}'.format(_task_name,'p23')] = _results['pyz'] #pyz=pzy
-        self.results['{}.{}'.format(_task_name,'p31')] = _results['pxz'] #pxz=pzx
-        self.results['{}.{}'.format(_task_name,'p32')] = _results['pyz']
-        self.results['{}.{}'.format(_task_name,'p33')] = _results['pzz']
+        self.results['{}.{}'.format(name_,'a11')] = results_['a11']
+        self.results['{}.{}'.format(name_,'a12')] = results_['a12']
+        self.results['{}.{}'.format(name_,'a13')] = results_['a13']
+        self.results['{}.{}'.format(name_,'a21')] = 0
+        self.results['{}.{}'.format(name_,'a22')] = results_['a22']
+        self.results['{}.{}'.format(name_,'a23')] = results_['a23']
+        self.results['{}.{}'.format(name_,'a31')] = 0
+        self.results['{}.{}'.format(name_,'a32')] = 0
+        self.results['{}.{}'.format(name_,'a33')] = results_['a33']
+        self.results['{}.{}'.format(name_,'totpress')] = results_['tot_press']
+        self.results['{}.{}'.format(name_,'p11')] = results_['pxx']
+        self.results['{}.{}'.format(name_,'p12')] = results_['pxy']
+        self.results['{}.{}'.format(name_,'p13')] = results_['pxz']
+        self.results['{}.{}'.format(name_,'p21')] = results_['pxy']
+        self.results['{}.{}'.format(name_,'p22')] = results_['pyy']
+        self.results['{}.{}'.format(name_,'p23')] = results_['pyz'] #pyz=pzy
+        self.results['{}.{}'.format(name_,'p31')] = results_['pxz'] #pxz=pzx
+        self.results['{}.{}'.format(name_,'p32')] = results_['pyz']
+        self.results['{}.{}'.format(name_,'p33')] = results_['pzz']
 
     def _lammps_input_run_minimization(self):
         str_out = (
