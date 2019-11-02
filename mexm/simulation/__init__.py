@@ -25,6 +25,8 @@ class PhononCalculation(Simulation): pass
 class GulpPhononCalculation(GulpSimulation, PhononCalculation): pass
 class VaspPhononCalculation(VaspSimulation, PhononCalculation): pass
 
+class NptSimulationS(Simulation): pass
+from mexm.simulation.lmps_npt import LammpsNptSimulation
 from mexm.simulation.manager import SimulationManager
 from mexm.simulation.manager import SerialSimulationManager
 from mexm.simulation.manager import MpiSimulationManager

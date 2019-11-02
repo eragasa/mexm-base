@@ -23,7 +23,6 @@ expected_values = {
         'potential_name':potential_config['potential_name'],
         'potential_type':BuckinghamPotential
     }
-
 }
 
 def cleanup():

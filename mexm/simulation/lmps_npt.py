@@ -4,10 +4,10 @@ from pypospack.task.lammps import LammpsSimulation
 import pypospack.io.vasp as vasp
 import pypospack.crystal as crystal
 
-class LammpsNptSimulation(LammpsSimulation):
+class LammpsNptSimulation(LammpsSimulation, NptSimulation):
     """ Class for LAMMPS structural minimization
 
-    This data class defines additional attributes and methods necessary to 
+    This data class defines additional attributes and methods necessary to
     interact with the Workflow manager.
 
     Args:
@@ -20,17 +20,42 @@ class LammpsNptSimulation(LammpsSimulation):
         config_map
     """
     def __init__(self,
-            task_name,
-            task_directory,
-            structure_filename,
-            restart=False,
-            fullauto=False,
-            temperature=None,
-            pressure=0,
-            time_total=None,
-            time_step=None,
-            supercell=[10,10,10]):
-       
+                 name,
+                 simulation_path,
+                 structure_path,
+                 bulk_structure_name):
+
+        LammpsSimulation.__init__(self,
+                                  name=name,
+                                  simulation_path=simulation_path,
+                                  structure_path=structure_path,
+                                  bulk_structure_name):
+        self.set_npt_thermostat()
+
+    def modify_structure(sc=None):
+        if sc is not None:
+            self.supercell=sc
+
+    def set_npt_thermostat(self,
+                           temperature=None,
+                           pressure=0,
+                           time_total=None,
+                           time_step=None,
+                           pressure_damp):
+        self.npt_temperature = temperature
+        self.npt_pressure = pressure
+        self.time_total = None
+        self.time_step = None
+        if self.npt_pdamp is not None:
+            self.npt_pdamp = pressure_damp
+        else:
+            self.npt_pdamp = self.get_recommended_pressure_damp()
+
+        if self.npt_temperature_damp is not None:
+            self.npt_pdamp = pressure_damp
+        else:
+            self.npt_temperature_damp = self.get_recommended_temperature_damp()
+
         assert temperature is not None
         assert time_total is not None
         assert time_step is not None
@@ -45,17 +70,17 @@ class LammpsNptSimulation(LammpsSimulation):
 
         self.time_total = time_total
         self.time_step = time_step
-        
+
         self.supercell = supercell
 
         self.lammps_out_fn = 'lammps.out'
         self.lattice_fn = 'lattice.out'
-    
+
     def get_task_name(structure,temperature):
         T = str(int(temperature))
         task_name = '{s}.lmps_npt_{T}'.format(s=structure,T=T)
         return task_name
-    
+
     def postprocess(self):
         LammpsSimulation.postprocess(self)
 
@@ -85,7 +110,7 @@ class LammpsNptSimulation(LammpsSimulation):
         _lammps_filename = os.path.join(self.task_directory,filename)
         with open(_lammps_filename,'w') as f:
             f.write(_str_out)
-    
+
     def lammps_input_file_to_string(self):
         str_out = "".join([\
                 self._lammps_input_initialization_section(),
@@ -116,7 +141,7 @@ class LammpsNptSimulation(LammpsSimulation):
             '# ---- define settings\n'
             'compute eng all pe/atom\n'
             'compute eatoms all reduce sum c_eng\n'
-            '# ---- run minimization\n'            
+            '# ---- run minimization\n'
             'reset_timestep 0\n'
             'fix 1 all box/relax iso 0.0 vmax 0.001\n'
             'thermo 10\n'
@@ -168,42 +193,42 @@ class LammpsNptSimulation(LammpsSimulation):
                   )
         return str_out
     def _determine_temperature_dampening(self,dt):
-        # A Nose-Hoover thermostat will not work well for arbitrary values of 
-        # Tdamp. If Tdamp is too small, the temperature can fluctuate wildly; 
-        # if it is too large, the temperature will take a very long time to 
-        # equilibrate. A good choice for many models is a Tdamp of around 100 
+        # A Nose-Hoover thermostat will not work well for arbitrary values of
+        # Tdamp. If Tdamp is too small, the temperature can fluctuate wildly;
+        # if it is too large, the temperature will take a very long time to
+        # equilibrate. A good choice for many models is a Tdamp of around 100
         # timesteps.
         # Ref: http://lammps.sandia.gov/doc/fix_nh.html#fix-npt-command
-        
+
         _tempdamp = dt*100
         return _tempdamp
 
     def _determine_pressure_dampening(self,dt):
-        # A Nose-Hoover barostat will not work well for arbitrary values of 
-        # Pdamp. If Pdamp is too small, the pressure and volume can fluctuate 
-        # wildly; if it is too large, the pressure will take a very long time 
-        # to equilibrate. A good choice for many models is a Pdamp of around 
-        # 1000 timesteps. 
+        # A Nose-Hoover barostat will not work well for arbitrary values of
+        # Pdamp. If Pdamp is too small, the pressure and volume can fluctuate
+        # wildly; if it is too large, the pressure will take a very long time
+        # to equilibrate. A good choice for many models is a Pdamp of around
+        # 1000 timesteps.
         # Ref: http://lammps.sandia.gov/doc/fix_nh.html#fix-npt-command
-        
+
         _pressdamp = dt*1000
         return _pressdamp
-   
+
     def _determine_drag_coefficient(self):
-        # In some cases (e.g. for solids) the pressure (volume) and/or 
-        # temperature of the system can oscillate undesirably when a Nose/Hoover 
-        # barostat and thermostat is applied. The optional drag keyword will 
-        # damp these oscillations, although it alters the Nose/Hoover equations. 
-        # A value of 0.0 (no drag) leaves the Nose/Hoover formalism unchanged. 
-        # A non-zero value adds a drag term; the larger the value specified, 
-        # the greater the damping effect. Performing a short run and monitoring 
-        # the pressure and temperature is the best way to determine if the drag 
-        # term is working. Typically a value between 0.2 to 2.0 is sufficient 
-        # to damp oscillations after a few periods. Note that use of the drag 
-        # keyword will interfere with energy conservation and will also change 
-        # the distribution of positions and velocities so that they do not 
-        # correspond to the nominal NVT, NPT, or NPH ensembles. 
-        
+        # In some cases (e.g. for solids) the pressure (volume) and/or
+        # temperature of the system can oscillate undesirably when a Nose/Hoover
+        # barostat and thermostat is applied. The optional drag keyword will
+        # damp these oscillations, although it alters the Nose/Hoover equations.
+        # A value of 0.0 (no drag) leaves the Nose/Hoover formalism unchanged.
+        # A non-zero value adds a drag term; the larger the value specified,
+        # the greater the damping effect. Performing a short run and monitoring
+        # the pressure and temperature is the best way to determine if the drag
+        # term is working. Typically a value between 0.2 to 2.0 is sufficient
+        # to damp oscillations after a few periods. Note that use of the drag
+        # keyword will interfere with energy conservation and will also change
+        # the distribution of positions and velocities so that they do not
+        # correspond to the nominal NVT, NPT, or NPH ensembles.
+
         _drag = 1.0
         return _drag
 
@@ -211,7 +236,7 @@ class LammpsNptSimulation(LammpsSimulation):
 
         _max_size = 10000000
         _seed = random.randrange(_max_size)
-   
+
         return _seed
 
     def _lammps_input_npt_thermostat(self,
@@ -237,11 +262,11 @@ class LammpsNptSimulation(LammpsSimulation):
         _temp1 = temperature
         _press0 = pressure
         _press1 = pressure
-        
+
         _tempdamp = self._determine_temperature_dampening(dt=_dt)
         _pressdamp = self._determine_pressure_dampening(dt=_dt)
         _drag = self._determine_drag_coefficient()
-        
+
         if seed1 is None:
             _seed1 = self._get_random_seed()
         else:
