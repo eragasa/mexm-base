@@ -1,8 +1,10 @@
 import os,copy
 from collections import OrderedDict
-from pypospack.task.lammps import LammpsSimulation
+from mexm.simulation import LammpsSimulation
+from mexm.simulation import StructuralMinimization
 
-class LammpsStructuralMinimization(LammpsSimulation):
+class LammpsStructuralMinimization(LammpsSimulation, StructuralMinimization):
+    simulation_type = 'lmps_min_all'
     """ Class for LAMMPS structural minimization
 
     This data class defines additional attributes and methods necessary to 
@@ -18,20 +20,11 @@ class LammpsStructuralMinimization(LammpsSimulation):
         config_map
     """
     def __init__(self,
-            task_name,
-            task_directory,
-            structure_filename,
-            restart=False,
-            fullauto=False):
+            name,
+            simulation_path,
+            structures)
 
-        _task_type = 'lmps_min_all'
-        LammpsSimulation.__init__(self,
-                task_name=task_name,
-                task_directory=task_directory,
-                task_type=_task_type,
-                structure_filename=structure_filename,
-                restart=restart,
-                fullauto=fullauto)
+        super(LammpsSimualation).__init__(name, simulation, path, structures)
 
     def postprocess(self):
         LammpsSimulation.postprocess(self)

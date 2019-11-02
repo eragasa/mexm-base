@@ -3,6 +3,7 @@ from mexm.potential import Potential
 
 class PotentialMap(object):
 
+    @staticmethod
     def get_potentials():
         potential_list = []
 
@@ -13,6 +14,7 @@ class PotentialMap(object):
 
         return potential_list
 
+    @staticmethod
     def get_potential_types():
         potential_list = PotentialMap.get_potentials()
 
