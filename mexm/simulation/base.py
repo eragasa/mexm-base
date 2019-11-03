@@ -1,10 +1,11 @@
 import os, shutil
-
+from copy import deepcopy
 from mexm.exception import MexmException
 
 class MexmSimulationException(MexmException): pass
 
 class Simulation():
+    is_base_class = True
     states = ['INIT','CONFIG','READY','RUNNING','POST','FINISHED','ERROR']
     def __init__(self,
                  name,
@@ -18,25 +19,54 @@ class Simulation():
         self.status = None
 
     @property
-    def conditions_INIT(self): return self.conditions['INIT']
+    def conditions_INIT(self): 
+        return self.conditions['INIT']
+
+    @conditions_INIT.setter
+    def conditions_INIT(self, conditions): 
+        self.conditions['INIT'] = deepcopy(conditions)
 
     @property
     def conditions_CONFIG(self): return self.conditions['CONFIG']
 
-    @property
-    def conditions_RUNNING(self): return self.conditions['RUNNING']
+    @conditions_CONFIG.setter
+    def conditions_CONFIG(self, conditions):
+        self.conditions['CONFIG'] = deepcopy(conditions)
 
     @property
     def conditions_READY(self): return self.conditions['READY']
 
+    @conditions_READY.setter
+    def conditions_READY(self, conditions):
+        self.conditions['READY'] = deepcopy(conditions)
+
+    @property
+    def conditions_RUNNING(self): return self.conditions['RUNNING']
+
+    @conditions_RUNNING.setter
+    def conditions_RUNNING(self, conditions):
+        self.conditions['RUNNING'] = deepcopy(conditions)
+
     @property
     def conditions_POST(self): return self.conditions['POST']
+
+    @conditions_POST.setter
+    def conditions_POST(self, conditions):
+        self.conditions['POST'] = deepcopy(conditions)
 
     @property
     def conditions_FINISHED(self): return self.conditions['FINISHED']
 
+    @conditions_FINISHED.setter
+    def conditions_FINISHED(self, conditions):
+        self.conditions['FINISHED'] = deepcopy(conditions)
+
     @property
     def conditions_ERROR(self): return self.conditions['ERROR']
+
+    @conditions_ERROR.setter
+    def conditions_ERROR(self, conditions):
+        self.conditions['ERROR'] = deepcopy(conditions)
 
     def run(self): raise NotImplementedError
 
@@ -88,16 +118,17 @@ class Simulation():
 
     def update_status(self):
         self.get_conditions_init()
-        if not all([v for k,v in self.conditions__INIT.items()]):
+        assert isinstance(self.conditions_INIT, dict)
+        if not all([v for k,v in self.conditions_INIT.items()]):
             return
 
         self.get_conditions_config()
-        if not all([v for k,v in self.conditions__CONFIG.items()]):
+        if not all([v for k,v in self.conditions_CONFIG.items()]):
             self.status = 'INIT'
             return
 
         self.get_conditions_ready()
-        if not all([v for k,v in self.conditions__READY.items()]):
+        if not all([v for k,v in self.conditions_READY.items()]):
             self.status = "CONFIG"
             return
 
@@ -107,7 +138,7 @@ class Simulation():
             return
 
         self.get_conditions_finished()
-        if not all([v for k,v in self.conditions_POST.ITEMS()]):
+        if not all([v for k,v in self.conditions_POST.items()]):
             self.status = "RUNNING"
             return
 

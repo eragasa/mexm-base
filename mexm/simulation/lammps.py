@@ -2,6 +2,8 @@
 
 """
 import os, importlib, subprocess, shutil
+import inspect
+
 from copy import deepcopy
 from collections import OrderedDict
 
@@ -140,13 +142,10 @@ class LammpsSimulation(Simulation):
                 'because the potential attribute has not been initialized')
 
         if parameters is None:
-            assert 'parameters' in self.configuration
-            self.parameters = deepcopy(self.configuration['parameters'])
+            self.parameters = self.configuration['potential']['parameters']
         else:
             assert isinstance(parameters, dict)
             self.parameters = deepcopy(parameters)
-
-
 
     def on_init(self,configuration=None):
         if configuration is not None:
@@ -211,8 +210,6 @@ class LammpsSimulation(Simulation):
                 raise ValueError(msg_err)
 
         self.set_potential_parameters()
-        if self.configuration['parameters'] is not None:
-            self.parameters = self.configuration['parameters']
 
         if self.structure is None:
             if self.structure_path is not None:
@@ -510,7 +507,9 @@ class LammpsSimulation(Simulation):
 
     def write_potential_file(self):
         if self.potential is None:
-            return
+            raise ValueError
+
+        self.potential.parameters = deepcopy(self.configuration['potential']['parameters'])
 
         _setfl_dst_filename = None
 
@@ -593,6 +592,12 @@ class LammpsSimulation(Simulation):
         self.lammps_structure = LammpsStructure.initialize_from_mexm(self.structure)
         self.lammps_structure.write(**kwargs)
 
+    def get_atomic_style(self):
+        if self.potential.is_charge:
+            return 'charge'
+        else:
+            return 'atomic'
+
     def modify_structure(self, new_info):
         if new_info[0] == 'a0':
             self.structure.a0 = new_info[1]
@@ -614,11 +619,25 @@ class LammpsSimulation(Simulation):
                     potential['density_type'] = 'eam_exp_dens'
                     potential['embedding_type'] = 'eam_universal_embedding'
         """
-        assert isinstance(potential,OrderedDict) or potential is None
+        assert any([
+            isinstance(potential, dict),
+            potential is None
+            ])
 
         if isinstance(potential, dict):
             self.configuration['potential']=deepcopy(potential)
         obj_dict = self.configuration['potential']
+
+        potential_args = inspect.getfullargspec(PotentialManager.get_potential_by_name)
+        obj_dict = {}
+        for k in potential_args.args:
+            try:
+                obj_dict[k] = self.configuration['potential'][k]
+            except KeyError as e:
+                if k in ['pair_type', 'density_type', 'embedding_type']:
+                    pass
+                else:
+                    raise
         self.potential = PotentialManager.get_potential_by_name(**obj_dict)
 
 

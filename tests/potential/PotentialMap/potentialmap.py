@@ -1,5 +1,26 @@
 import importlib
 
+from mexm import potential
+from mexm.potential import Potential
+
+class PotentialMap(object):
+
+    @staticmethod
+    def get_potentials():
+        potential_list = [p for p in Potential.__subclasses__()]
+        return potential_list
+
+    @staticmethod
+    def get_potential_types():
+
+        potential_list = []
+        for p in Potential.__subclasses__():
+            for sub_p in p.__subclasses__():
+                module = sub_p.__module__
+                name = sub_p.__name__
+                print([module, name]) 
+        return potential_list
+
 def get_potential(module_name, class_name, symbols):
     module_ = importlib.import_module(module_name)
     class_ = getattr(module_, class_name)

@@ -1,8 +1,9 @@
 import os, random, sys
 from collections import OrderedDict
-from pypospack.task.lammps import LammpsSimulation
-import pypospack.io.vasp as vasp
-import pypospack.crystal as crystal
+
+from mexm.simulation import LammpsSimulation, NptSimulation
+from mexm.io.vasp import Poscar
+from mexm.structure import SimulationCell
 
 class LammpsNptSimulation(LammpsSimulation, NptSimulation):
     """ Class for LAMMPS structural minimization
@@ -29,7 +30,7 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
                                   name=name,
                                   simulation_path=simulation_path,
                                   structure_path=structure_path,
-                                  bulk_structure_name):
+                                  bulk_structure_name=None)
         self.set_npt_thermostat()
 
     def modify_structure(sc=None):
@@ -41,7 +42,7 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
                            pressure=0,
                            time_total=None,
                            time_step=None,
-                           pressure_damp):
+                           pressure_damp=None):
         self.npt_temperature = temperature
         self.npt_pressure = pressure
         self.time_total = None
