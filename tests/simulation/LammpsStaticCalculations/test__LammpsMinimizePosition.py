@@ -5,13 +5,52 @@ from mexm.structure import SimulationCell
 from mexm.simulation import LammpsStaticCalculation
 from mexm.potential import BuckinghamPotential
 
+resources_dir = os.path.abspath(os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        '..',
+        '..',
+        'resources'))
+structure_dir = os.path.join(resources_dir,'MgO_structures')
+
 init_kwargs = {
     'name':'test_name',
     'simulation_path':'simulation_path',
-    'structure_path':os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'resources','POSCAR'),
-    'bulk_structure_name':'MgO_unit_cell'
+    'structure_path': os.path.join(structure_dir, 'MgO_NaCl_333_fr_a.vasp'),
+    'bulk_structure_name':'MgO_NaCl_unit'
+}
+
+configuration = {
+    'simulation':{
+        'simulation_type':'lammps_min_all'
+        'name':'MgO_NaCl.lammps_min_pos',
+        'simulation_path':'MgO_NaCl_333_fr_a.lammps_min_pos'
+    },
+    'structures':{
+        'structure_name':'MgO_NaCl_333_fr_a',
+        'structure_path':os.path.join(structure_dir, 'MgO_NaCl_333.fr_a.vasp'),
+        'bulk_structure_name':'MgO_NaCl_unit.vasp'
+    },
+    'potential':{
+        'potential_name':'buckingham',
+        'symbols':['Mg', 'O'],
+        'parameters':{
+            'cutoff':12.0,
+            'Mg_chrg':+2.0,
+            'O_chrg':-2.0,
+            'MgMg_A':0.0,
+            'MgMg_rho':0.5,
+            'MgMg_C':0.0,
+            'MgMg_cutoff':12.0,
+            'MgO_A':821.6,
+            'MgO_rho':0.3242,
+            'MgO_C':0.0,
+            'MgO_cutoff':12.0,
+            'OO_A':2274.00,
+            'OO_rho':0.1490,
+            'OO_C':27.88,
+            'OO_cutoff':12.0
+            }
+    }
 }
 potential_config = OrderedDict([
     ('potential_name','buckingham'),
@@ -29,6 +68,10 @@ expected_values = {
 def cleanup():
     shutil.rmtree(init_kwargs['simulation_path'])
 
+def test__LammpsStaticCalculation__properties():
+    assert LammpsStaticCalculation.simulation_type == 'lammps_min_none'
+    assert LammpsStaticCalculation.is_base_class == False
+
 def test__LammpsStaticCalculation__inheritance():
     o = LammpsStaticCalculation(**init_kwargs)
     from mexm.simulation import LammpsSimulation
@@ -37,9 +80,17 @@ def test__LammpsStaticCalculation__inheritance():
     from mexm.simulation import StaticCalculation
     assert isinstance(o, StaticCalculation)
 
-def test__LammpsStaticCalculation__properties():
-    assert LammpsStaticCalculation.simulation_type == 'lammps_min_none'
-    assert LammpsStaticCalculation.is_base_class == False
+def test__LammpsStructuralMinimization____init____conditions():
+    o = LammpsStructuralMinimization(**init_kwargs)
+    assert isinstance(o.conditions, dict)
+    assert isinstance(o.conditions_INIT, dict)
+    assert isinstance(o.conditions_CONFIG, dict)
+    assert isinstance(o.conditions_RUNNING, dict)
+    assert isinstance(o.conditions_READY, dict)
+    assert isinstance(o.conditions_POST, dict)
+    assert isinstance(o.conditions_FINISHED, dict)
+    assert isinstance(o.conditions_ERROR, dict)
+    cleanup()
 
 def test__LammpsStaticCalculation____init__():
     o = LammpsStaticCalculation(**init_kwargs)
@@ -67,12 +118,30 @@ def test__LammpsStaticCalculation____init__():
     assert os.path.isdir(init_kwargs['simulation_path'])
     cleanup()
 
+def test__LammpsStaticCalculation____init____update_status():
+    o = LammpsStaticCalculation(**init_kwargs)
+    o.is_fullauto = False
+    o.update_status()
+    assert o.status == 'INIT'
+
 def test__configure_potential__w_dict():
     o = LammpsStaticCalculation(**init_kwargs)
     o.configure_potential(potential=potential_config)
     assert isinstance(o.potential,
                       expected_values['potential']['potential_type'])
     cleanup()
+
+def test__LammpsStructuralMinimization__on_init():
+    o = LammpsStructuralMinimization(**init_kwargs)
+    o.is_fullauto = False
+    o.update_status()
+    print(o.conditions_INIT)
+    print(all([v for k,v in o.conditions_INIT.items()]))
+    assert o.status == 'INIT'
+    o.on_init(configuration)
+    assert o.status == 'CONFIG'
+    cleanup()
+
 
 def test__lammps_input_file_to_string():
     from mexm.manager import PotentialManager
@@ -86,7 +155,7 @@ def dev__lammps_input_file_to_string():
     o.configure_potential(potential=potential_config)
     print(o.lammps_input_file_to_string())
     cleanup()
-    
+
 def dev__set_potential_parameters():
     o = LammpsStaticCalculation(**init_kwargs)
     o.configure_potential(potential=potential_config)

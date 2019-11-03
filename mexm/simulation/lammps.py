@@ -146,68 +146,14 @@ class LammpsSimulation(Simulation):
             assert isinstance(parameters, dict)
             self.parameters = deepcopy(parameters)
 
-    def on_init(self,configuration=None):
+    def on_init(self, configuration=None):
         if configuration is not None:
             self.configuration = deepcopy(configuration)
 
-        try:
-            self.configure_potential(potential=self.configuration['potential'])
-        except KeyError:
-            print("self.configuration:",type(self.configuration))
-            for k,v in self.configuration.items():
-                print(k,' = ',v)
-            raise
+        self.configure_potential(potential=self.configuration['potential'])
 
-        # writing eam potential files
-        if type(self.potential) is EamPotential:
-            if self.lammps_setfl_path is None:
-                self.lammps_setfl_path = "{}.eam.alloy".format(
-                        "".join(self.potential.symbols))
-
-            # if setfl_filename_src is set, then we just copy the
-            # EAM potential file.
-
-            if all([self.potential.obj_pair is None,
-                    self.potential.obj_density is None,
-                    self.potential.obj_embedding is None,
-                    isinstance(self.potential.setfl_filename_src,str)]):
-                eam_setfl_filename_src = self.potential.setfl_filename_src
-                eam_setfl_filename_dst = os.path.join(
-                        self.simulation_path,
-                        self.lammps_setfl_path)
-                try:
-                    shutil.copyfile(
-                            src=eam_setfl_filename_src,
-                            dst=eam_setfl_filename_dst)
-                except FileNotFoundError as e:
-                    msg  = 'o.potential.obj_pair:{}\n'.format(self.potential.obj_pair)
-                    msg += 'o.potential.obj_density:{}\n'.format(self.potential.obj_density)
-                    msg += 'o.potential.obj_embedding:{}\n'.format(self.potential.obj_embedding)
-                    msg += 'eam_setfl_filename_src:{}\n'.format(eam_setfl_filename_src)
-                    msg += 'eam_setfl_filename_dst:{}\n'.format(eam_setfl_filename_dst)
-                    raise
-
-            elif all([self.potential.obj_pair is not None,
-                      self.potential.obj_density is not None,
-                      self.potential.obj_embedding is not None]):
-                pass
-            else:
-                msg_err = (
-                    "EamPotential must be either be parameterized by setting "
-                    "pair,density,and embedding formalisms through the "
-                    "constructor or a setfl filename must be provided through "
-                    "the filename argument\n"
-                    "obj_pair:{obj_pair}\n"
-                    "obj_density:{obj_pensity}\n"
-                    "obj_embedding:{obj_embedding}\n"
-                    "setfl_filename:{setfl_filename\n"
-                    ).format(
-                            obj_pair=str(type(self.potential.obj_pair)),
-                            obj_density=str(type(self.potential.obj_density)),
-                            obj_embedding=str(type(self.potential.obj_embedding)),
-                            setfl_filename=str(self.potential.setfl_filename))
-                raise ValueError(msg_err)
-
+        if isinstance(self.potential, EamPotential):
+            self.write_eam_potential_file()
         self.set_potential_parameters()
 
         if self.structure is None:
@@ -745,3 +691,54 @@ class LammpsSimulation(Simulation):
             'print \"pypospack:lammps_sim:done\"\n'
                   )
         return str_out
+    def write_eam_potential_file(self):
+        if self.lammps_setfl_path is None:
+            self.lammps_setfl_path = "{}.eam.alloy".format(
+                    "".join(self.potential.symbols))
+            if self.lammps_setfl_path is None:
+                self.lammps_setfl_path = "{}.eam.alloy".format(
+                        "".join(self.potential.symbols))
+
+            # if setfl_filename_src is set, then we just copy the
+            # EAM potential file.
+
+            if all([self.potential.obj_pair is None,
+                    self.potential.obj_density is None,
+                    self.potential.obj_embedding is None,
+                    isinstance(self.potential.setfl_filename_src,str)]):
+                eam_setfl_filename_src = self.potential.setfl_filename_src
+                eam_setfl_filename_dst = os.path.join(
+                        self.simulation_path,
+                        self.lammps_setfl_path)
+                try:
+                    shutil.copyfile(
+                            src=eam_setfl_filename_src,
+                            dst=eam_setfl_filename_dst)
+                except FileNotFoundError as e:
+                    msg  = 'o.potential.obj_pair:{}\n'.format(self.potential.obj_pair)
+                    msg += 'o.potential.obj_density:{}\n'.format(self.potential.obj_density)
+                    msg += 'o.potential.obj_embedding:{}\n'.format(self.potential.obj_embedding)
+                    msg += 'eam_setfl_filename_src:{}\n'.format(eam_setfl_filename_src)
+                    msg += 'eam_setfl_filename_dst:{}\n'.format(eam_setfl_filename_dst)
+                    raise
+
+            elif all([self.potential.obj_pair is not None,
+                      self.potential.obj_density is not None,
+                      self.potential.obj_embedding is not None]):
+                pass
+            else:
+                msg_err = (
+                    "EamPotential must be either be parameterized by setting "
+                    "pair,density,and embedding formalisms through the "
+                    "constructor or a setfl filename must be provided through "
+                    "the filename argument\n"
+                    "obj_pair:{obj_pair}\n"
+                    "obj_density:{obj_pensity}\n"
+                    "obj_embedding:{obj_embedding}\n"
+                    "setfl_filename:{setfl_filename\n"
+                    ).format(
+                            obj_pair=str(type(self.potential.obj_pair)),
+                            obj_density=str(type(self.potential.obj_density)),
+                            obj_embedding=str(type(self.potential.obj_embedding)),
+                            setfl_filename=str(self.potential.setfl_filename))
+                raise ValueError(msg_err)

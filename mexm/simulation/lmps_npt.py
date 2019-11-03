@@ -31,6 +31,11 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
                                   simulation_path=simulation_path,
                                   structure_path=structure_path,
                                   bulk_structure_name=None)
+        self.npt_temperature = None
+        self.npt_pressure = None
+        self.npt_pressure_damp = None
+        self.npt_time_total = None
+        self.npt_time_step = None
         self.set_npt_thermostat()
 
     def modify_structure(sc=None):
@@ -43,40 +48,8 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
                            time_total=None,
                            time_step=None,
                            pressure_damp=None):
-        self.npt_temperature = temperature
-        self.npt_pressure = pressure
-        self.time_total = None
-        self.time_step = None
-        if self.npt_pdamp is not None:
-            self.npt_pdamp = pressure_damp
-        else:
-            self.npt_pdamp = self.get_recommended_pressure_damp()
-
-        if self.npt_temperature_damp is not None:
-            self.npt_pdamp = pressure_damp
-        else:
-            self.npt_temperature_damp = self.get_recommended_temperature_damp()
-
-        assert temperature is not None
-        assert time_total is not None
-        assert time_step is not None
-
-        LammpsSimulation.__init__(self,
-                task_name=task_name,
-                task_directory=task_directory,
-                structure_filename=structure_filename)
-
-        self.temperature = temperature
-        self.pressure = pressure
-
-        self.time_total = time_total
-        self.time_step = time_step
-
-        self.supercell = supercell
-
-        self.lammps_out_fn = 'lammps.out'
-        self.lattice_fn = 'lattice.out'
-
+        pass
+        
     def get_task_name(structure,temperature):
         T = str(int(temperature))
         task_name = '{s}.lmps_npt_{T}'.format(s=structure,T=T)
