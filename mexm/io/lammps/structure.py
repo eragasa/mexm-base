@@ -1,10 +1,19 @@
-import pypospack.crystal as crystal
+from copy import deepcopy
+from mexm.structure import SimulationCell
 
-class LammpsStructure(crystal.SimulationCell):
-    def __init__(self,obj=None):
-        crystal.SimulationCell.__init__(self,obj)
+class LammpsStructure(SimulationCell):
 
-    def write(self, filename, symbol_list=None, atom_style=None):
+    def __init__(self):
+        SimulationCell.__init__(self)
+
+    @staticmethod
+    def initialize_from_mexm(obj):
+        o = LammpsStructure()
+        o.H = deepcopy(obj.H)
+        o.atomic_basis = deepcopy(obj.atomic_basis)
+        return o
+
+    def write(self, path, symbol_list=None, atom_style=None):
         if symbol_list is None:
             symbol_list = self.symbols
 
@@ -21,11 +30,11 @@ class LammpsStructure(crystal.SimulationCell):
         yhi                        = self.H[1,1] * a0
         zlo                        = 0.0
         zhi                        = self.H[2,2] * a0
-        xy                         = self.H[0,1] * a0
-        xz                         = self.H[0,2] * a0
-        yz                         = self.H[1,2] * a0
+        xy                         = self.H[1,0] * a0
+        xz                         = self.H[2,0] * a0
+        yz                         = self.H[2,1] * a0
 
-        file = open(filename,'w')
+        file = open(path,'w')
 
         # this is the header section
         file.write("# {}\n".format(symbol_list))

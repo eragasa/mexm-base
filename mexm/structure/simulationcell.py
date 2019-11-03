@@ -93,8 +93,8 @@ class SimulationCell(object):
     @staticmethod
     def initialize_from_mexm(obj):
         """ copy constructor from mexm """
-        assert isinstance(obj,mexm)
-        o = deepcopy(o)
+        assert isinstance(obj, SimulationCell)
+        o = deepcopy(obj)
         return o
 
     @staticmethod

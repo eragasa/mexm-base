@@ -9,7 +9,6 @@ from collections import OrderedDict
 
 from mexm.io.vasp import Poscar
 from mexm.io.lammps import LammpsStructure
-
 from mexm.simulation import Simulation
 
 from mexm.io.eamtools import SetflFile
@@ -590,6 +589,7 @@ class LammpsSimulation(Simulation):
         }
 
         self.lammps_structure = LammpsStructure.initialize_from_mexm(self.structure)
+        assert isinstance(self.lammps_structure, LammpsStructure)
         self.lammps_structure.write(**kwargs)
 
     def get_atomic_style(self):
