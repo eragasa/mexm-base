@@ -179,7 +179,6 @@ def test__LammpsPositionMinimization__on_ready():
     assert o.status == 'RUNNING'
     cleanup()
 
-
 @pytest.mark.skipif(os.name=='nt', reason='requires a POSIX subsystem')
 def test__LammpsPositionMinimization__on_running():
     o = LammpsPositionMinimization(**init_kwargs)
