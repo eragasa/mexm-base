@@ -85,50 +85,36 @@ class LammpsPositionMinimization(LammpsSimulation, PositionMinimization):
                 self.bulk_lattice_components[_k] = None
 
     def on_config(self,configuration,results=None):
-        if self.bulk_structure_name is not None:
-            for k,v in results.items():
-                if k in self.bulk_lattice_components:
-                    self.bulk_lattice_components[k] = v
-        LammpsSimulation.on_config(self,configuration=None,results=None)
+        LammpsSimulation.on_config(self,configuration=configuration,results=results)
 
     def get_conditions_ready(self):
         LammpsSimulation.get_conditions_ready(self)
-
-        if self.bulk_structure_name is not None:
-            _is_components_exist = []
-            for k,v in self.bulk_lattice_components.items():
-                _is_components_exist.append(v is not None)
-            _all_components_exist = all(_is_components_exist)
-            self.conditions_READY['bulk_lattice_components'] =\
-                    _all_components_exist
+        a0_name = '{}.{}.a0'.format(self.bulk_structure_name, 'lmps_min_all')
+        try:
+            self.conditions_READY['bulk_structure_results_available'] \
+                = a0_name in self.results
+        except TypeError as e:
+            if self.results is None:
+                self.conditions_READY['bulk_structure_results_available'] \
+                    = False
+            else:
+                raise
+        return self.conditions_READY
 
     def on_ready(self,configuration=None,results=None):
-        if self.bulk_structure_name is not None:
-            self.__modify_structure(results=results)
-        LammpsSimulation.on_ready(self,configuration=configuration)
-
-    def __modify_structure(self,results):
-        assert isinstance(results,dict)
-        #_ideal_structure_name = self.ideal_structure_name
-        a11_n = '{}.lmps_min_all.a11'.format(self.bulk_structure_name)
-        a12_n = '{}.lmps_min_all.a12'.format(self.bulk_structure_name)
-        a13_n = '{}.lmps_min_all.a13'.format(self.bulk_structure_name)
-        a21_n = '{}.lmps_min_all.a21'.format(self.bulk_structure_name)
-        a22_n = '{}.lmps_min_all.a22'.format(self.bulk_structure_name)
-        a23_n = '{}.lmps_min_all.a23'.format(self.bulk_structure_name)
-        a31_n = '{}.lmps_min_all.a31'.format(self.bulk_structure_name)
-        a32_n = '{}.lmps_min_all.a32'.format(self.bulk_structure_name)
-        a33_n = '{}.lmps_min_all.a33'.format(self.bulk_structure_name)
-        a11 = self.bulk_lattice_components[a11_n]
-        a12 = self.bulk_lattice_components[a12_n]
-        a13 = self.bulk_lattice_components[a13_n]
-        a0 = (a11*a11+a12*a12+a13*a13)**0.5
-        self.structure.a0 = a0
-
+        self.results = deepcopy(results)
+        LammpsSimulation.on_ready(self,
+                                  configuration=configuration,
+                                  results=self.results)
 
     def on_post(self,configuration=None):
         self.__getresults__from_lammps_outputfile()
         LammpsSimulation.on_post(self,configuration=configuration)
+
+    def modify_structure_file(self, results):
+        a0_name = '{}.{}.a0'.format(self.bulk_structure_name, 'lmps_min_all')
+        self.lammps_structure.a0 = results[a0_name]
+
 
     def __getresults__from_lammps_outputfile(self):
         _filename = os.path.join(

@@ -165,15 +165,18 @@ class LammpsSimulation(Simulation):
             self.on_update_status()
 
 
-    def on_config(self,configuration=None,results=None):
+    def on_config(self, configuration=None, results=None):
         if configuration is not None:
             self.configuration = deepcopy(configuration)
+
+        assert isinstance(results, dict)
+        self.results = deepcopy(results)
 
         self.configure_potential()
         if 'parameters' in self.configuration:
             if isinstance(self.potential,Potential):
-                _parameters = self.configuration['parameters']
-                self.potential.parameters = _parameters
+                parameters_ = self.configuration['parameters']
+                self.potential.parameters = parameters_
 
         # writing eam potential files
         if type(self.potential) is EamPotential:
@@ -224,7 +227,7 @@ class LammpsSimulation(Simulation):
             self.configuration = deepcopy(configuration)
 
         self.write_lammps_input_file()
-        self.write_potential_file()
+        self.write_potential_file(results=results)
         self.write_structure_file()
         if isinstance(self.potential,EamPotential):
             if self.potential.setfl_filename_src is None:
@@ -297,6 +300,7 @@ class LammpsSimulation(Simulation):
 
     def get_conditions_ready(self):
         self.conditions_READY = OrderedDict()
+        return self.conditions_READY
 
     def get_conditions_running(self):
         self.conditions_RUNNING = OrderedDict()
@@ -525,7 +529,10 @@ class LammpsSimulation(Simulation):
             atom_style = 'atomic'
         return atom_style
 
-    def write_structure_file(self, lammps_structure_path=None):
+    def modify_structure_file(self, results=None):
+        pass
+
+    def write_structure_file(self, lammps_structure_path=None, results=None):
         if lammps_structure_path is not None:
             self.lammmps_structure_path = lammps_structure_path
 
@@ -536,6 +543,7 @@ class LammpsSimulation(Simulation):
 
         self.lammps_structure = LammpsStructure.initialize_from_mexm(self.structure)
         assert isinstance(self.lammps_structure, LammpsStructure)
+        self.modify_structure_file(results=results)
         self.lammps_structure.write(**kwargs)
 
     def get_atomic_style(self):

@@ -132,6 +132,7 @@ def test__LammpsStructuralMinimization__on_init():
     assert o.status == 'CONFIG'
     cleanup()
 
+@pytest.mark.skipif(os.name=='nt', reason='requires a POSIX subsystem')
 def test__LammpsStructuralMinimization__on_config():
     o = LammpsStructuralMinimization(**init_kwargs)
     o.is_fullauto = False

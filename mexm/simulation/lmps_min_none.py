@@ -55,7 +55,31 @@ class LammpsStaticCalculation(LammpsSimulation, StaticCalculation):
         LammpsSimulation.on_init(self,configuration=configuration)
 
     def on_config(self,configuration,results=None):
-        LammpsSimulation.on_config(self,configuration=None,results=None)
+        LammpsSimulation.on_config(self,configuration=None,results=results)
+
+    def get_conditions_ready(self):
+        LammpsSimulation.get_conditions_ready(self)
+        a0_name = '{}.{}.a0'.format(self.bulk_structure_name, 'lmps_min_all')
+        try:
+            self.conditions_READY['bulk_structure_results_available'] \
+                = a0_name in self.results
+        except TypeError as e:
+            if self.results is None:
+                self.conditions_READY['bulk_structure_results_available'] \
+                    = False
+            else:
+                raise
+        return self.conditions_READY
+
+    def on_ready(self,configuration, results=None):
+        self.results = deepcopy(results)
+        LammpsSimulation.on_ready(self,
+                                  configuration=configuration,
+                                  results=self.results)
+
+    def modify_structure_file(self, results):
+        a0_name = '{}.{}.a0'.format(self.bulk_structure_name, 'lmps_min_all')
+        self.lammps_structure.a0 = results[a0_name]
 
     def on_post(self,configuration=None):
         self.__get_results_from_lammps_outputfile()
