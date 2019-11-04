@@ -142,6 +142,7 @@ def test__LammpsStructuralMinimization__on_config():
     assert o.status == 'READY'
     cleanup()
 
+@pytest.mark.skipif(os.name=='nt', reason='requires a POSIX subsystem')
 def test__LammpsStructuralMinimization__on_ready():
     o = LammpsStructuralMinimization(**init_kwargs)
     o.is_fullauto = False
@@ -153,6 +154,7 @@ def test__LammpsStructuralMinimization__on_ready():
     assert o.status == 'RUNNING'
     cleanup()
 
+@pytest.mark.skipif(os.name=='nt', reason='requires a POSIX subsystem')
 def test__LammpsStructuralMinimization__on_running():
     o = LammpsStructuralMinimization(**init_kwargs)
     o.is_fullauto = False

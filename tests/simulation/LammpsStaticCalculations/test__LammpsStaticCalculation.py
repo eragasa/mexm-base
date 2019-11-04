@@ -21,7 +21,7 @@ init_kwargs = {
 
 configuration = {
     'simulation':{
-        'simulation_type':'lammps_min_all'
+        'simulation_type':'lammps_min_all',
         'name':'MgO_NaCl.lammps_min_pos',
         'simulation_path':'MgO_NaCl_333_fr_a.lammps_min_pos'
     },
@@ -80,8 +80,8 @@ def test__LammpsStaticCalculation__inheritance():
     from mexm.simulation import StaticCalculation
     assert isinstance(o, StaticCalculation)
 
-def test__LammpsStructuralMinimization____init____conditions():
-    o = LammpsStructuralMinimization(**init_kwargs)
+def test__LammpsStaticCalculation____init____conditions():
+    o = LammpsStaticCalculation(**init_kwargs)
     assert isinstance(o.conditions, dict)
     assert isinstance(o.conditions_INIT, dict)
     assert isinstance(o.conditions_CONFIG, dict)
@@ -131,8 +131,8 @@ def test__configure_potential__w_dict():
                       expected_values['potential']['potential_type'])
     cleanup()
 
-def test__LammpsStructuralMinimization__on_init():
-    o = LammpsStructuralMinimization(**init_kwargs)
+def test__LammpsStaticCalculation__on_init():
+    o = LammpsStaticCalculation(**init_kwargs)
     o.is_fullauto = False
     o.update_status()
     print(o.conditions_INIT)
@@ -142,6 +142,34 @@ def test__LammpsStructuralMinimization__on_init():
     assert o.status == 'CONFIG'
     cleanup()
 
+@pytest.mark.skipif(os.name=='nt', reason='requires a POSIX subsystem')
+def test__LammpsStaticCalculation__on_config():
+    o = LammpsStaticCalculation(**init_kwargs)
+    o.update_status()
+    assert o.is_fullauto == False
+    o.on_init(configuration)
+    o.on_config(configuration)
+    assert o.status == 'READY'
+    o.on_ready()
+    assert o.status == 'RUNNING'
+    while o.status == 'RUNNING':
+        o.update_status()
+        o.on_running()
+    cleanup()
+
+@pytest.mark.skipif(os.name=='nt', reason='requires a POSIX subsystem')
+def test__LammpsStaticCalculation__on_running():
+    o = LammpsStaticCalculation(**init_kwargs)
+    o.is_fullauto = False
+    o.update_status()
+    o.on_init(configuration)
+    o.on_config(configuration)
+    o.on_ready()
+    while o.status == 'RUNNING':
+        o.update_status()
+        o.on_running()
+    assert o.status == 'POST'
+    cleanup()
 
 def test__lammps_input_file_to_string():
     from mexm.manager import PotentialManager
