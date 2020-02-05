@@ -31,16 +31,11 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
                                   simulation_path=simulation_path,
                                   structure_path=structure_path,
                                   bulk_structure_name=None)
-
-        # new properties
-
-        # npt thermostat properties
         self.npt_temperature = None
-        self.npt_temperature_damp = None
         self.npt_pressure = None
         self.npt_pressure_damp = None
-
-        # set npt thermostat
+        self.npt_time_total = None
+        self.npt_time_step = None
         self.set_npt_thermostat()
 
     def modify_structure(sc=None):

@@ -17,13 +17,11 @@ init_kwargs = {
 
 configuration = {
     'simulation':{
-        'name':'MgO_NaCl.lmps_min_pos',
+        'name':'MgO_NaCl.lmps_min_all',
         'simulation_path':'test_simulation_directory'},
     'structures':{
         'structure_name':'MgO_NaCl_unit',
-        'structure_path':'MgO_NaCl_unit.vasp',
-        'bulk_structure_name':'MgO_NaCl_fr',
-        'bulk_structure_path':'MgO_NaCl_fr.vasp'},
+        'structure_path':'MgO_NaCl_unit.vasp'},
     'potential':{
         'potential_name':'buckingham',
         'symbols':['Mg', 'O'],
@@ -66,6 +64,12 @@ def dev__LammpsStructuralMinimization____init__():
     o = LammpsStructuralMinimization(**init_kwargs)
     cleanup()
 
+def dev__LammpsStructuralMinimization____init____inheritance():
+    o = LammpsStructuralMinimization(**init_kwargs)
+    assert isinstance(o, LammpsSimulation)
+    assert isinstance(o, StructuralMinimization)
+    cleanup()
+
 def test__LammpsStructuralMinimization____init____conditions():
     o = LammpsStructuralMinimization(**init_kwargs)
     assert isinstance(o.conditions, dict)
@@ -76,10 +80,11 @@ def test__LammpsStructuralMinimization____init____conditions():
     assert isinstance(o.conditions_POST, dict)
     assert isinstance(o.conditions_FINISHED, dict)
     assert isinstance(o.conditions_ERROR, dict)
+    cleanup()
 
 def test__LammpsStructuralMinimization____init__():
     o = LammpsStructuralMinimization(**init_kwargs)
-    
+
     assert not o.is_fullauto
     assert o.potential is None
     assert o.lammps_script is None
@@ -116,8 +121,57 @@ def test__lammps_input_file_to_string():
     assert isinstance(o.lammps_input_file_to_string(), str)
     cleanup()
 
+def test__LammpsStructuralMinimization__on_init():
+    o = LammpsStructuralMinimization(**init_kwargs)
+    o.is_fullauto = False
+    o.update_status()
+    print(o.conditions_INIT)
+    print(all([v for k,v in o.conditions_INIT.items()]))
+    assert o.status == 'INIT'
+    o.on_init(configuration)
+    assert o.status == 'CONFIG'
+    cleanup()
+
+@pytest.mark.skipif(os.name=='nt', reason='requires a POSIX subsystem')
+def test__LammpsStructuralMinimization__on_config():
+    o = LammpsStructuralMinimization(**init_kwargs)
+    o.is_fullauto = False
+    o.update_status()
+    o.on_init(configuration)
+    assert o.status == 'CONFIG'
+    o.on_config(configuration)
+    assert o.status == 'READY'
+    cleanup()
+
+@pytest.mark.skipif(os.name=='nt', reason='requires a POSIX subsystem')
+def test__LammpsStructuralMinimization__on_ready():
+    o = LammpsStructuralMinimization(**init_kwargs)
+    o.is_fullauto = False
+    o.update_status()
+    o.on_init(configuration)
+    o.on_config(configuration)
+    assert o.status == 'READY'
+    o.on_ready()
+    assert o.status == 'RUNNING'
+    cleanup()
+
+@pytest.mark.skipif(os.name=='nt', reason='requires a POSIX subsystem')
+def test__LammpsStructuralMinimization__on_running():
+    o = LammpsStructuralMinimization(**init_kwargs)
+    o.is_fullauto = False
+    o.update_status()
+    o.on_init(configuration)
+    o.on_config(configuration)
+    o.on_ready()
+    while o.status == 'RUNNING':
+        o.update_status()
+        o.on_running()
+    assert o.status == 'POST'
+    cleanup()
+
 def dev__LammpsStructuralMinimization__on_init():
     o = LammpsStructuralMinimization(**init_kwargs)
+    o.is_fullauto = False
     o.on_init(configuration)
     o.on_config(configuration)
     o.on_ready(configuration)
@@ -126,6 +180,7 @@ def dev__LammpsStructuralMinimization__on_init():
     o.on_post(configuration)
     print(o.configuration)
     print(o.results)
+    cleanup()
 
 if __name__ == '__main__':
    dev__LammpsStructuralMinimization__on_init()

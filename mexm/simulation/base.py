@@ -19,11 +19,11 @@ class Simulation():
         self.status = None
 
     @property
-    def conditions_INIT(self): 
+    def conditions_INIT(self):
         return self.conditions['INIT']
 
     @conditions_INIT.setter
-    def conditions_INIT(self, conditions): 
+    def conditions_INIT(self, conditions):
         self.conditions['INIT'] = deepcopy(conditions)
 
     @property
@@ -117,32 +117,53 @@ class Simulation():
     def on_error(): raise NotImplementedError
 
     def update_status(self):
-        self.get_conditions_init()
         assert isinstance(self.conditions_INIT, dict)
-        if not all([v for k,v in self.conditions_INIT.items()]):
-            return
-
-        self.get_conditions_config()
-        if not all([v for k,v in self.conditions_CONFIG.items()]):
-            self.status = 'INIT'
-            return
-
-        self.get_conditions_ready()
-        if not all([v for k,v in self.conditions_READY.items()]):
-            self.status = "CONFIG"
-            return
-
-        self.get_conditions_running()
-        if not all([v for k,v in self.conditions_RUNNING.items()]):
-            self.status = "READY"
-            return
-
-        self.get_conditions_finished()
-        if not all([v for k,v in self.conditions_POST.items()]):
-            self.status = "RUNNING"
-            return
-
-        self.status = "FINISHED"
+        if self.status is None:
+            self.get_conditions_init()
+            if all([v for k,v in self.conditions_INIT.items()]):
+                self.status = 'INIT'
+                return
+            else:
+                raise ValueError()
+        elif self.status == 'INIT':
+            self.get_conditions_config()
+            if all([v for k,v in self.conditions_CONFIG.items()]):
+                self.status = 'CONFIG'
+                return
+            else:
+                return
+        elif self.status == 'CONFIG':
+            self.get_conditions_ready()
+            if all([v for k,v in self.conditions_READY.items()]):
+                self.status = "READY"
+                return
+            else:
+                return
+        elif self.status == 'READY':
+            self.get_conditions_running()
+            if all([v for k,v in self.conditions_RUNNING.items()]):
+                self.status = "RUNNING"
+                return
+            else:
+                return
+        elif self.status == 'RUNNING':
+            self.get_conditions_post()
+            if all([v for k,v in self.conditions_POST.items()]):
+                self.status = "POST"
+                return
+            else:
+                return
+        elif self.status == 'POST':
+            self.get_conditions_finished()
+            if all([v for k,v in self.conditions_FINISHED.items()]):
+                self.status = "FINISHED"
+                return
+            else:
+                return
+        elif self.status == 'ERROR':
+            raise ValueError()
+        else:
+            raise ValueError()
 
     def get_conditions_init(self): raise NotImplementedError
     def get_conditions_config(self): raise NotImplementedError
