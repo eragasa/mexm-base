@@ -381,7 +381,7 @@ class SimulationCell(object):
             return len(self.atomic_basis)
         else:
             n_atoms = 0
-            for atom_id, atom in self.atomic_basis:
+            for atom in self.atomic_basis:
                 if (atom.symbol == symbol):
                     n_atoms += 1
             return n_atoms

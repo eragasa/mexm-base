@@ -338,7 +338,6 @@ class LammpsSimulation(Simulation):
                 v is not None for k, v in self.potential.parameters.items()
             ])
 
-
     def get_conditions_config(self):
         self.conditions_CONFIG = {
             'potential_initialized':self.is_potential_initialized(),

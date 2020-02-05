@@ -31,6 +31,16 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
                                   simulation_path=simulation_path,
                                   structure_path=structure_path,
                                   bulk_structure_name=None)
+
+        # new properties
+
+        # npt thermostat properties
+        self.npt_temperature = None
+        self.npt_temperature_damp = None
+        self.npt_pressure = None
+        self.npt_pressure_damp = None
+
+        # set npt thermostat
         self.set_npt_thermostat()
 
     def modify_structure(sc=None):
@@ -38,44 +48,62 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
             self.supercell=sc
 
     def set_npt_thermostat(self,
-                           temperature=None,
+                           temperature=300,
                            pressure=0,
-                           time_total=None,
+                           time_total=,
                            time_step=None,
-                           pressure_damp=None):
+                           pressure_damp=None,
+                           temperature_damp=None,
+                           supercell=[1,1,1]):
+        """
+        Arguments:
+            temperature (int): in degrees kelvin
+            pressure (int): in bars
+            time_total (int): in picoseconds
+            total_step (int): in femtoseconds
+            pressure_damp (float): no units
+            supercell (list of int): supercell in sc1, sc2, sc3.
+        """
+
+        if not isinstance(time_total, int):
+            raise TypeError('time_total must be an integer greater than zero.')
+        if time_total <= 0:
+            raise TypeError('time_total must be an integer greater than zero.')
+        self.time_total = time_total
+
+        if not isinstance(time_step, int):
+            raise TypeError('time_step must be an integer greater than zero.')
+        if not isinstance(time_step, int):
+            raise TypeError('time_step must be an integer greater than zero.')
+        self.time_step = time_step
+
         self.npt_temperature = temperature
         self.npt_pressure = pressure
-        self.time_total = None
-        self.time_step = None
-        if self.npt_pdamp is not None:
-            self.npt_pdamp = pressure_damp
-        else:
-            self.npt_pdamp = self.get_recommended_pressure_damp()
 
-        if self.npt_temperature_damp is not None:
-            self.npt_pdamp = pressure_damp
+        if pressure_damp is not None:
+            self.npt_pressure_damp = pressure_damp
+        else:
+            self.npt_pressure_damp = self.get_recommended_pressure_damp()
+
+        if temperature_damp is not None:
+            self.npt_temperature_damp = temperature_damp
         else:
             self.npt_temperature_damp = self.get_recommended_temperature_damp()
 
-        assert temperature is not None
-        assert time_total is not None
-        assert time_step is not None
+        self.time_total = None
+        self.time_step = None
 
-        LammpsSimulation.__init__(self,
-                task_name=task_name,
-                task_directory=task_directory,
-                structure_filename=structure_filename)
-
-        self.temperature = temperature
-        self.pressure = pressure
-
-        self.time_total = time_total
-        self.time_step = time_step
 
         self.supercell = supercell
 
         self.lammps_out_fn = 'lammps.out'
         self.lattice_fn = 'lattice.out'
+
+    def get_recommended_pressure_damp(self):
+        return self._determine_pressure_dampening(dt=self.time_step)
+
+    def get_recommended_temperature_damp(self):
+        return self._determine_temperature_dampening(dt=self.time_step)
 
     def get_task_name(structure,temperature):
         T = str(int(temperature))
@@ -193,6 +221,8 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
             'print \"pypospack:lammps_sim:done\"\n'
                   )
         return str_out
+
+ 
     def _determine_temperature_dampening(self,dt):
         # A Nose-Hoover thermostat will not work well for arbitrary values of
         # Tdamp. If Tdamp is too small, the temperature can fluctuate wildly;

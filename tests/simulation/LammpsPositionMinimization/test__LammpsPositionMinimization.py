@@ -66,6 +66,13 @@ def test__LammpsPositionMinimization____init__():
     assert os.path.isdir(init_kwargs['simulation_path'])
     cleanup()
 
+def test__LammpsPositionMinimization____init____update_status():
+    o = LammpsPositionMinimization(**init_kwargs)
+    assert not o.is_fullauto
+    o.update_status()
+    o.status == 'INIT'
+    cleanup()
+
 def test__configure_potential__w_dict():
     o = LammpsPositionMinimization(**init_kwargs)
     o.configure_potential(potential=potential_config)

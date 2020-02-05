@@ -1,6 +1,6 @@
 import os, sys
 from copy import deepcopy
-import bibtexparser
+# import bibtexparser
 
 class ReferenceManager(object):
     """ Reference manager

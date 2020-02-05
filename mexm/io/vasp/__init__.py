@@ -3,7 +3,7 @@ import os, shutil, pathlib
 import re
 import copy
 #import pyflamestk.base as base
-import pypospack.crystal as crystal
+#import pypospack.crystal as crystal
 import numpy as np
 
 # *****************************************************************************
