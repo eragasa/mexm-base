@@ -12,3 +12,9 @@ from mexm.io.vasp import Contcar
 def test____init__():
     o = VaspSimulation()
     assert isinstance(o.incar, Incar)
+    assert isinstance(o.poscar, Poscar)
+    assert isinstance(o.kpoints, Kpoints)
+    assert isinstance(o.potcar, Potcar)
+    assert isinstance(o.outcar, Outcar)
+    assert isinstance(o.oszicar, Oszicar)
+    assert isinstance(o.contcar, Contcar)
