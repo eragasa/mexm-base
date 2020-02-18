@@ -105,7 +105,8 @@ class Potcar(object):
                 self.path_ = path
             else:
                 self.path_ = os.path.abspath(path)
-            self.path_ = path
+        else:
+            raise TypeError('path must be a string to the abspath')
 
     @property
     def encut_max(self):
