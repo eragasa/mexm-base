@@ -6,6 +6,7 @@ class VaspPotcarError(Exception):
         Exception.__init__(self,*args,**kwargs)
 
 class Potcar(object):
+    supported_xc_types = ['lda', 'gga']
     """ object to deal with POTCAR files for VASP simulations
 
     Args:
@@ -36,60 +37,133 @@ class Potcar(object):
     """
     def __init__(self, symbols = None,
                        path= None,
-                       xc = 'GGA',
-                       potcars = None):
-        self.potcar_dir = None
+                       xc_type = 'gga'):
 
-        self.path = None
-        self.symbols = None
-        self.potcars = None
+        self.symbols_ = None
+        self.path_ = None
+        self.xc_type_ = None
+        self.encut_min_ = None
+        self.encut_max_ = None
 
-        if path is not None:
-            self.path = path
+        self.symbols = symbols
+        self.path = path
+        self.xc_type = xc_type
+        self.models = None
 
-        if isinstance(symbols,str):
-            self.symbols = [symbols]
+    @property
+    def symbols(self):
+        return self.symbols_
+
+    @symbols.setter
+    def symbols(self, symbols):
+        if isinstance(symbols, list):
+            if not all([isinstance(s, str) for s in symbols]):
+                raise ValueError('all elements of symbols must be strings')
+            self.symbols_ = list(symbols)
+        elif isinstance(symbols, str):
+            self.symbols_ = [symbols]
+        elif symbols is None:
+            self.symbols_ = None
         else:
-            try:
-                self.symbols = [s for s in symbols]
-            except:
-                msg = 'symbols type{}={}'.format(type(symbols),symbols)
+            msg = (
+                'symbols must be a list of strings consisting of chemical '
+                'symbols'
+            )
+            raise TypeError(msg)
 
-        if potcars is not None:
-            self.potcars = potcars.copy()
-        self.xc = xc
-        self.encut_min = []
-        self.encut_max = []
-        self.models    = []
-        self.exch      = []
+    @property
+    def xc_type(self):
+        return self.xc_type_
+
+    @xc_type.setter
+    def xc_type(self, xc_type):
+        if isinstance(xc_type, str):
+            xc_type_ = xc_type.lower()
+            if xc_type_ not in Potcar.supported_xc_types:
+                msg = (
+                    '{xc} is an unsupported exchange correlation functional'
+                ).format(xc=xc_type_)
+                raise VaspPotcarError(msg)
+            self.xc_type_ = xc_type_
+        else:
+            msg = (
+                'xc_type argument must be a string'
+            )
+            raise TypeError(msg)
+
+    @property
+    def path(self):
+        return self.path_
+
+    @path.setter
+    def path(self, path):
+        if path is None:
+            self.path_ = None
+        elif isinstance(path, str):
+            # ensure that the path variable is stored as an absolute path
+            if os.path.isabs(path):
+                self.path_ = path
+            else:
+                self.path_ = os.path.abspath(path)
+            self.path_ = path
+
+    @property
+    def encut_max(self):
+        return self.encut_max_
+
+    @encut_max.setter
+    def encut_max(self, encut_max):
+        if isinstance(encut_max, float):
+            self.encut_max_ = encut_max
+        else:
+            self.encut_max_ = float(encut_max)
+
+    @property
+    def encut_min(self):
+        return self.encut_min_
+
+    @encut_min.setter
+    def encut_min(self, encut_min):
+        if isinstance(encut_min, float):
+            self.encut_min_ = encut_min
+        else:
+            self.encut_min_ = float(encut_min)
 
     def read(self, path = "POTCAR"):
         # initialize arrays
-        self.symbols   = []
-        self.encut_min = []
-        self.enmin_max = []
-        self.models = []
-        self.xc      = []
+        symbols = []
+        encut_min = []
+        encut_max = []
+        models = []
+        xc = []
 
         with open(path, 'r') as f:
             for line in f:
                 line = line.strip()
                 if 'TITEL' in line:
                     symbol = line.split('=')[1].strip().split(' ')[1]
-                    self.symbols.append(symbol)
+                    symbols.append(symbol)
                 elif 'ENMIN' in line:
                     obj_re = re.match('ENMAX  =  (.*); ENMIN  =  (.*) eV.*',line,re.M|re.I)
                     enmax = float(obj_re.group(1))
                     enmin = float(obj_re.group(2))
-                    self.encut_min.append(enmin)
-                    self.encut_max.append(enmax)
+                    encut_min.append(enmin)
+                    encut_max.append(enmax)
                 elif 'LEXCH' in line:
                     xc = line.split('=')[1].strip()
-                    self.xc.append(xc)
+                    xc.append(xc)
                 elif "VRHFIN" in line:
                     m = line.split('=')[1].strip()
-                    self.models.append(m)
+                    models.append(m)
 
+        self.symbols = symbols
+        self.encut_min = min(encut_min)
+        self.encut_max = max(encut_max)
+
+        # check to see if all the exchange correlation functionals are the same        
+        assert xc != []
+        assert xc.count(xc[0]) == len(xc)
+        self.xc_type = xc[0]
     def write(self, 
               path = 'POTCAR', 
               src = None, 
@@ -179,7 +253,7 @@ class Potcar(object):
                 'unknown xc_type:{}'
             ).format(xc_type)
             raise VaspPotcarError(msg)
-        
+
     def __set_xc_directory(self):
         """ sets the directory of the exchange correlation functional
 
