@@ -33,6 +33,7 @@ class JobOverlordConfiguration(object):
         return config_dict
 
     def read(self):
+        pass
 
     def write(self):
         pass
@@ -79,7 +80,8 @@ class JobOverlord(object):
 
         if isinstance(simulation, VaspSimultion):
             self.register_vasp_job(simulation)
-        elif isinstance(simulation, LammpsSimulation)
+        elif isinstance(simulation, LammpsSimulation):
+            self.register_lammps_job(simulation)
 
     def register_vasp_job(simulation, n_cores, job_name):
         if not ininstance(simulation, VaspSimulation):
