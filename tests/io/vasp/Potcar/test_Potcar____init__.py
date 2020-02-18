@@ -56,7 +56,7 @@ def test_Potcar__path__bad_type():
     path = []
     obj = Potcar()
     with pytest.raises(TypeError):
-        obj.path = []
+        obj.path = path
 
 def test_Potcar__encut_max__float():
     obj = Potcar()
