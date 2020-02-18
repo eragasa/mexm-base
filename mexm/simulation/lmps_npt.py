@@ -15,6 +15,9 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
         task_name(str): unique id for the task name being define
         task_directory(str): the directory where this task will create
             input and output files for LAMMPS
+        simulation_path(str): path for the simulation
+        structure_path(str): path for the structure
+        bulk_structure_name(str): name for the structure.
 
     Attributes:
         config
@@ -38,14 +41,14 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
         self.npt_time_step = None
         self.set_npt_thermostat()
 
-    def modify_structure(sc=None):
+    def modify_structure(self, sc=None):
         if sc is not None:
             self.supercell=sc
 
     def set_npt_thermostat(self,
                            temperature=300,
                            pressure=0,
-                           time_total=,
+                           time_total=None,
                            time_step=None,
                            pressure_damp=None,
                            temperature_damp=None,
@@ -100,13 +103,39 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
     def get_recommended_temperature_damp(self):
         return self._determine_temperature_dampening(dt=self.time_step)
 
-    def get_task_name(structure,temperature):
-        T = str(int(temperature))
-        task_name = '{s}.lmps_npt_{T}'.format(s=structure,T=T)
-        return task_name
+    def get_task_name(self, 
+                      structure, 
+                      temperature,
+                      pressure):
+        """ get the task name
 
-    def postprocess(self):
-        LammpsSimulation.postprocess(self)
+        Given a structure and a temperature, this method provides a consistent
+        naming convention for a simulation name.
+
+        Arguments:
+            structure(str): structure name
+            temperature(float,int): temperature in Kelvin
+            pressure(float, int): pressure in GPa
+        """
+        if not isinstance(structure, str):
+            raise TypeError('structure must be a string.')
+
+        try:
+            T = int(temperature)
+            T = str(T)
+        except ValueError:
+            msg = 'could not cast temperature into string: {}'.format(temperature)
+            raise ValueError(msg)
+
+        try:
+            P = int(pressure)
+            P = str(P)
+        except ValueError:
+            msg = 'could not cast pressure into string: {}'.format(pressure)
+            raise ValueError(msg)
+
+        task_name = '{s}.lmps_npt_{T}K_{P}bar'.format(s=structure, T=T, P=P)
+        return task_name
 
     def on_post(self,configuration=None):
         self._get_lattice_parameter_from_lattice_out_file(
@@ -218,7 +247,7 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
         return str_out
 
  
-    def _determine_temperature_dampening(self,dt):
+    def _determine_temperature_dampening(self, dt):
         # A Nose-Hoover thermostat will not work well for arbitrary values of
         # Tdamp. If Tdamp is too small, the temperature can fluctuate wildly;
         # if it is too large, the temperature will take a very long time to
