@@ -42,3 +42,18 @@ class VaspSimulation(AtomicSimulation):
         self.potcar.write(path=potcar_path)
         self.incar.write(path=incar_path)
         self.potcar.write(path=potcar_path)
+
+    def read(self, simulation_path):
+        self.path = simulation_path
+
+        poscar_path = os.path.join(simulation_path, 'POSCAR')
+        potcar_path = os.path.join(simulation_path, 'POTCAR')
+        incar_path = os.path.join(simulation_path, 'INCAR')
+        potcar_path = os.path.join(simulation_path, 'POTCAR')
+
+        self.poscar.read(path=poscar_path)
+        self.potcar.read(path=potcar_path)
+        self.incar.read(path=incar_path)
+        self.potcar.read(path=potcar_path)
+
+

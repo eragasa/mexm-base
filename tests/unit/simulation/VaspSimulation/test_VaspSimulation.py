@@ -18,3 +18,7 @@ def test____init__():
     assert isinstance(o.outcar, Outcar)
     assert isinstance(o.oszicar, Oszicar)
     assert isinstance(o.contcar, Contcar)
+
+def test__read():
+    o = VaspSimulation()
+    o.read(simulation_path="./")
