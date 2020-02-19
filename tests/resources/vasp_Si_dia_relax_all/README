@@ -1,0 +1,5 @@
+These tutorials are written for the OSC cluster, where the pitzer has 40 cores per node.
+
+Some optimizaitons are provided here, but are currently undocumented.  For massively parrallel simulations, NPAR should be set:
+if n_cores_per_node is the number of cores per computational cluster, then NPAR < sqrt(n_cores_per_node) and n_cores_per_node is divisable by NPAR and LREAL = .FALSE.
+
