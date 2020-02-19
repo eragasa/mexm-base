@@ -1,8 +1,7 @@
-System = diamond Si
+SYSTEM = diamond Si
 
 LPLANE = .FALSE.
 NPAR = 5
-# NCORE = 40
 NSIM = 4 
 
 ISTART = 0 

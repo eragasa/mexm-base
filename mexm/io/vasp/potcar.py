@@ -165,6 +165,7 @@ class Potcar(object):
         assert xc != []
         assert xc.count(xc[0]) == len(xc)
         self.xc_type = xc[0]
+        
     def write(self, 
               path = 'POTCAR', 
               src = None, 
