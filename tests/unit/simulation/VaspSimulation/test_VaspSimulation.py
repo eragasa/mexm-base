@@ -22,3 +22,8 @@ def test____init__():
 def test__read():
     o = VaspSimulation()
     o.read(simulation_path="./")
+
+if __name__ == "__main__":
+    src_poscar_path = "POSCAR"
+    o_poscar = Poscar()
+    o_poscar.read(path=src_poscar_path)

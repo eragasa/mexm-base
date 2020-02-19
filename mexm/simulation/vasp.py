@@ -46,6 +46,7 @@ class VaspSimulation(AtomicSimulation):
     def read(self, simulation_path):
         self.path = simulation_path
 
+        # these files are the input files
         poscar_path = os.path.join(simulation_path, 'POSCAR')
         potcar_path = os.path.join(simulation_path, 'POTCAR')
         incar_path = os.path.join(simulation_path, 'INCAR')
@@ -55,5 +56,27 @@ class VaspSimulation(AtomicSimulation):
         self.potcar.read(path=potcar_path)
         self.incar.read(path=incar_path)
         self.potcar.read(path=potcar_path)
+
+        # these files are the output files
+        oszicar_path = os.path.join(simulation_path, 'OSZICAR')
+        outcar_path = os.path.join(simulation_path, 'OUTCAR')
+        contcar_path = os.path.join(simulation_path, 'CONTCAR')
+
+        try:
+            self.oszicar.read(path=oszicar_path)
+        except FileNotFoundError:
+            pass
+
+        try:
+            self.outcar.read(path=outcar_path)
+        except FileNotFoundError:
+            pass
+
+        try:
+            self.contcar.read(path=contcar_path)
+        except FileNotFoundError:
+            pass
+
+
 
 

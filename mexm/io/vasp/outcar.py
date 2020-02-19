@@ -27,7 +27,7 @@ class Outcar(object):
         self.phonon_eig_vec = None # phonon eigenvectors
         self.magnetic_moments = None
 
-    def read(self,filename=None):
+    def read(self, path=None):
         """ read a VASP outcar file and parse for information
 
         Args:
@@ -36,9 +36,9 @@ class Outcar(object):
             total_energy (float): total energy for this simulation
         """
 
-        if filename is not None:
-            self.filename = filename
-        with open(self.filename) as f:
+        if path is not None:
+            self.path = path
+        with open(self.path) as f:
             for line in f:
                 # check if free energy line
                 if "TOTEN" in line:
@@ -46,10 +46,10 @@ class Outcar(object):
                         E = line.strip().split('=')[1].strip().split(' ')[0]
                         E = float(E)
                         self.total_energy = E
-                    except ValueError as e:
+                    except ValueError:
                         if type(self.total_energy) is not float:
                             pass
-                    except IndexError as e:
+                    except IndexError:
                         if type(self.total_energy) is not float:
                             pass
                 elif "ENCUT" in line:
