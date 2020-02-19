@@ -119,9 +119,9 @@ class Poscar(SimulationCell):
         # string for h-matrix
         for i in range(3):
             h_row_template = "{:10.6f} {:10.6f} {:10.6f}\n"
-            str_poscar += h_row_template.format(self.H[i,0],
-                                                self.H[i,1],
-                                                self.H[i,2])
+            str_poscar += h_row_template.format(self.H[0,i],
+                                                self.H[1,i],
+                                                self.H[2,i])
 
         sym_list = self.symbols
         str_atomlist = ""
