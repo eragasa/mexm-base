@@ -1,4 +1,4 @@
-System = diamond Si
+SYSTEM = diamond Si
 
 LPLANE = .FALSE.
 NPAR = 5

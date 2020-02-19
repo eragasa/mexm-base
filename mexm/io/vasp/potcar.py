@@ -1,4 +1,5 @@
 import os
+import re
 
 class VaspPotcarError(Exception):
     def __init__(self,*args,**kwargs):
@@ -151,11 +152,9 @@ class Potcar(object):
                     encut_min.append(enmin)
                     encut_max.append(enmax)
                 elif 'LEXCH' in line:
-                    xc = line.split('=')[1].strip()
-                    xc.append(xc)
+                    xc.append(line.split('=')[1].strip())
                 elif "VRHFIN" in line:
-                    m = line.split('=')[1].strip()
-                    models.append(m)
+                    models.append(line.split('=')[1].strip())
 
         self.symbols = symbols
         self.encut_min = min(encut_min)
@@ -164,7 +163,13 @@ class Potcar(object):
         # check to see if all the exchange correlation functionals are the same        
         assert xc != []
         assert xc.count(xc[0]) == len(xc)
-        self.xc_type = xc[0]
+
+        # not sure sure if this is correct, but i think PE is for GGA-PBE
+        if xc[0] == 'PE':
+            self.xc_type = 'GGA'
+        else:
+            msg = 'unknown xc type: {}'.format(xc[0])
+            raise ValueError(msg)
         
     def write(self, 
               path = 'POTCAR', 
