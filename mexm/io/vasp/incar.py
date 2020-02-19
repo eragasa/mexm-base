@@ -4,13 +4,36 @@ import copy
 import numpy as np
 from collections import OrderedDict
 
-class VaspIncarError(Exception):
-    def __init__(self,*args,**kwargs):
-        """Error class for reading/writing VASP INCAR IO issues """
-        Exception.__init__(self,*args,**kwargs)
-
+from mexm.io.vasp.errors import VaspIncarError
+from mexm.io.vasp import incartags
 
 class Incar(object):
+    format_tag = "{} = {}"
+    format_tag_line = '{:<30}! {}'
+    format_section = '# {:*^78}'
+    
+    incar_tags = {
+        'ENCUT':incartags.EncutTag,
+        'EDIFF':incartags.EdiffTag,
+        'EDIFFG':incartags.EdiffgTag,
+        'ISTART':incartags.IstartTags,
+        'IBRION':incartags.IBrionTags,
+        'ICHARG':incartags.IchargTags,
+        'INIWAVE':incartags.IniwaveTag,
+        'ISIF':incartags.IsifTag,
+        'ISMEAR':incartags.IsmearTags,
+        'LPLANE':incartags.LplaneTag,
+        'NELM':incartags.NelmTag,
+        'NELMDL':incartags.NelmdlTag,
+        'NELMIN':incartags.NelminTag,
+        'NPAR':incartags.NparTag,
+        'NSIM':incartags.NsimTag,
+        'NSW':incartags.NswTag,
+        'POTIM':incartags.PotimTag,
+        'PREC':incartags.PrecTags,
+        'SIGMA':incartags.SigmaTag,
+        'SYSTEM':incartags.SystemTag,
+    }
 
     def __init__(self, filename="INCAR"):
         """ object for dealing with input and output to VASP via INCAR file
@@ -19,6 +42,7 @@ class Incar(object):
         filename (str): the filename of the INCAR file, default:'INCAR'
         """
         self.filename = filename
+        self.incar_tag_values = {}
 
         self._fmt_section = '# {:*^78}\n'
         self._fmt_arg = '{:<30}! {}\n'
@@ -37,8 +61,8 @@ class Incar(object):
         self.__init_output()
 
     def __init_start_info(self):
-        self.istart=0
-        self.icharg=0
+        self.istart = 0
+        self.icharg = 0
 
     def __init_density_of_states(self):
         self.ismear=0
@@ -63,10 +87,17 @@ class Incar(object):
         self.magmom=None
 
     def __init_mixer(self):
-        self.amix = None
-        self.bmix = None
-        self.amix_mag = None
-        self.bmix_mag = None
+        self.amix = 0.4
+        self.bmix = 1.0
+        self.amix_mag = 1.6
+        self.bmix_mag = 1.0
+    
+    def set_mixer_settings(self):
+        self.amix = 0.4
+        self.amin = 0.1
+        self.bmix = 1.0
+        self.amix_mag = 1.6
+        self.bmix_mag = 1.0
 
     def __init_ionic_relaxation(self):
         self.ibrion = None
@@ -99,27 +130,57 @@ class Incar(object):
                 "{} = {}".format(option_flag, option_value),
                 option_comment
             )
-        except KeyError as e:
+        except KeyError:
             str_out = '{} = {}\n'.format(option_flag, option_value)
         return str_out
 
 
-    def write(self,filename=None):
+    def write(self, path='POSCAR'):
         """write poscar file
 
         Args:
-        filename (str): the filename of the poscar file,
+        path (str): the filename of the poscar file,
         """
 
-        if filename is not None:
-           self.filename = filename
-        f = open(self.filename,'w')
-        f.write(self.to_string())
-        f.close()
+        self.path = path
+        with open(self.path, 'w') as f:
+            f.write(self.to_string())
+ 
+    def set_tag_value(self, tag_name, tag_value):
 
-    def read(self,fname=None):
-        if fname is not None:
-            self.filename = fname
+        if isinstance(self.incar_tags[tag_name], 
+                      incartags.IncarBaseFloatTag):
+            tag_value_ = float(tag_value)
+            assert self.incar_tag_value[tag_name].is_valid_option(
+                option=tag_value
+            )
+            self.incar_tag_values[tag_name] = tag_value_
+
+        elif isinstance(self.incar_tags[tag_name],
+                        incartags.IncarBaseStringTag):
+            assert self.incar_tag_values[tag_name].is_valid_tag(tag_value)
+            self.incar_tag_values[tag_name] = tag_value_
+
+        elif isinstance(self.incar_tags[tag_name], incartags.IncarBaseTags):
+            try:
+                tag_value_ = int(tag_value)
+                assert self.incar_tag_value[tag_name].is_valid_option(
+                    option=tag_value
+                )
+                self.incar_tag_values[tag_name] = int(tag_value)
+            except ValueError:
+                self.incar_tag_values[tag_name] = tag_value
+
+    def get_tag_value(self, tag_name):
+        return self.incar_tag_values[tag_name]
+
+    def get_tag_comment(self, tag_name):
+        tag_value = self.incar_tag_values[tag_name]
+        return self.incar_tags[tag_name].get_comment()
+
+    def read(self, path='POSCAR'):
+
+        self.path = path
         f = open(self.filename)
         for line in f:
             if line.startswith('#'):
@@ -131,6 +192,9 @@ class Incar(object):
             else:
                 args = [ line.strip().split('!')[0].split('=')[0].strip(),
                          line.strip().split('!')[0].split('=')[1].strip() ]
+                tag_name = args[0]
+                tag_value = args[1]
+                self.set_tag_value(tag_name=tag_name, tag_value=tag_value)
                 if args[0] == 'ISTART':
                     self.istart = int(args[1])
                 elif args[0] == 'ICHARG':
@@ -193,19 +257,53 @@ class Incar(object):
                     self.amix_mag = float(args[1])
                 elif args[1] == 'BMIX_MAG':
                     self.bmix_mag = float(args[1])
+                elif args[0] == 'LREAL':
+                    self.lreal = args[1]
+                elif args[0] == 'LPLANE':
+                    self.lplane = args[1]
+                elif args[0] == 'NSIM':
+                    self.nsim = int(args[1])
+                elif args[0] == 'INIWAVE':
+                    self.iniwave = int(args[1])
+                elif args[0] == 'NELMIN':
+                    self.nelmmin = int(args[1])
+                elif args[0] == 'NELMDL':
+                    self.nelmdl = int(args[1])
                 else:
                     err_msg = "pypospack does not support tag {}".format(args[0])
                     raise VaspIncarError(err_msg)
+        f.close()
 
-    def set_no_ionic_relaxation(self):
+    def set_relaxation_type(self, relaxation_type):
+        relaxation_types_dict = {
+            'all':self.set_ionic_relaxation_none,
+            'volume':self.set_ionic_relaxation_volume,
+            'position':self.set_ionic_relaxation_positions,
+            'none':self.set_ionic_relaxation_none
+        }
+        relaxation_types_dict[relaxation_type]()
+
+    def set_ionic_relaxation_none(self):
+        self.ibrion = None
+        self.isif = None
+
+    def set_ionic_relaxation_volume(self):
+        self.ibrion = None
+        self.isif = None
+
+    def set_ionic_relaxation_positions(self):
+        self.ibrion = None
+        self.isif = None
+
+    def set_ionic_relaxation_all(self):
         self.ibrion = None
         self.isif = None
 
     def to_string(self):
         str_out = ''
-        str_out += self.__system_information_to_string()
-        str_out += self.__start_information_to_string()
-        str_out += self.__dos_information_to_string()
+        str_out += self.system_information_to_string_()
+        str_out += self.start_information_to_string_()
+        str_out += self.dos_information_to_string_()
         str_out += self.__sym_information_to_string()
         str_out += self.__scf_information_to_string()
         str_out += self.__spin_polarization_to_string()
@@ -213,6 +311,42 @@ class Incar(object):
         str_out += self.__ionic_relaxation_to_string()
         str_out += self.__output_configuration_to_string()
         return str_out
+
+    def get_tag_string_(self, tag_name, tag_value):
+        fmt_line = self.format_tag_line
+        fmt_tag = self.format_tag
+
+        tag_comment = self.incar_tags[tag_name].get_comment(tag_value)
+        return fmt_line.format(fmt_tag.format(tag_name, tag_value),
+                               tag_comment)
+
+    def system_information_to_string_(self):
+        str_out = "SYSTEM = {}\n\n".format(self.system)
+        return str_out
+
+    def start_information_to_string_(self):
+        fmt_section = self.format_section
+
+        str_out = "\n".join([
+            fmt_section.format('STARTING INFORMATION'),
+            self.get_tag_string_('ISTART', self.istart),
+            self.get_tag_string_('ICHARG', self.icharg)
+        ]) + "\n"
+
+        return str_out
+
+    def dos_information_to_string_(self):
+        fmt_section = self.format_section
+
+        str_out = "\n".join([
+            fmt_section.format('DENSITY OF STATES'),
+            self.get_tag_string_('ISMEAR', self.istart),
+            self.get_tag_string_('SIGMA', self.icharg)
+        ]) + "\n"
+
+        return str_out
+
+
 
     def _mixer_to_string(self):
 
@@ -234,21 +368,9 @@ class Incar(object):
         str_out = "SYSTEM = {}\n\n".format(self.system)
         return str_out
 
-    def __start_information_to_string(self):
-        fmt = "{} = {}"
-        str_out = self._fmt_section.format('STARTING INFORMATION')
-        str_out += self._fmt_arg.format(fmt.format('ISTART',self.istart),self._cmt_dict['ISTART'][self.istart])
-        str_out += self._fmt_arg.format(fmt.format('ICHARG',self.icharg),self._cmt_dict['ICHARG'][self.icharg])
-        str_out += "\n"
-        return str_out
 
-    def __dos_information_to_string(self):
-        fmt = "{} = {}"
-        str_out = self._fmt_section.format('DENSITY OF STATES')
-        str_out += self._fmt_arg.format(fmt.format('ISMEAR',self.ismear),self._cmt_dict['ISMEAR'][self.ismear])
-        str_out += self._fmt_arg.format(fmt.format('SIGMA',self.sigma),self._cmt_dict['SIGMA'])
-        str_out += "\n"
-        return str_out
+
+
 
     def __sym_information_to_string(self):
         fmt = "{} = {}"
@@ -415,218 +537,3 @@ class Incar(object):
 
 
 
-class IncarBaseTags():
-    tag_dictionary = OrderedDict()
-
-    @classmethod
-    def is_valid_option(cls, option):
-        if option in cls.tag_dictionary:
-            return True
-        else:
-            return False
-
-    @classmethod
-    def get_comment(self, option):
-        try:
-            return tag_dictionary[option]
-        except KeyError:
-            msg = "unknown option, {}".format(option)
-            raise VaspIncarError(msg)
-
-class IncarBaseFloatTag(IncarBaseTags):
-    tag_name = 'fake tag'
-    comment = 'fake comment'
-
-    @classmethod
-    def is_valid_option(cls, option):
-        if any([
-                isinstance(option,int),
-                isinstance(option,float)
-                ]):
-            return True
-        else:
-            return False
-
-    @classmethod
-    def get_comment(cls,option):
-        return cls.comment
-
-class IstartTags(IncarBaseTags):
-
-    tag_dictionary = OrderedDict([
-        (0,'begin from scratch'),
-        (1,'continuation job, constant energy cutoff'),
-        (2,'continuation job, constant basis set'),
-    ])
-
-class IsymTags(IncarBaseTags):
-
-    tag_dictionary = OrderedDict([
-        (-1,'symmetry off'),
-        (0,'symmetry_on'),
-        (1,'symmetry_on'),
-        (2,'symmetry_on, efficient symmetrization'),
-        (3,'symmetry_on, only forces and stress tensor')
-    ])
-
-class SymprecTag(IncarBaseFloatTag):
-    tag_name = 'SYMPREC'
-    comment = 'determines how accurate positions must be'
-
-class IchargTags(IncarBaseTags):
-    tag_dictionary = OrderedDict([
-        (0,'Calculate charge density from initial wave functions.'),
-        (1,'Read the charge density from file CHGCAR'),
-        (2,'Take superposition of atomic charge densities')
-    ])
-
-class IsmearTags(IncarBaseTags):
-    tag_name = 'ISMEAR'
-    tag_dictionary = OrderedDict([
-        (-5,'tetrahedron method with Blochl corrections'),
-        (-4,'tetrahedron method'),
-        (0,'method of Gaussian smearing'),
-        (1,'method of Methfessel-Paxton order 1'),
-        (2,'method of Methfessel-Paxton order 2')
-    ])
-
-class SigmaTag(IncarBaseFloatTag):
-    tag_name = 'SIGMA'
-    comment = 'width of the smearing in eV.'
-
-class NelmTag(IncarBaseFloatTag):
-    tag_name = 'NELM'
-    comment = 'maximum number of electronic SC'
-
-class EncutTag(IncarBaseFloatTag):
-    tag_name = 'ENCUT'
-    comment = 'Cut-off energy for plane wave basis set in eV'
-
-class EdiffTag(IncarBaseFloatTag):
-    tag_name = 'EDIFF'
-    comment = 'convergence condition for SC-loop in eV'
-
-class EdiffgTag(IncarBaseFloatTag):
-    tag_name = 'EDIFFG'
-    comment_force_relaxation = 'force convergence requirements in ev A'
-    comment_energy_relaxation = 'energy convergence in eV'
-
-    @classmethod
-    def get_comment(cls,option):
-        return cls.comment
-        if option == 0:
-            msg = 'cannot select zero, must select a convergence value'
-            raise ValueError(msg)
-        elif self.ediffg < 0:
-            return cls.comment_force_relaxation
-        else:
-            return cls.comment_energy_relaxation
-
-class PrecTags(IncarBaseTags):
-    tag_name = 'PREC'
-    tag_dictionary = OrderedDict([
-        ('Accurate', 'avoid wrap around errors'),
-        ('High', 'avoid wrap around errors')
-    ])
-
-class AlgoTags(IncarBaseTags):
-    tag_name = 'ALGO'
-    tag_dictionary = OrderedDict([
-        ('Normal', 'blocked Davidson iteration scheme'),
-        ('VeryFast', 'RMM-DIIS'),
-        ('Fast', 'blocked Davidson, followed by RMM_DIIS')
-    ])
-
-class LrealTags(IncarBaseTags):
-    tag_name = 'LREAL'
-    tag_dictionary = OrderedDict([
-        ('.FALSE.', 'projection done in reciprocal space'),
-        ('On', 'method of King-Smith, et al. Phys. Rev B 44, 13063 (1991).'),
-        ('Auto', 'unpublished method of G. Kresse')
-    ])
-
-class LorbitTags(IncarBaseTags):
-    tag_name = 'LORBIT'
-    tag_dictionary = OrderedDict([
-        (0, 'DOSCAR and PROCAR'),
-        (1, 'DOSCAR and lm-decomposted PROCAR'),
-        (2, 'DOSCAR, lm_decomposed PROCAR, phase factors'),
-        (5, 'DOSCAR, PROCAR'),
-        (10, 'DOSCAR, PROCAR'),
-        (11, 'DOSCAR, lm-decomposed PROCAR'),
-        (12, 'DOSCAR, lm-decomposed PROCAR, phase factors'),
-    ])
-
-class IspinTags(IncarBaseTags):
-    tag_name = 'ISPIN'
-    tag_dictionary = OrderedDict([
-        (1, 'non-spin polarized calculations'),
-        (2, 'spin polarized calculations')
-    ])
-
-class IBrionTags(IncarBaseTags):
-    tag_name = 'IBRION'
-    tag_dictionary = OrderedDict([
-        (0, 'molecular dynamics'),
-        (1, 'ionic relaxation by RMM-DIIS'),
-        (2, 'ionic relaxation by CG'),
-        (3, 'ionic relaxation by damped MD'),
-        (5, 'phonons, by frozen ion, without symmetry'),
-        (6, 'phonons, by frozen ion, with symmetry'),
-        (7, 'phonons, by perturbation theory, no symmetry'),
-        (8, 'phonons, by perturbtion theory, with symmetry')
-    ])
-
-class IsifTags(IncarBaseTags):
-    tag_name = 'ISIF'
-    tag_dictionary = OrderedDict([
-        (2, 'relaxation, ions=T, cellshape=F, cellvolume=F'),
-        (3, 'relaxation, ions=T, cellshape=T, cellvolume=T'),
-        (4, 'relaxation, ions=T, cellshape=T, cellvolume=F'),
-        (5, 'relaxation, ions=F, cellshape=T, cellvolume=F'),
-        (6, 'relaxation, ions=F, cellshape=T, cellvolume=T'),
-        (7, 'relaxation, ions=F, cellshape=F, cellvolume=T')
-    ])
-
-class EdiffTag(IncarBaseFloatTag):
-    tag_name = 'EDIFF'
-    comment = 'convergence condition for SC-loop in eV'
-
-class PotimTag(IncarBaseFloatTag):
-    tag_name = 'POTIM'
-    comment = 'scaling factor in relaxation'
-
-class NswTag(IncarBaseFloatTag):
-    tag_name = 'NSW'
-    comment = 'maximum number of ionic relaxation steps'
-
-class LwaveTag(IncarBaseTags):
-    tag_name = 'LWAVE'
-    tag_dictionary = OrderedDict([
-        ('.TRUE.', 'write WAVECAR'),
-        ('.FALSE.', 'do not write WAVECAR')
-    ])
-
-class LchargTag(IncarBaseTags):
-    tag_name = 'LCHARG'
-    tag_dictionary = OrderedDict([
-        ('.TRUE.', 'write CHGCR, write CHG'),
-        ('.FALSE.', 'no CHGCAR, no CHG')
-    ])
-
-class LvtotTag(IncarBaseTags):
-    tag_name = 'LVTOT'
-    tag_dictionary = OrderedDict([
-        ('.TRUE.', 'write LOCPOT'),
-        ('.FALSE.', 'no LOCPOT')
-    ])
-
-class IncarComments():
-    tag_dictionary = {
-        'ISTART':IstartTags,
-        'ISYM':IsymTags,
-        'SYMPREC':SymprecTag
-    }
-
-    def get_comment(tag_name, tag_option):
-        return tag_dictionary[tag_name].get_comment(tag_option)

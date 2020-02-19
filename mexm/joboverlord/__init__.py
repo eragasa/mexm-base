@@ -78,7 +78,7 @@ class JobOverlord(object):
         if not isinstance(simulation, AtomicSimulation):
             raise TypeError('simulation must be an AtomicSimulation')
 
-        if isinstance(simulation, VaspSimultion):
+        if isinstance(simulation, VaspSimulation):
             self.register_vasp_job(simulation)
         elif isinstance(simulation, LammpsSimulation):
             self.register_lammps_job(simulation)
