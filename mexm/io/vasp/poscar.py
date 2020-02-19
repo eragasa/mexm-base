@@ -64,10 +64,8 @@ class Poscar(SimulationCell):
             line = f.readline()
             self.a0 = float(line)
         except ValueError as e:
-            msg_err = "Cannot read the lattice parameter from the POSCAR file\n"
-            msg_err += "path:{}\n".format(self.path)
-            msg_err += "line({}):\'{}\'".format(str(type(line)), line)
-            raise ValueError(msg_error)
+            msg = "Cannot read the lattice parameter from the POSCAR file\n"
+            raise ValueError(msg)
 
         h_matrix = np.zeros(shape=[3,3])
         for i in range(3):
@@ -107,8 +105,13 @@ class Poscar(SimulationCell):
                     self.add_atom(s,position)
                 except:
                     raise
+
     def write(self, path=None):
-        """ write poscar file """
+        """ write poscar file
+        
+        Arguments:
+            path(str): the path to write the POSCAR file too
+        """
         if path is None:
             path = self.path
         self.path = path
