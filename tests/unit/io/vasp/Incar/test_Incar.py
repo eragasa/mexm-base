@@ -16,6 +16,18 @@ def test_Incar__system_information_to_string_():
     assert isinstance(s, str)
     assert s == 'SYSTEM = {}\n\n'.format(o.system)
 
+def test_Incar__set_tag_value():
+    tag_name = 'ISTART'
+    tag_value = 0
+    o = Incar()
+    o.set_tag_value(tag_name=tag_name, tag_value=tag_value)
+
+def dev_Incar__set_tag_value__ISTART():
+    tag_name = 'ISTART'
+    tag_value = 0
+    o = Incar()
+    o.set_tag_value(tag_name=tag_name, tag_value=tag_value)
+
 def dev_Incar__system_information_to_string_():
     incar_path = 'INCAR'
     o = Incar()
@@ -31,6 +43,13 @@ def dev_Incar__start_information_to_string_():
     s =o.start_information_to_string_()
     print(s)
 
+def dev_Incar__dos_information_to_string_():
+    o = Incar()
+
+    s = o.dos_information_to_string_()
+    print(s)
 if __name__ == "__main__":
+    dev_Incar__set_tag_value__ISTART()
     dev_Incar__system_information_to_string_()
     dev_Incar__start_information_to_string_()
+    dev_Incar__dos_information_to_string_()

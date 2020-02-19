@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from mexm.io.vasp.errors import VaspIncarError
 
-class IncarBaseTags():
+class IncarBaseTag():
     tag_dictionary = OrderedDict()
 
     @classmethod
@@ -19,7 +19,45 @@ class IncarBaseTags():
             msg = "unknown option, {}".format(option)
             raise VaspIncarError(msg)
 
-class IncarBaseFloatTag(IncarBaseTags):
+
+class IncarBaseTags(IncarBaseTag): pass
+
+class IncarBaseEnumeratedTag(IncarBaseTag):
+    tag_name = 'fake_tag'
+    tag_dictionary = {}
+
+    @classmethod
+    def is_valid_option(cls, option):
+        if option in cls.tag_dictionary:
+            return True
+        else:
+            return False
+
+class IncarBaseIntegerTag(IncarBaseTag):
+    tag_name = "fake_tag"
+    comment = ""
+
+    @classmethod
+    def is_valid_option(cls, option):
+        return isinstance(option, int)
+
+    @classmethod
+    def get_comment(cls, option):
+        return cls.comment
+
+class IncarBaseStringTag(IncarBaseTag):
+    tag_name = "fake tag"
+    comment = ""
+
+    @classmethod
+    def is_valid_option(cls, option):
+        return isinstance(option, str)
+
+    @classmethod
+    def get_comment(cls, option):
+        raise NotImplementedError
+
+class IncarBaseFloatTag(IncarBaseTag):
     tag_name = 'fake tag'
     comment = 'fake comment'
 
@@ -36,6 +74,70 @@ class IncarBaseFloatTag(IncarBaseTags):
     @classmethod
     def get_comment(cls, option):
         return cls.comment
+
+class EdiffTag(IncarBaseFloatTag):
+    tag_name = 'EDIFF'
+    comment = 'convergence condition for SC-loop in eV'
+
+class EdiffgTag(IncarBaseFloatTag):
+    tag_name = 'EDIFFG'
+    comment_force_relaxation = 'force convergence requirements in ev A'
+    comment_energy_relaxation = 'energy convergence in eV'
+
+    @classmethod
+    def is_valid_option(cls, option):
+        try:
+            option_ = float(option)
+        except ValueError:
+            return False
+
+        if option_ == 0:
+            return False
+        else:
+            return True
+        
+    @classmethod
+    def get_comment(cls,option):
+        try:
+            option_ = float(option)
+        except ValueError:
+            msg = 'value must be castable into a float'
+            raise TypeError(msg)
+
+        if option == 0:
+            msg = 'cannot select zero, must select a convergence value'
+            raise ValueError(msg)
+        elif option_ < 0:
+            return cls.comment_force_relaxation
+        else:
+            return cls.comment_energy_relaxation
+
+class EncutTag(IncarBaseFloatTag):
+    tag_name = 'ENCUT'
+    comment = 'Cut-off energy for plane wave basis set in eV'
+
+    @classmethod
+    def is_valid_option(cls, option):
+        try:
+            option_ = float(option)
+        except ValueError:
+            return False
+        
+        if option > 0:
+            return True
+        else:
+            return False
+
+class IniwaveTag(IncarBaseIntegerTag):
+    tag_name = 'INIWAV'
+    tag_dictionary = OrderedDict([
+        (0, 'jellium wave functions'),
+        (1, 'random wave functions')
+    ])
+
+    @classmethod
+    def is_valid_option(cls, option):
+        return option in cls.tag_dictionary
 
 class IstartTags(IncarBaseTags):
     tag_name = 'ISTART'
@@ -55,11 +157,8 @@ class IsymTags(IncarBaseTags):
         (3,'symmetry_on, only forces and stress tensor')
     ])
 
-class SymprecTag(IncarBaseFloatTag):
-    tag_name = 'SYMPREC'
-    comment = 'determines how accurate positions must be'
-
 class IchargTags(IncarBaseTags):
+    tag_name = 'ICHARG'
     tag_dictionary = OrderedDict([
         (0,'Calculate charge density from initial wave functions.'),
         (1,'Read the charge density from file CHGCAR'),
@@ -80,33 +179,55 @@ class SigmaTag(IncarBaseFloatTag):
     tag_name = 'SIGMA'
     comment = 'width of the smearing in eV.'
 
-class NelmTag(IncarBaseFloatTag):
+class SymprecTag(IncarBaseFloatTag):
+    tag_name = 'SYMPREC'
+    comment = 'determines how accurate positions must be'
+
+
+class NelmTag(IncarBaseIntegerTag):
     tag_name = 'NELM'
-    comment = 'maximum number of electronic SC'
-
-class EncutTag(IncarBaseFloatTag):
-    tag_name = 'ENCUT'
-    comment = 'Cut-off energy for plane wave basis set in eV'
-
-class EdiffTag(IncarBaseFloatTag):
-    tag_name = 'EDIFF'
-    comment = 'convergence condition for SC-loop in eV'
-
-class EdiffgTag(IncarBaseFloatTag):
-    tag_name = 'EDIFFG'
-    comment_force_relaxation = 'force convergence requirements in ev A'
-    comment_energy_relaxation = 'energy convergence in eV'
+    comment = 'maximum number of electronic SCF steps'
 
     @classmethod
-    def get_comment(cls,option):
-        return cls.comment
-        if option == 0:
-            msg = 'cannot select zero, must select a convergence value'
-            raise ValueError(msg)
-        elif self.ediffg < 0:
-            return cls.comment_force_relaxation
+    def is_valid_option(cls, option):
+        try:
+            option_ = float(option)
+        except ValueError:
+            return False
+
+        if option_ > 0:
+            return True
         else:
-            return cls.comment_energy_relaxation
+            return False
+
+class NelmdlTag(IncarBaseIntegerTag):
+    tag_name = 'NELMDL'
+    comment = "the number of non-selfconsistent steps at the beginning."
+
+    @classmethod
+    def is_valid_option(cls, option):
+        try:
+            option_ = int(option)
+            return True
+        except ValueError:
+            return False
+
+
+class NelminTag(IncarBaseIntegerTag):
+    tag_name = "NELMIN"
+    comment = 'minimum number of electronic SCF steps'
+
+    @classmethod
+    def is_valid_option(cls, option):
+        try:
+            option_ = float(option)
+        except ValueError:
+            return False
+
+        if option_ > 0:
+            return True
+        else:
+            return False
 
 class PrecTags(IncarBaseTags):
     tag_name = 'PREC'
@@ -123,7 +244,14 @@ class AlgoTags(IncarBaseTags):
         ('Fast', 'blocked Davidson, followed by RMM_DIIS')
     ])
 
-class LrealTags(IncarBaseTags):
+class LchargTag(IncarBaseTags):
+    tag_name = 'LCHARG'
+    tag_dictionary = OrderedDict([
+        ('.TRUE.', 'write CHGCR, write CHG'),
+        ('.FALSE.', 'no CHGCAR, no CHG')
+    ])
+
+class LrealTags(IncarBaseEnumeratedTag):
     tag_name = 'LREAL'
     tag_dictionary = OrderedDict([
         ('.FALSE.', 'projection done in reciprocal space'),
@@ -131,7 +259,7 @@ class LrealTags(IncarBaseTags):
         ('Auto', 'unpublished method of G. Kresse')
     ])
 
-class LorbitTags(IncarBaseTags):
+class LorbitTags(IncarBaseEnumeratedTag):
     tag_name = 'LORBIT'
     tag_dictionary = OrderedDict([
         (0, 'DOSCAR and PROCAR'),
@@ -143,6 +271,55 @@ class LorbitTags(IncarBaseTags):
         (12, 'DOSCAR, lm-decomposed PROCAR, phase factors'),
     ])
 
+class LplaneTag(IncarBaseEnumeratedTag):
+    tag_name = 'LORBIT'
+    tag_dictionary = OrderedDict([
+        ('.TRUE.', 'use real space projectors, small number of compute nodes'),
+        ('.FALSE.', 'no real space projectors, large number of compute nodes')
+    ])
+
+class LwaveTag(IncarBaseTags):
+    tag_name = 'LWAVE'
+    tag_dictionary = OrderedDict([
+        ('.TRUE.', 'write WAVECAR'),
+        ('.FALSE.', 'do not write WAVECAR')
+    ])
+
+class LvtotTag(IncarBaseTags):
+    tag_name = 'LVTOT'
+    tag_dictionary = OrderedDict([
+        ('.TRUE.', 'write LOCPOT'),
+        ('.FALSE.', 'no LOCPOT')
+    ])
+
+class NparTag(IncarBaseIntegerTag):
+    tag_name = 'NPAR'
+    comment = 'number of bands to be treated in parallel'
+    
+    @classmethod
+    def is_valid_option(cls, option):
+        if not isinstance(option, int):
+            return False
+        else:
+            if option <= 0:
+                return False
+            else:
+                return True
+
+class NsimTag(IncarBaseIntegerTag):
+    tag_name = 'NSIM'
+    comment = 'number of bands to optimize simultaneously'
+    
+    @classmethod
+    def is_valid_option(cls, option):
+        if not isinstance(option, int):
+            return False
+        else:
+            if option <= 0:
+                return False
+            else:
+                return True
+                
 class IspinTags(IncarBaseTags):
     tag_name = 'ISPIN'
     tag_dictionary = OrderedDict([
@@ -163,7 +340,7 @@ class IBrionTags(IncarBaseTags):
         (8, 'phonons, by perturbtion theory, with symmetry')
     ])
 
-class IsifTags(IncarBaseTags):
+class IsifTag(IncarBaseEnumeratedTag):
     tag_name = 'ISIF'
     tag_dictionary = OrderedDict([
         (2, 'relaxation, ions=T, cellshape=F, cellvolume=F'),
@@ -174,9 +351,6 @@ class IsifTags(IncarBaseTags):
         (7, 'relaxation, ions=F, cellshape=F, cellvolume=T')
     ])
 
-class EdiffTag(IncarBaseFloatTag):
-    tag_name = 'EDIFF'
-    comment = 'convergence condition for SC-loop in eV'
 
 class PotimTag(IncarBaseFloatTag):
     tag_name = 'POTIM'
@@ -186,26 +360,10 @@ class NswTag(IncarBaseFloatTag):
     tag_name = 'NSW'
     comment = 'maximum number of ionic relaxation steps'
 
-class LwaveTag(IncarBaseTags):
-    tag_name = 'LWAVE'
-    tag_dictionary = OrderedDict([
-        ('.TRUE.', 'write WAVECAR'),
-        ('.FALSE.', 'do not write WAVECAR')
-    ])
 
-class LchargTag(IncarBaseTags):
-    tag_name = 'LCHARG'
-    tag_dictionary = OrderedDict([
-        ('.TRUE.', 'write CHGCR, write CHG'),
-        ('.FALSE.', 'no CHGCAR, no CHG')
-    ])
+class SystemTag(IncarBaseStringTag):
+    tag_name = 'SYSTEM'
 
-class LvtotTag(IncarBaseTags):
-    tag_name = 'LVTOT'
-    tag_dictionary = OrderedDict([
-        ('.TRUE.', 'write LOCPOT'),
-        ('.FALSE.', 'no LOCPOT')
-    ])
 
 class IncarComments():
     tag_dictionary = {

@@ -13,10 +13,26 @@ class Incar(object):
     format_section = '# {:*^78}'
     
     incar_tags = {
+        'ENCUT':incartags.EncutTag,
+        'EDIFF':incartags.EdiffTag,
+        'EDIFFG':incartags.EdiffgTag,
         'ISTART':incartags.IstartTags,
+        'IBRION':incartags.IBrionTags,
         'ICHARG':incartags.IchargTags,
+        'INIWAVE':incartags.IniwaveTag,
+        'ISIF':incartags.IsifTag,
         'ISMEAR':incartags.IsmearTags,
-        'SIGMA':incartags.SigmaTag
+        'LPLANE':incartags.LplaneTag,
+        'NELM':incartags.NelmTag,
+        'NELMDL':incartags.NelmdlTag,
+        'NELMIN':incartags.NelminTag,
+        'NPAR':incartags.NparTag,
+        'NSIM':incartags.NsimTag,
+        'NSW':incartags.NswTag,
+        'POTIM':incartags.PotimTag,
+        'PREC':incartags.PrecTags,
+        'SIGMA':incartags.SigmaTag,
+        'SYSTEM':incartags.SystemTag,
     }
 
     def __init__(self, filename="INCAR"):
@@ -26,6 +42,7 @@ class Incar(object):
         filename (str): the filename of the INCAR file, default:'INCAR'
         """
         self.filename = filename
+        self.incar_tag_values = {}
 
         self._fmt_section = '# {:*^78}\n'
         self._fmt_arg = '{:<30}! {}\n'
@@ -129,6 +146,38 @@ class Incar(object):
         with open(self.path, 'w') as f:
             f.write(self.to_string())
  
+    def set_tag_value(self, tag_name, tag_value):
+
+        if isinstance(self.incar_tags[tag_name], 
+                      incartags.IncarBaseFloatTag):
+            tag_value_ = float(tag_value)
+            assert self.incar_tag_value[tag_name].is_valid_option(
+                option=tag_value
+            )
+            self.incar_tag_values[tag_name] = tag_value_
+
+        elif isinstance(self.incar_tags[tag_name],
+                        incartags.IncarBaseStringTag):
+            assert self.incar_tag_values[tag_name].is_valid_tag(tag_value)
+            self.incar_tag_values[tag_name] = tag_value_
+
+        elif isinstance(self.incar_tags[tag_name], incartags.IncarBaseTags):
+            try:
+                tag_value_ = int(tag_value)
+                assert self.incar_tag_value[tag_name].is_valid_option(
+                    option=tag_value
+                )
+                self.incar_tag_values[tag_name] = int(tag_value)
+            except ValueError:
+                self.incar_tag_values[tag_name] = tag_value
+
+    def get_tag_value(self, tag_name):
+        return self.incar_tag_values[tag_name]
+
+    def get_tag_comment(self, tag_name):
+        tag_value = self.incar_tag_values[tag_name]
+        return self.incar_tags[tag_name].get_comment()
+
     def read(self, path='POSCAR'):
 
         self.path = path
@@ -143,6 +192,9 @@ class Incar(object):
             else:
                 args = [ line.strip().split('!')[0].split('=')[0].strip(),
                          line.strip().split('!')[0].split('=')[1].strip() ]
+                tag_name = args[0]
+                tag_value = args[1]
+                self.set_tag_value(tag_name=tag_name, tag_value=tag_value)
                 if args[0] == 'ISTART':
                     self.istart = int(args[1])
                 elif args[0] == 'ICHARG':
@@ -251,7 +303,7 @@ class Incar(object):
         str_out = ''
         str_out += self.system_information_to_string_()
         str_out += self.start_information_to_string_()
-        str_out += self.__dos_information_to_string()
+        str_out += self.dos_information_to_string_()
         str_out += self.__sym_information_to_string()
         str_out += self.__scf_information_to_string()
         str_out += self.__spin_polarization_to_string()
