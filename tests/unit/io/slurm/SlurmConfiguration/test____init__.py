@@ -11,7 +11,6 @@ def test____init____no_args():
     slurm_configuration = SlurmConfiguration()
 
 def test__initialize_from_dict():
-
     o = SlurmConfiguration.initialize_from_dict(slurm_configuration_dict)
 
 if __name__ == "__main__":
