@@ -24,7 +24,7 @@ def test_read__check_h_matrix():
     o.read(path=poscar_path)
 
     h_matrix = np.array([[1.,2.,3.],[4.,5.,6.], [7.,8.,9.]]).T
-    assert np.array_equal(o.H, expected_h_matrix)
+    assert np.array_equal(o.H, h_matrix)
 
 def test_read__check_lattice_vectors():
     poscar_path = os.path.join(parent_path, 'resources', 'hmatrixtest.vasp')
@@ -36,7 +36,7 @@ def test_read__check_lattice_vectors():
     assert np.array_equal(o.a2, h_matrix[:,1])
     assert np.array_equal(o.a3, h_matrix[:,2])
 
-def dev_Poscar__read():
+def dev_read():
     print(80*'-')
     print('dev_Poscar__read')
     print(80*'-')
@@ -58,21 +58,23 @@ def src_poscar_path():
     poscar_name = 'Si_primitive.vasp'
     return os.path.join(parent_path, 'resources', poscar_name)
 
-def test_write(src_poscar_path):
-    dst_poscar_path = 'POSCAR'
+def test_write(src_poscar_path, tmpdir):
+    dst_poscar_path = os.path.join(tmpdir, 'POSCAR')
 
     o = Poscar()
     o.read(path=src_poscar_path)
     o.write(path=dst_poscar_path)
 
-def dev__write():
+    assert os.path.isfile(dst_poscar_path)
+
+def dev_write():
     src_path = os.path.join(parent_path, 'resources', 'Si_primitive.vasp')
     dst_path = 'POSCAR'
 
     o = Poscar()
-    o.read(path=src_poscar_path)
-    o.write(path=dst_poscar_path)
+    o.read(path=src_path)
+    o.write(path=dst_path)
 
 if __name__ == "__main__":
-    dev_Poscar__read()
-    dev_Poscar__write()
+    dev_read()
+    dev_write()
