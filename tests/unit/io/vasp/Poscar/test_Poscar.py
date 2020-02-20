@@ -5,8 +5,6 @@ import os
 import numpy as np
 from mexm.io.vasp import Poscar
 
-parent_path = os.path.dirname(os.path.abspath(__name__))
-
 @pytest.fixture
 def resourcedir(tmpdir, request):
     '''
@@ -27,13 +25,13 @@ def test_Poscar____init__():
     Poscar()
 
 def test_read(resourcedir):
-    poscar_path = os.path.join(resourcedir, 'Si_primitive.vasp')
+    poscar_path = resourcedir.join('Si_primitive.vasp')
 
     o = Poscar()
     o.read(path=poscar_path)
 
 def test_read__check_h_matrix(resourcedir):
-    poscar_path = os.path.join(resourcedir, 'hmatrixtest.vasp')
+    poscar_path = resourcedir.join('hmatrixtest.vasp')
 
     o = Poscar()
     o.read(path=poscar_path)
@@ -42,7 +40,7 @@ def test_read__check_h_matrix(resourcedir):
     assert np.array_equal(o.H, h_matrix)
 
 def test_read__check_lattice_vectors(resourcedir):
-    poscar_path = os.path.join(resourcedir, 'hmatrixtest.vasp')
+    poscar_path = resourcedir.join('hmatrixtest.vasp')
     h_matrix = np.array([[1.,2.,3.],[4.,5.,6.],[7.,8.,9.]]).T
 
     o = Poscar()
@@ -69,7 +67,7 @@ def dev_read():
     print('a3:',o.a3)
 
 def test_write(resourcedir, tmpdir):
-    src_poscar_path = os.path.join(resourcedir, 'Si_primitive.vasp')
+    src_poscar_path = os.path.join(str(resourcedir), 'Si_primitive.vasp')
     dst_poscar_path = os.path.join(tmpdir, 'POSCAR')
 
     o = Poscar()
