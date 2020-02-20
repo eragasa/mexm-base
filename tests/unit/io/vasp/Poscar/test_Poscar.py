@@ -1,4 +1,5 @@
 import pytest
+from distutils import dir_util
 
 import os
 import numpy as np
@@ -6,19 +7,33 @@ from mexm.io.vasp import Poscar
 
 parent_path = os.path.dirname(os.path.abspath(__name__))
 
+@pytest.fixture
+def resourcedir(tmpdir, request):
+    '''
+    Fixture responsible for searching a folder with the same name of test
+    module and, if available, moving all contents to a temporary directory so
+    tests can use them freely.
+    https://stackoverflow.com/questions/29627341/pytest-where-to-store-expected-data
+    '''
+    filename = request.module.__file__
+    test_dir, _ = os.path.splitext(filename)
+
+    if os.path.isdir(test_dir):
+        dir_util.copy_tree(test_dir, str(tmpdir))
+
+    return tmpdir
+
 def test_Poscar____init__():
     Poscar()
 
-def test_read():
-    poscar_path = os.path.join(
-        parent_path, 'resources', 'Si_primitive.vasp'
-    )
+def test_read(resourcedir):
+    poscar_path = os.path.join(resourcedir, 'Si_primitive.vasp')
 
     o = Poscar()
     o.read(path=poscar_path)
 
-def test_read__check_h_matrix():
-    poscar_path = os.path.join(parent_path, 'resources', 'hmatrixtest.vasp')
+def test_read__check_h_matrix(resourcedir):
+    poscar_path = os.path.join(resourcedir, 'hmatrixtest.vasp')
 
     o = Poscar()
     o.read(path=poscar_path)
@@ -26,8 +41,8 @@ def test_read__check_h_matrix():
     h_matrix = np.array([[1.,2.,3.],[4.,5.,6.], [7.,8.,9.]]).T
     assert np.array_equal(o.H, h_matrix)
 
-def test_read__check_lattice_vectors():
-    poscar_path = os.path.join(parent_path, 'resources', 'hmatrixtest.vasp')
+def test_read__check_lattice_vectors(resourcedir):
+    poscar_path = os.path.join(resourcedir, 'hmatrixtest.vasp')
     h_matrix = np.array([[1.,2.,3.],[4.,5.,6.],[7.,8.,9.]]).T
 
     o = Poscar()
@@ -53,12 +68,8 @@ def dev_read():
     print('a2:',o.a2)
     print('a3:',o.a3)
 
-@pytest.fixture
-def src_poscar_path():
-    poscar_name = 'Si_primitive.vasp'
-    return os.path.join(parent_path, 'resources', poscar_name)
-
-def test_write(src_poscar_path, tmpdir):
+def test_write(resourcedir, tmpdir):
+    src_poscar_path = os.path.join(resourcedir, 'Si_primitive.vasp')
     dst_poscar_path = os.path.join(tmpdir, 'POSCAR')
 
     o = Poscar()
