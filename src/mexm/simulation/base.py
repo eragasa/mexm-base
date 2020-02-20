@@ -23,6 +23,8 @@ class Simulation():
         # initialize conditions
         self.conditions = {k:{} for k in Simulation.states}
 
+        # create simulation directory
+        self.create_path(path=path)
         self.status = None
 
     @property
@@ -152,13 +154,26 @@ class Simulation():
         }
         status_to_method_map[self.status]()
 
-    def on_init(): raise NotImplementedError
-    def on_config(): raise NotImplementedError
-    def on_ready(): raise NotImplementedError
-    def on_running(): raise NotImplementedError
-    def on_post(): raise NotImplementedError
-    def on_finished(): raise NotImplementedError
-    def on_error(): raise NotImplementedError
+    def on_init(): 
+        raise NotImplementedError
+    
+    def on_config(): 
+        raise NotImplementedError
+    
+    def on_ready(): 
+        raise NotImplementedError
+    
+    def on_running(): 
+        raise NotImplementedError
+    
+    def on_post(): 
+        raise NotImplementedError
+    
+    def on_finished(): 
+        raise NotImplementedError
+    
+    def on_error(): 
+        raise NotImplementedError
 
     def update_status(self):
         assert isinstance(self.conditions_INIT, dict)
@@ -168,7 +183,10 @@ class Simulation():
                 self.status = 'INIT'
                 return
             else:
-                raise ValueError()
+                for k, v in self.conditions_INIT.items():
+                    print(k, v)
+                msg = "was not able to initialize"
+                raise ValueError(msg)
         elif self.status == 'INIT':
             self.get_conditions_config()
             if all([v for k,v in self.conditions_CONFIG.items()]):
@@ -207,7 +225,8 @@ class Simulation():
         elif self.status == 'ERROR':
             raise ValueError()
         else:
-            raise ValueError()
+            msg = "unknown status, {}".format(self.status)
+            raise ValueError(msg)
 
     def get_conditions_init(self): raise NotImplementedError
     def get_conditions_config(self): raise NotImplementedError

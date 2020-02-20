@@ -93,7 +93,7 @@ class LammpsStaticCalculation(LammpsSimulation, StaticCalculation):
 
     def __get_results_from_lammps_outputfile(self):
         _filename = os.path.join(
-                self.simulation_path,
+                self.path,
                 'lammps.out')
         with open(_filename,'r') as f:
             lines = f.readlines()

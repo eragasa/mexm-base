@@ -57,7 +57,7 @@ class LammpsStructuralMinimization(LammpsSimulation, StructuralMinimization):
         LammpsSimulation.on_post(self,configuration=configuration)
 
     def _get_results_from_lammps_outputfile(self):
-        filename = os.path.join(self.simulation_path, 'lammps.out')
+        filename = os.path.join(self.path, 'lammps.out')
         with open(filename,'r') as f:
             lines = f.readlines()
 

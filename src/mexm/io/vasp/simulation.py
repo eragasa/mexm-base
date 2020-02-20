@@ -8,7 +8,7 @@ from pypospack.io.slurm import SlurmSubmissionScript
 class VaspSimulation():
 
     def __init__(self, simulation_path="."):
-        self.simulation_path = simulation_path
+        self.path = simulation_path
         self.poscar = Poscar()
         self.incar = Incar()
         self.kpoints = Kpoints()
@@ -28,7 +28,7 @@ class VaspSimulation():
 
     def read_incar(self,filename=None):
         if filename is None:
-            filename_ = os.path.join(self.simulation_path, "INCAR")
+            filename_ = os.path.join(self.path, "INCAR")
         else:
             filename_ = filename
 
@@ -36,7 +36,7 @@ class VaspSimulation():
 
     def write_incar(self,filename=None):
         if filename is None:
-            filename_ = os.path.join(self.simulation_path, "INCAR")
+            filename_ = os.path.join(self.path, "INCAR")
         else:
             filename_ = filename
 
@@ -44,7 +44,7 @@ class VaspSimulation():
 
     def write_poscar(self, filename=None):
         if filename is None:
-            filename_ = os.path.join(self.simulation_path, "POSCAR")
+            filename_ = os.path.join(self.path, "POSCAR")
         else:
             filename_ = filename
 
@@ -54,7 +54,7 @@ class VaspSimulation():
         self.xc = xc
 
         if filename is None:
-            filename_ = os.path.join(self.simulation_path, 'POTCAR')
+            filename_ = os.path.join(self.path, 'POTCAR')
         else:
             filename_ = filename
 
@@ -63,7 +63,7 @@ class VaspSimulation():
 
     def write_kpoints(self, filename=None):
         if filename is None:
-            filename_ = os.path.join(self.simulation_path,"KPOINTS")
+            filename_ = os.path.join(self.path,"KPOINTS")
         else:
             fiename_ = filename
 
@@ -71,14 +71,14 @@ class VaspSimulation():
 
     def write_submission_script(self, filename=None):
         if filename is None:
-            filename_ = os.path.join(self.simulation_path,"runjob.slurm")
+            filename_ = os.path.join(self.path,"runjob.slurm")
         else:
             filename_ = filename
 
         self.simulation_script.write(filename=filename_)
 
     def write(self, path, is_clobber=False):
-        self.simulation_path = path
+        self.path = path
 
         try:
             os.path.mkdir(path)

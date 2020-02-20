@@ -5,6 +5,8 @@ import os, shutil
 from collections import OrderedDict
 from mexm.structure import SimulationCell
 from mexm.potential import BuckinghamPotential
+from mexm.simulation import LammpsSimulation
+from mexm.simulation import StructuralMinimization
 from mexm.simulation import LammpsStructuralMinimization
 
 parent_path = os.path.dirname(os.path.abspath(__file__))
@@ -22,73 +24,90 @@ def resourcedir(tmpdir, request):
     if os.path.isdir(test_dir):
         dir_util.copy_tree(test_dir, str(tmpdir))
 
+    return tmpdir
 
-init_kwargs = {
-    'name':'test_simulation_name',
-    'simulation_path':'test_simulation_directory',
-    'structure_path':os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'resources',
-        'POSCAR'),
-    'bulk_structure_name':None
-}
+@pytest.fixture
+def init_kwargs(configuration_dict):
+    kwargs = {
+        'name':configuration_dict['simulation']['path'],
+        'simulation_path':configuration_dict['simulation']['path'],
+        'structure_path':configuration_dict['structures']['path'],
+        'bulk_structure_name':None
+    }
+    return kwargs
 
-configuration = {
-    'simulation':{
-        'name':'MgO_NaCl.lmps_min_all',
-        'simulation_path':'test_simulation_directory'},
-    'structures':{
-        'structure_name':'MgO_NaCl_unit',
-        'structure_path':'MgO_NaCl_unit.vasp'},
-    'potential':{
-        'potential_name':'buckingham',
-        'symbols':['Mg', 'O'],
-        'parameters':{
-            'cutoff':12.0,
-            'Mg_chrg':+2.0,
-            'O_chrg':-2.0,
-            'MgMg_A':0.0,
-            'MgMg_rho':0.5,
-            'MgMg_C':0.0,
-            'MgMg_cutoff':12.0,
-            'MgO_A':821.6,
-            'MgO_rho':0.3242,
-            'MgO_C':0.0,
-            'MgO_cutoff':12.0,
-            'OO_A':2274.00,
-            'OO_rho':0.1490,
-            'OO_C':27.88,
-            'OO_cutoff':12.0
-            }
+@pytest.fixture
+def configuration_dict(resourcedir):
+
+    configuration = {}
+
+    simulation_name = 'MgO_NaCl.lmps_min_all'
+    simulation_path = os.path.join(str(resourcedir),simulation_name)
+    configuration['simulation'] = {
+        'name':simulation_name,
+        'path':simulation_path,
+        'bulk_name':None
+    }
+
+    structure_name = 'MgO_NaCl_unit'
+    structure_path = os.path.join(str(resourcedir),'MgO_NaCl_unit.vasp')
+    configuration['structures'] = {
+        'name':structure_name,
+        'path':structure_path
+    }
+
+    potential_name = 'buckingham'
+    potential_symbols = ['Mg', 'O']
+    potential_parameters = {
+        'cutoff':12.0,
+        'Mg_chrg':+2.0,
+        'O_chrg':-2.0,
+        'MgMg_A':0.0,
+        'MgMg_rho':0.5,
+        'MgMg_C':0.0,
+        'MgMg_cutoff':12.0,
+        'MgO_A':821.6,
+        'MgO_rho':0.3242,
+        'MgO_C':0.0,
+        'MgO_cutoff':12.0,
+        'OO_A':2274.00,
+        'OO_rho':0.1490,
+        'OO_C':27.88,
+        'OO_cutoff':12.0
+    }
+    configuration['potential'] = {
+        'name':potential_name,
+        'symbols':potential_symbols,
+        'parameters':potential_parameters
+    }
+
+    return configuration
+
+@pytest.fixture
+def expected_values_dict():
+    expected_values = {
+        'potential':{
+            'potential_name':'buckingham',
+            'potential_type':BuckinghamPotential
         }
     }
 
-expected_values = {
-    'potential':{
-        'potential_name':'buckingham',
-        'potential_type':BuckinghamPotential
-    }
-}
+    return expected_values
 
-
-def cleanup():
-    shutil.rmtree(init_kwargs['simulation_path'])
-
-def test__LammpsStructuralMinimization__properties():
+def test_properties():
     assert LammpsStructuralMinimization.simulation_type == 'lammps_min_all'
     assert LammpsStructuralMinimization.is_base_class == False
 
-def dev__LammpsStructuralMinimization____init__():
+def dev____init__(resourcedir, init_kwargs):
     o = LammpsStructuralMinimization(**init_kwargs)
-    cleanup()
+    assert os.path.isdir(init_kwargs.simulation_path)
 
-def dev__LammpsStructuralMinimization____init____inheritance():
+def dev___init___inheritance(resourcedir, init_kwargs):
     o = LammpsStructuralMinimization(**init_kwargs)
     assert isinstance(o, LammpsSimulation)
     assert isinstance(o, StructuralMinimization)
-    cleanup()
 
-def test__LammpsStructuralMinimization____init____conditions():
+def test___init___conditions(init_kwargs, resourcedir):
     o = LammpsStructuralMinimization(**init_kwargs)
     assert isinstance(o.conditions, dict)
     assert isinstance(o.conditions_INIT, dict)
@@ -98,9 +117,8 @@ def test__LammpsStructuralMinimization____init____conditions():
     assert isinstance(o.conditions_POST, dict)
     assert isinstance(o.conditions_FINISHED, dict)
     assert isinstance(o.conditions_ERROR, dict)
-    cleanup()
 
-def test__LammpsStructuralMinimization____init__():
+def test___init__(init_kwargs, resourcedir):
     o = LammpsStructuralMinimization(**init_kwargs)
 
     assert not o.is_fullauto
@@ -110,10 +128,10 @@ def test__LammpsStructuralMinimization____init__():
     assert isinstance(o.structure, SimulationCell)
     assert o.bulk_structure_name == init_kwargs['bulk_structure_name']
 
-    assert o.lammps_input_path == 'lammps.in'
-    assert o.lammps_output_path == 'lammps.out'
-    assert o.lammps_structure_path == 'lammps.structure'
-    assert o.lammps_potentialmod_path == 'potential.mod'
+    assert o.lammps_input_path == os.path.join(init_kwargs['simulation_path'],'lammps.in')
+    assert o.lammps_output_path == os.path.join(init_kwargs['simulation_path'],'lammps.out')
+    assert o.lammps_structure_path == os.path.join(init_kwargs['simulation_path'],'lammps.structure')
+    assert o.lammps_potentialmod_path == os.path.join(init_kwargs['simulation_path'],'potential.mod')
     assert o.lammps_setfl_path is None
 
     assert o.use_mpi == False
@@ -123,35 +141,51 @@ def test__LammpsStructuralMinimization____init__():
     except KeyError:
         assert o.lammps_bin is None
 
-    cleanup()
+def test__configure_potential__w_dict(
+        init_kwargs,
+        configuration_dict,
+        expected_values_dict, 
+        resourcedir):
 
-def test__configure_potential__w_dict():
+    configuration = configuration_dict
+    expected_values = expected_values_dict
+
     o = LammpsStructuralMinimization(**init_kwargs)
     o.configure_potential(potential=configuration['potential'])
     assert isinstance(o.potential,
                       expected_values['potential']['potential_type'])
-    cleanup()
 
-def test__lammps_input_file_to_string():
-    from mexm.manager import PotentialManager
+def test__lammps_input_file_to_string(
+        init_kwargs,
+        configuration_dict,
+        resourcedir):
+
+    configuration = configuration_dict
+
     o = LammpsStructuralMinimization(**init_kwargs)
     o.configure_potential(potential=configuration['potential'])
     assert isinstance(o.lammps_input_file_to_string(), str)
-    cleanup()
 
-def test__LammpsStructuralMinimization__on_init():
+def test__on_init(
+        init_kwargs,
+        configuration_dict,
+        resourcedir):
+
+    configuration = configuration_dict
+
     o = LammpsStructuralMinimization(**init_kwargs)
     o.is_fullauto = False
     o.update_status()
+
     print(o.conditions_INIT)
     print(all([v for k,v in o.conditions_INIT.items()]))
+
     assert o.status == 'INIT'
     o.on_init(configuration)
     assert o.status == 'CONFIG'
-    cleanup()
 
 @pytest.mark.skipif(os.name=='nt', reason='requires a POSIX subsystem')
-def test__LammpsStructuralMinimization__on_config():
+def test__on_config(init_kwargs, resourcedir):
     o = LammpsStructuralMinimization(**init_kwargs)
     o.is_fullauto = False
     o.update_status()

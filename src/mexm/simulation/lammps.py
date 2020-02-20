@@ -231,7 +231,7 @@ class LammpsSimulation(Simulation):
                     self.potential.setfl_filename_src is not None]):
                 _eam_setfl_filename_src = self.potential.setfl_filename_src
                 _eam_setfl_filename_dst = os.path.join(
-                        self.simulation_path,
+                        self.path,
                         self.lammps_setfl_path)
                 shutil.copyfile(
                         src=_eam_setfl_filename_src,
@@ -274,7 +274,7 @@ class LammpsSimulation(Simulation):
                     self.lammps_setfl_path = '{}.eam.alloy'.format(
                             "".join(self.potential.symbols))
                 _eam_setfl_filename_dst = os.path.join(
-                        self.simulation_path,
+                        self.path,
                         self.lammps_setfl_path)
                 self.write_eam_setfl_file(
                         filename=_eam_setfl_filename_dst)
@@ -307,7 +307,7 @@ class LammpsSimulation(Simulation):
     def get_conditions_init(self):
         self.conditions_INIT = OrderedDict()
         self.conditions_INIT['simulation_directory_created']\
-                = os.path.isdir(self.simulation_path)
+                = os.path.isdir(self.path)
         return self.conditions_INIT
 
     def is_potential_initialized(self):
@@ -359,7 +359,7 @@ class LammpsSimulation(Simulation):
                 if self.conditions_ERROR is None:
                     self.conditions_ERROR=OrderedDict()
 
-                lammps_out_fn = os.path.join(self.simulation_path,'lammps.out')
+                lammps_out_fn = os.path.join(self.path,'lammps.out')
                 with open(lammps_out_fn) as f:
                     lines = f.readlines()
                     last_line = lines[len(lines)-1]
@@ -407,13 +407,13 @@ class LammpsSimulation(Simulation):
         # change context directory
 
         _cwd = os.getcwd()
-        os.chdir(self.simulation_path)
+        os.chdir(self.path)
 
         # https://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612
         #self.process = subprocess.Popen(
         #        cmd_str,
         #        shell=True,
-        #        cwd=self.simulation_path,
+        #        cwd=self.path,
         #        preexec_fn=os.getpgrp)
         #        #preexec_fn=os.setsid)
         #self.process_info = OrderedDict()
@@ -443,7 +443,7 @@ class LammpsSimulation(Simulation):
         self.status = 'DONE'
 
     def get_variables_from_lammps_output(self,variables):
-        filename = os.path.join(self.simulation_path,'lammps.out')
+        filename = os.path.join(self.path,'lammps.out')
         with open(filename,'r') as f:
             lines = f.readlines()
 
@@ -504,7 +504,7 @@ class LammpsSimulation(Simulation):
         if isinstance(self.potential,EamPotential):
             _symbols = "".join(self.potential.symbols)
             _filename = "{}.eam.alloy".format(_symbols)
-            _setfl_dst_filename = os.path.join(self.simulation_path,_filename)
+            _setfl_dst_filename = os.path.join(self.path,_filename)
             _str_out = self.potential.lammps_potential_section_to_string(
                 setfl_dst_filename=_setfl_dst_filename)
 
@@ -523,7 +523,7 @@ class LammpsSimulation(Simulation):
             # write out the potential parameter file
             _str_lmps_params = self.potential.lammps_parameter_file_to_string()
 
-            _p_fname_dst = os.path.join(self.simulation_path,_p_fname)
+            _p_fname_dst = os.path.join(self.path,_p_fname)
             with open(_p_fname_dst,'w') as f:
                 f.write(_str_lmps_params)
 
@@ -543,7 +543,7 @@ class LammpsSimulation(Simulation):
 
         # <-------- WRITE POTENTIAL.MOD TO FILESYSTEM
         _lammps_potentialmod_path = os.path.join(
-                self.simulation_path,
+                self.path,
                 self.lammps_potentialmod_path)
         with open(_lammps_potentialmod_path,'w') as f:
             f.write(_str_out)
@@ -556,7 +556,7 @@ class LammpsSimulation(Simulation):
                 'lammps.in'.
         """
         str_out = self.lammps_input_file_to_string()
-        filename = os.path.join(self.simulation_path,filename)
+        filename = os.path.join(self.path,filename)
         with open(filename,'w') as f:
             f.write(str_out)
 
@@ -575,7 +575,7 @@ class LammpsSimulation(Simulation):
             self.lammmps_structure_path = lammps_structure_path
 
         kwargs = {
-            'path':os.path.join(self.simulation_path, self.lammps_structure_path),
+            'path':os.path.join(self.path, self.lammps_structure_path),
             'atom_style':self.get_atomic_style()
         }
 
@@ -603,34 +603,52 @@ class LammpsSimulation(Simulation):
 
             Notes:
                 For buckingham potential,
-                    potential[potential_type] = 'buck'
-                    potential['symbols'] = ['Mg','O']
+                    potential['name'] = 'buckingham'
+                    potential['symbols'] = ['Mg', 'O']
                 For eam potentials,
                     potential['potential_type'] = 'eam'
                     potential['pair_type'] = 'morse'
                     potential['density_type'] = 'eam_exp_dens'
                     potential['embedding_type'] = 'eam_universal_embedding'
         """
-        assert any([
-            isinstance(potential, dict),
-            potential is None
-            ])
+
+        # checking arguments
+        if potential is None:
+            pass
+        elif isinstance(potential, dict):
+            pass
+        else:
+            msg = 'potential argument must either be None or a dictionary'
+            raise TypeError(msg)
+
 
         if isinstance(potential, dict):
             self.configuration['potential']=deepcopy(potential)
-        obj_dict = self.configuration['potential']
 
-        potential_args = inspect.getfullargspec(PotentialManager.get_potential_by_name)
-        obj_dict = {}
-        for k in potential_args.args:
-            try:
-                obj_dict[k] = self.configuration['potential'][k]
-            except KeyError as e:
-                if k in ['pair_type', 'density_type', 'embedding_type']:
-                    pass
-                else:
-                    raise
-        self.potential = PotentialManager.get_potential_by_name(**obj_dict)
+        if potential['name'] == 'eam':
+            potential_args = inspect.getfullargspec(PotentialManager.get_potential_by_name)
+            potential_dict = {}
+            for k in potential_args.args:
+                try:
+                    potential_dict[k] = self.configuration['potential'][k]
+                except KeyError:
+                    if k == 'potential_name':
+                        potential_dict[k] = self.configuration['potential']['name']
+
+        else:
+            potential_args = inspect.getfullargspec(PotentialManager.get_potential_by_name)
+            potential_dict = {}
+            for k in potential_args.args:
+                try:
+                    potential_dict[k] = self.configuration['potential'][k]
+                except KeyError:
+                    if k == 'potential_name':
+                        potential_dict[k] = self.configuration['potential']['name']
+                    elif k in ['pair_type', 'density_type', 'embedding_type']:
+                        'only necessary for EAM'
+                    else:
+                        raise
+        self.potential = PotentialManager.get_potential_by_name(**potential_dict)
 
 
     def lammps_input_file_to_string(self):
@@ -664,14 +682,18 @@ class LammpsSimulation(Simulation):
         return str_out
 
     def _lammps_input_create_atoms(self):
+        """ creates create atoms section of the LAMMPS input file """
+
         _structure_path = os.path.join(
-                self.simulation_path,
                 self.lammps_structure_path)
+
+        # this provides LAMMPS with the structure
         str_out = (
             '# ---- create atoms\n'
             'read_data {structure_path}\n'
-            ).format(
-                    structure_path=_structure_path)
+        ).format(
+                structure_path=_structure_path
+        )
 
         return str_out
 
@@ -754,7 +776,7 @@ class LammpsSimulation(Simulation):
                     isinstance(self.potential.setfl_filename_src,str)]):
                 eam_setfl_filename_src = self.potential.setfl_filename_src
                 eam_setfl_filename_dst = os.path.join(
-                        self.simulation_path,
+                        self.path,
                         self.lammps_setfl_path)
                 try:
                     shutil.copyfile(

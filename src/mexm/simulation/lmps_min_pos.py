@@ -118,7 +118,7 @@ class LammpsPositionMinimization(LammpsSimulation, PositionMinimization):
 
     def __getresults__from_lammps_outputfile(self):
         _filename = os.path.join(
-                self.simulation_path,
+                self.path,
                 'lammps.out')
         with open(_filename,'r') as f:
             lines = f.readlines()
