@@ -12,7 +12,7 @@ install:
 # command to add dependencies
 install:
   - pip install -r requirements.txt
-  - pip install .
+  - pip install ".[test]" .
 # command to run tests
 script:
   - pytest
