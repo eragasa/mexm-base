@@ -14,6 +14,6 @@ setup(name="mexm",
       author_email="ragasa.2@osu.edu",
       license="MIT License",
       package_dir={'':'src'},
-      packages=["mexm"],
+      packages=find_packages(),
       tests_require=test_deps,
       zip_safe=True)
