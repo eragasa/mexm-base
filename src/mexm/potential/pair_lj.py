@@ -7,7 +7,7 @@ import copy
 import numpy as np
 from collections import OrderedDict
 from mexm.potential import PairPotential
-from mexm.potential import determine_symbol_pairs
+
 
 def func_lj(r,epsilon,sigma,r_cut_pair=None):
     assert isinstance(r, np.ndarray)
