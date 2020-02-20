@@ -33,11 +33,12 @@ class LammpsStructuralMinimization(LammpsSimulation, StructuralMinimization):
                  structure_path,
                  bulk_structure_name=None):
 
-        LammpsSimulation.__init__(self,
-                                  name=name,
-                                  simulation_path=simulation_path,
-                                  structure_path=structure_path,
-                                  bulk_structure_name=bulk_structure_name)
+        super().__init__(
+            name=name, 
+            path=simulation_path,
+            structure_path=structure_path, 
+            bulk_structure_name=bulk_structure_name
+        )
 
     def postprocess(self):
         LammpsSimulation.postprocess(self)

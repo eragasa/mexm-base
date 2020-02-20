@@ -39,7 +39,7 @@ class LammpsSimulation(Simulation):
         fullauto(bool)
     Attributes:
         task_name(str)
-        simulation_path(str)
+        path(str)
         task_type(str)
         is_restart(bool)
         is_fullauto(bool)
@@ -57,9 +57,10 @@ class LammpsSimulation(Simulation):
         results(dict): results of the simulation
         lammps_bin(str): location of the serial lammps binary
     """
+
     def __init__(self,
                  name,
-                 simulation_path,
+                 path,
                  structure_path='POSCAR',
                  bulk_structure_name=None,
                  fullauto=False,
@@ -67,7 +68,11 @@ class LammpsSimulation(Simulation):
                  lammps_bin=None):
 
 
-        super().__init__(name=name, simulation_path=simulation_path)
+        super().__init__(name=name, path=path)
+
+        self._bulk_structure_name = None
+        self._is_fullauto = None
+
         self.bulk_structure_name = bulk_structure_name
         self.is_fullauto = fullauto
 
@@ -80,10 +85,10 @@ class LammpsSimulation(Simulation):
         self.read_structure_file(path=self.structure_path)
         self.bulk_structure_name = bulk_structure_name
 
-        self.lammps_input_path = 'lammps.in'
-        self.lammps_output_path = 'lammps.out'
-        self.lammps_structure_path = 'lammps.structure'
-        self.lammps_potentialmod_path = 'potential.mod'
+        self.lammps_input_path = os.path.join(self.path, 'lammps.in')
+        self.lammps_output_path = os.path.join(self.path, 'lammps.out')
+        self.lammps_structure_path = os.path.join(self.path, 'lammps.structure')
+        self.lammps_potentialmod_path = os.path.join(self.path, 'potential.mod')
         self.lammps_setfl_path = None
 
         self.use_mpi = use_mpi
@@ -113,6 +118,28 @@ class LammpsSimulation(Simulation):
                 self.lammps_bin = os.environ['LAMMPS_SERIAL_BIN']
             except KeyError:
                 self.lammps_bin = None
+
+    @property
+    def bulk_structure_name(self):
+        return self._bulk_structure_name
+    
+    @bulk_structure_name.setter
+    def bulk_structure_name(self, name):
+        if not isinstance(name, str):
+            raise TypeError('name must be a str')
+
+        self._bulk_structure_name = name
+
+    @property
+    def is_fullauto(self):
+        return self._is_fullauto
+
+    @is_fullauto.setter
+    def is_fullauto(self, is_fullauto):
+        if isinstance(is_fullauto, bool):
+            self._is_fullauto = is_fullauto
+        else:
+            raise TypeError('is_fullauto must be a string')
 
     @property
     def parameters(self):
@@ -158,7 +185,14 @@ class LammpsSimulation(Simulation):
 
         if self.structure is None:
             if self.structure_path is not None:
-                self.read_structure_file()
+                self.read_structure_file(path=self.structure_path)
+                assert self.structure is not None
+            else:
+                msg = (
+                    "simulation cannot continue unless either the structure "
+                    "can be resolved"
+                )
+                raise LammpsSimulationError(msg)
 
         self.update_status()
         if self.is_fullauto:

@@ -1,9 +1,27 @@
 import pytest
+from distutils import dir_util
+
 import os, shutil
 from collections import OrderedDict
 from mexm.structure import SimulationCell
 from mexm.potential import BuckinghamPotential
 from mexm.simulation import LammpsStructuralMinimization
+
+parent_path = os.path.dirname(os.path.abspath(__file__))
+@pytest.fixture
+def resourcedir(tmpdir, request):
+    '''
+    Fixture responsible for searching a folder with the same name of test
+    module and, if available, moving all contents to a temporary directory so
+    tests can use them freely.
+    https://stackoverflow.com/questions/29627341/pytest-where-to-store-expected-data
+    '''
+    filename = request.module.__file__
+    test_dir, _ = os.path.splitext(filename)
+
+    if os.path.isdir(test_dir):
+        dir_util.copy_tree(test_dir, str(tmpdir))
+
 
 init_kwargs = {
     'name':'test_simulation_name',

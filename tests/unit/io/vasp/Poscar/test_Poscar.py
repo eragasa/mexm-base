@@ -5,6 +5,7 @@ import os
 import numpy as np
 from mexm.io.vasp import Poscar
 
+parent_path = os.path.dirname(os.path.abspath(__file__))
 @pytest.fixture
 def resourcedir(tmpdir, request):
     '''
