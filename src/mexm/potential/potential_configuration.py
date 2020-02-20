@@ -10,6 +10,7 @@ class PotentialConfiguration(object):
         self._potential_dict['symbols'] = None
         self._potential_dict['parameters'] = None
 
+    @staticmethod
     def initialize_from_potential(potential):
         assert isinstance(potential, Potential)
         potential_configuration = PotentialConfiguration()
@@ -19,10 +20,11 @@ class PotentialConfiguration(object):
 
         return potential_configuration
 
+    @staticmethod
     def initialize_from_dict(potential):
         assert isinstance(potential, dict)
         potential_configuration = PotentialConfiguration()
-        potential_configuraiton.potential_type = potential['potential_type']
+        potential_configuration.potential_type = potential['potential_type']
         potential_configuration.symbols = potential['symbols']
         if 'parameters' in potential:
             potential_configuration.parameters = potential['parameters']

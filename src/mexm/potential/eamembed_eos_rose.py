@@ -1,11 +1,9 @@
 import copy
 from collections import OrderedDict
 import numpy as np
-from pypospack.potential import EamEmbeddingEquationOfState
 from scipy.optimize import brentq
-from pypospack.exceptions import PypospackBadEamEosError
-
-
+from mexm.potential import EamEmbeddingEquationOfState
+from mexm.exception import MexmBadEamEosError
 
 def rose_equation_of_state(a,a0,e_coh):
     """
@@ -100,8 +98,8 @@ class RoseEquationOfStateEmbeddingFunction(EamEmbeddingEquationOfState):
             self.parameters[p] = None
 
     def rose_equation_of_state(self,s):
-        cubic_lattice_types = "fcc,bcc,dia"
-
+        cubic_lattice_types = ['fcc', 'bcc', 'dia']
+        
         # the equation of state function
         e_coh = self.parameters["{}_ecoh".format(s)]
         bulk_modulus = self.parameters["{}_B".format(s)]
@@ -120,13 +118,13 @@ class RoseEquationOfStateEmbeddingFunction(EamEmbeddingEquationOfState):
         e_rose = - e_coh
 
 
-    def equation_of_state(self,rho,parameters=None):
+    def equation_of_state(self,rho,parameters=None, lattice_type = 'fcc'):
         if parameters is None:
             _p = self.parameters
         else:
             _p = parameters
 
-        if latt_type is 'fcc':
+        if lattice_type is 'fcc':
             pass
 
     def evaluate(self,
@@ -284,7 +282,7 @@ class RoseEquationOfStateEmbeddingFunction(EamEmbeddingEquationOfState):
                             xtol=a_tol)
                 except ValueError as e:
                     # this error is thrown due to the brent bounding bracket [a, b] not including a zero
-                    raise PypospackBadEamEosError(parameters=parameters)
+                    raise MexmBadEamEosError(parameters=parameters)
 
                 # here we determine astar as in equation 5 in Foiles. Phys Rev B (33) 12. Jun 1986
                 # 160.22 is the conversion with _esub in eV, _B in GPa, and _omega in Angs^3

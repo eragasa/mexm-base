@@ -6,12 +6,11 @@ __version__ = 20180524
 import copy,inspect
 import numpy as np
 from collections import OrderedDict
-from pypospack.potential import EamEmbeddingEquationOfState
+from mexm.potential import EamEmbeddingEquationOfState
 
-from pypospack.potential.eam_embedding_eos import (
-        get_omega,
-        get_pair_energy_at_a,
-        get_density_at_a)
+from mexm.potential.eam_embedding_eos import get_omega
+from mexm.potential.eam_embedding_eos import get_pair_energy_at_a
+from mexm.potential.eam_embedding_eos import get_density_at_a
 
 def func_zopemishin_eos(a,a0,B,E0,beta,latticetype='fcc'):
     """ return the energy value from th equation of state based on the lattice parameter
