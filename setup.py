@@ -7,5 +7,5 @@ setup(name="mexm",
       author="Eugene J. Ragasa",
       author_email="eragasa@osu.edu",
       license="MIT License",
-      packages=["mexm",],
+      packages=["src/mexm",],
       zip_safe=True)
