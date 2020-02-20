@@ -5,7 +5,6 @@ test_deps = [
     'pytest',
 ]
 
-
 setup(name="mexm",
       version="0.1.0",
       description="Materials Ex Machina",
