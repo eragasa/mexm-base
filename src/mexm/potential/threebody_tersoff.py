@@ -1,7 +1,6 @@
-from pypospack.potential import ThreeBodyPotential
+from mexm.potential import ThreeBodyPotential
 from collections import OrderedDict
 import os
-
 
 class TersoffPotential(ThreeBodyPotential):
 

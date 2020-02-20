@@ -108,7 +108,7 @@ class Potential(object):
 
     def _initialize_1body_parameter_names(self):
         for s in self.symbols:
-            for p in BuckinghamPotential.one_body_parameters:
+            for p in type(self).one_body_parameters:
                 parameter_name = MEXM_1BODY_FMT.format(s=s,p=p)
                 self.parameter_names.append(parameter_name)
 
