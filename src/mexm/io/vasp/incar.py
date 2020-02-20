@@ -1,6 +1,9 @@
-import os, shutil, pathlib
+import os
+import shutil
+import pathlib
 import re
 import copy
+import deprecation
 import numpy as np
 from collections import OrderedDict
 
@@ -8,6 +11,13 @@ from mexm.io.vasp.errors import VaspIncarError
 from mexm.io.vasp import incartags
 
 class Incar(object):
+    """ object for creating and reading INCAR files for VASP
+
+    Attributes:
+        incar_tag_values (dict): the key the tag_name, the value is the 
+            tag value.
+
+    """
     format_tag = "{} = {}"
     format_tag_line = '{:<30}! {}'
     format_section = '# {:*^78}'
@@ -40,9 +50,6 @@ class Incar(object):
 
         Args:
             filename (str): the filename of the INCAR file, default:'INCAR'
-        Attributes:
-            incar_tag_values (dict): the key the tag_name, the value is the 
-                tag value.
         """
         self._path = None
 
@@ -70,6 +77,7 @@ class Incar(object):
 
     @property
     def path(self):
+        """str: the path to the INCAR file"""
         return self._path
     
     @path.setter
@@ -129,21 +137,18 @@ class Incar(object):
         self.lcharg = False
         self.lvtot = False
 
-    @property
-    def is_continue_job(self):
-        "bool: True if continuation job"
-        if self.istart != 0 or self.icharg!=0:
-            return True
-        else:
-            return False
-
     def get_section_string(self, comment):
         str_out = '# {:*^78}\n'.format(comment)
         return str_out
 
-    def get_option_string(self, option_flag, option_value):
+    def get_option_string(self, option_tag, option_value):
+        """
+
+        Args:
+           option_flag (str):
+        """
         try:
-            option_comment = self._cmt_dict[option_flag][option_value]
+            option_comment = self.incar_tag_values[option_flag][option_value]
             str_out = '{:<30}! {}\n'.format(
                 "{} = {}".format(option_flag, option_value),
                 option_comment
@@ -166,23 +171,29 @@ class Incar(object):
  
     def set_tag_value(self, tag_name, tag_value):
 
+        # IncarBaseFloatTag
         if isinstance(self.incar_tags[tag_name], 
                       incartags.IncarBaseFloatTag):
             tag_value_ = float(tag_value)
-            assert self.incar_tag_value[tag_name].is_valid_option(
+            assert self.incar_tag_values[tag_name].is_valid_option(
                 option=tag_value
-            )
+                )
             self.incar_tag_values[tag_name] = tag_value_
 
+        # IncarBaseStringTag
         elif isinstance(self.incar_tags[tag_name],
                         incartags.IncarBaseStringTag):
-            assert self.incar_tag_values[tag_name].is_valid_tag(tag_value)
+            assert self.incar_tag_values[tag_name].is_valid_tag(
+                option=tag_value
+                )
             self.incar_tag_values[tag_name] = tag_value_
 
-        elif isinstance(self.incar_tags[tag_name], incartags.IncarBaseTags):
+        # IncarBaseTags
+        elif isinstance(self.incar_tags[tag_name], 
+                        incartags.IncarBaseTags):
             try:
                 tag_value_ = int(tag_value)
-                assert self.incar_tag_value[tag_name].is_valid_option(
+                assert self.incar_tag_values[tag_name].is_valid_option(
                     option=tag_value
                 )
                 self.incar_tag_values[tag_name] = int(tag_value)
@@ -196,10 +207,16 @@ class Incar(object):
         tag_value = self.incar_tag_values[tag_name]
         return self.incar_tags[tag_name].get_comment()
 
-    def read(self, path='POSCAR'):
+    def read(self, path=None):
+        """ configure the object from reading an INCAR file
 
-        self.path = path
-        f = open(self.filename)
+        Args:
+           path (str): path to POSCAR file. Default value is None
+        """
+        if path is not None:
+            self.path = path
+        
+        f = open(self.path, 'r')
         for line in f:
             if line.startswith('#'):
                 # ignore comments
@@ -213,83 +230,6 @@ class Incar(object):
                 tag_name = args[0]
                 tag_value = args[1]
                 self.set_tag_value(tag_name=tag_name, tag_value=tag_value)
-                if args[0] == 'ISTART':
-                    self.istart = int(args[1])
-                elif args[0] == 'ICHARG':
-                    self.icharg = int(args[1])
-                elif args[0] == 'ISPIN':
-                    self.ispin = int(args[1])
-                elif args[0] == 'MAGMOM':
-                    self.magmom = args[1]
-                elif args[0] == 'ISMEAR':
-                    self.ismear = int(args[1])
-                elif args[0] == 'SIGMA':
-                    self.sigma = float(args[1])
-                elif args[0] == 'ALGO':
-                    self.algo = args[1]
-                elif args[0] == 'EDIFF':
-                    self.ediff = float(args[1])
-                elif args[0] == 'ENCUT':
-                    self.encut = float(args[1])
-                elif args[0] == 'NELM':
-                    self.nelm == int(args[1])
-                elif args[0] == 'PREC':
-                    self.prec = args[1]
-                elif args[0] == 'EDIFFG':
-                    self.ediffg = float(args[1])
-                elif args[0] == 'IBRION':
-                    self.ibrion = int(args[1])
-                elif args[0] == 'ISIF':
-                    self.isif = int(args[1])
-                elif args[0] == 'POTIM':
-                    self.potim = float(args[1])
-                elif args[0] == 'NSW':
-                    self.nsw = int(args[1])
-                elif args[0] == 'SYSTEM':
-                    self.system = args[1]
-                elif args[0] == 'LWAVE':
-                    self.lwave = args[1]
-                elif args[0] == 'LCHARG':
-                    self.lcharg = args[1]
-                elif args[0] == 'LORBIT':
-                    self.lorbit = int(args[1])
-                elif args[0] == 'LVTOT':
-                    self.lvtot = args[1]
-                elif args[0] == 'LREAL':
-                    self.lreal = args[1]
-                elif args[0] == 'MAGMOM':
-                    self.magmom = args[1]
-                elif args[0] == 'ISYM':
-                    self.isym = int(args[1])
-                elif args[0] == 'SYMPREC':
-                    self.symprec = float(args[1])
-                elif args[0] == 'RWIGS':
-                    self.rwigs = float(rwigs)
-                elif args[0] == 'NPAR':
-                    self.npar = int(args[1])
-                elif args[0] == "AMIX":
-                    self.amix = float(args[1])
-                elif args[0] == 'BMIX':
-                    self.bmix = float(args[1])
-                elif args[0] == 'AMIX_MAG':
-                    self.amix_mag = float(args[1])
-                elif args[1] == 'BMIX_MAG':
-                    self.bmix_mag = float(args[1])
-                elif args[0] == 'LREAL':
-                    self.lreal = args[1]
-                elif args[0] == 'LPLANE':
-                    self.lplane = args[1]
-                elif args[0] == 'NSIM':
-                    self.nsim = int(args[1])
-                elif args[0] == 'INIWAVE':
-                    self.iniwave = int(args[1])
-                elif args[0] == 'NELMIN':
-                    self.nelmmin = int(args[1])
-                elif args[0] == 'NELMDL':
-                    self.nelmdl = int(args[1])
-                else:
-                    err_msg = "pypospack does not support tag {}".format(args[0])
-                    raise VaspIncarError(err_msg)
         f.close()
 
     def set_relaxation_type(self, relaxation_type):
@@ -330,13 +270,20 @@ class Incar(object):
         str_out += self.__output_configuration_to_string()
         return str_out
 
+    def get_tag_comment_(self, tag_name, tag_value):
+        return self.incar_tags[tag_name].get_comment(tag_value)
+
     def get_tag_string_(self, tag_name, tag_value):
         fmt_line = self.format_tag_line
         fmt_tag = self.format_tag
 
-        tag_comment = self.incar_tags[tag_name].get_comment(tag_value)
-        return fmt_line.format(fmt_tag.format(tag_name, tag_value),
-                               tag_comment)
+        tag_comment = self.get_tag_comment_(
+            tag_name=tag_name,
+            tag_value=tag_value
+            )
+        return fmt_line.format(
+            fmt_tag.format(tag_name, tag_value),
+            tag_comment)
 
     def system_information_to_string_(self):
         str_out = "SYSTEM = {}\n\n".format(self.system)
@@ -469,7 +416,6 @@ class Incar(object):
 
         return str_out
 
-    @DeprecationWarning
     def __spin_polarization_to_string(self):
         return self._spin_polarization_to_string()
 
