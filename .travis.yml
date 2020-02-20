@@ -15,6 +15,6 @@ install:
   - pip install ".[test]" .
 # command to run tests
 script:
-  - pytest
+  - python -m pytest
 after_success:
   - codecov # submit coverage
