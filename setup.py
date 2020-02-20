@@ -1,4 +1,5 @@
-from setuptools import setup, find_packages
+from setuptools import setup
+from setuptools import find_packages
 
 test_deps = [
     'coverage',
@@ -12,6 +13,6 @@ setup(name="mexm",
       author="Eugene J. Ragasa",
       author_email="eragasa@osu.edu",
       license="MIT License",
-      packages=["src/mexm"],
+      packages=find_packages(),
       tests_require=test_deps,
       zip_safe=True)
