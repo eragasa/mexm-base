@@ -28,7 +28,7 @@ def test_read__check_h_matrix():
 
 def test_read__check_lattice_vectors():
     poscar_path = os.path.join(parent_path, 'resources', 'hmatrixtest.vasp')
-    h_matrix = np.array([[1.,2.,3.],[4.,5.,6.],[7.,8.,9.]].T
+    h_matrix = np.array([[1.,2.,3.],[4.,5.,6.],[7.,8.,9.]]).T
 
     o = Poscar()
     o.read(path=poscar_path)
