@@ -1,5 +1,6 @@
 from mexm.io.eamtools import SetflReader, SetflWriter
 from mexm.potential import get_symbol_pairs
+
 class SetflFile():
     """ class for the setfl
 

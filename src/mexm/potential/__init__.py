@@ -14,7 +14,7 @@ from collections import OrderedDict
 import numpy as np
 
 from mexm.exception import BadParameterException
-from pypospack.eamtools import EamSetflFile
+from mexm.io.eamtools.eamsetflfile import EamSetflFile
 
 # static global formatting variaables
 MEXM_GLOBAL_FMT = '{parameter_name}'
