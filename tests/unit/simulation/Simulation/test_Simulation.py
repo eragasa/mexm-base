@@ -52,3 +52,4 @@ def test_run(simulation_obj):
         obj.run()
 
 if __name__ == "__main__":
+    pass
