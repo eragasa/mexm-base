@@ -1,4 +1,5 @@
-import os, shutil
+import os
+import shutil
 from copy import deepcopy
 from mexm.exception import MexmException
 
@@ -9,15 +10,50 @@ class Simulation():
     states = ['INIT','CONFIG','READY','RUNNING','POST','FINISHED','ERROR']
     def __init__(self,
                  name,
-                 simulation_path):
-        self.name = name
-        self.simulation_path = simulation_path
-        self.conditions = {k:{} for k in Simulation.states}
+                 path):
 
-        self.create_simulation_directory()
+        # private variables
+        self._name = None
+        self._path = None
+
+        # constructor arguments
+        self.name = name
+        self.path = path
+
+        # initialize conditions
+        self.conditions = {k:{} for k in Simulation.states}
 
         self.status = None
 
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        if not isinstance(name, str):
+            raise TypeError("name must be a string")
+
+        bad_symbols = [' ']
+        if any([k in name for k in bad_symbols]):
+            raise ValueError("name has an illegal character")
+
+        self._name = name
+
+    @property
+    def path(self):
+        return self._path
+
+    @path.setter
+    def path(self, path):
+        if not isinstance(path, str):
+            raise TypeError("path must be a string")
+
+        if os.path.isabs(path):
+            self._path = path
+        else:
+            self._path = os.path.abspath(path)
+        
     @property
     def conditions_INIT(self):
         return self.conditions['INIT']
@@ -68,26 +104,34 @@ class Simulation():
     def conditions_ERROR(self, conditions):
         self.conditions['ERROR'] = deepcopy(conditions)
 
-    def run(self): raise NotImplementedError
+    def read(self):
+        raise NotImplementedError
 
-    def create_simulation_directory(self, path=None):
+    def write(self, path):
+        self.create_path(path=path)
+
+    def run(self): 
+        raise NotImplementedError
+
+    def create_path(self, path=None):
+        
         if path is not None:
-            assert isinstance(path, str)
-            self.simulation_path = path
-        path_ = self.simulation_path
+            self.path = path
+        path_ = self.path
 
-        if os.path.abspath(os.getcwd()) == os.path.abspath(path_):
-            raise MexmSimulationException(
-                "Cannot set the simulation path to the current working directory"
-            )
+        cwd = os.path.abspath(os.getcwd())
+        if self.path == cwd:
+            msg = 'path cannot be set to current working directory'
+            raise MexmSimulationException(msg)
 
-        if os.path.isdir(path_):
-            shutil.rmtree(path_, ignore_errors=True)
+        # remove existing directory, if directory exists
+        if os.path.isdir(self.path):
+            shutil.rmtree(self.path, ignore_errors=True)
 
         # this is to deal with possible race conditions while deleting directory
         while True:
             try:
-                os.mkdir(path_)
+                os.mkdir(self.path)
                 break
             except FileExistsError as e:
                 if os.path.isdir(path_):
