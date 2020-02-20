@@ -13,6 +13,6 @@ setup(name="mexm",
       author="Eugene J. Ragasa",
       author_email="eragasa@osu.edu",
       license="MIT License",
-      packages=["src/mexm", find_packages()],
+      packages=["src/mexm"],
       tests_require=test_deps,
       zip_safe=True)
