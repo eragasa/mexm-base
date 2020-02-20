@@ -2,11 +2,11 @@ import pytest
 import os
 from mexm.io.vasp import Incar
 
-parent_path = os.path.parent_path(os.path.abspath(__file__))
+parent_path = os.path.dirname(os.path.abspath( __file__ ))
 
 @pytest.fixture
 def incar_path():
-    path = os.path.join(parent_path, 'INCAR')
+    path = os.path.join(parent_path, 'resources', 'INCAR')
     return path
 
 @pytest.fixture
@@ -17,6 +17,7 @@ def incar_obj(incar_path):
 
 def test_Incar____init__():
     o = Incar()
+    assert o.path is None
 
 def test_Incar__read(incar_path):
     o = Incar()

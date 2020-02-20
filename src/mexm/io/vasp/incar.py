@@ -35,13 +35,14 @@ class Incar(object):
         'SYSTEM':incartags.SystemTag,
     }
 
-    def __init__(self, filename="INCAR"):
+    def __init__(self, path="INCAR"):
         """ object for dealing with input and output to VASP via INCAR file
 
         Args:
         filename (str): the filename of the INCAR file, default:'INCAR'
         """
-        self.filename = filename
+        self._path = None
+        self.path = path
         self.incar_tag_values = {}
 
         self._fmt_section = '# {:*^78}\n'
@@ -59,6 +60,16 @@ class Incar(object):
         self.__init_mixer()
         self.__init_ionic_relaxation()
         self.__init_output()
+
+    @property
+    def path(self):
+        return self._path
+    
+    @path.setter
+    def path(self, path):
+        if not isinstance(path, str):
+            raise TypeError("path must be a string")
+        self._path = path
 
     def __init_start_info(self):
         self.istart = 0
