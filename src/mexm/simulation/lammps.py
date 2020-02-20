@@ -73,7 +73,8 @@ class LammpsSimulation(Simulation):
         self._bulk_structure_name = None
         self._is_fullauto = None
 
-        self.bulk_structure_name = bulk_structure_name
+        if bulk_structure_name is not None:
+            self.bulk_structure_name = bulk_structure_name
         self.is_fullauto = fullauto
 
         self.configuration =  None
@@ -125,10 +126,14 @@ class LammpsSimulation(Simulation):
     
     @bulk_structure_name.setter
     def bulk_structure_name(self, name):
-        if not isinstance(name, str):
+        if isinstance(name, str):
+            self._bulk_structure_name = name
+        if name is None:
+            self._bulk_structure_name = name
+        else:
             raise TypeError('name must be a str')
 
-        self._bulk_structure_name = name
+        
 
     @property
     def is_fullauto(self):
