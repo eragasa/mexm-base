@@ -35,14 +35,21 @@ class Incar(object):
         'SYSTEM':incartags.SystemTag,
     }
 
-    def __init__(self, path="INCAR"):
+    def __init__(self, path=None):
         """ object for dealing with input and output to VASP via INCAR file
 
         Args:
-        filename (str): the filename of the INCAR file, default:'INCAR'
+            filename (str): the filename of the INCAR file, default:'INCAR'
+        Attributes:
+            incar_tag_values (dict): the key the tag_name, the value is the 
+                tag value.
         """
         self._path = None
-        self.path = path
+
+        # handle arguments
+        if path is not None:
+            self.path = path
+
         self.incar_tag_values = {}
 
         self._fmt_section = '# {:*^78}\n'
