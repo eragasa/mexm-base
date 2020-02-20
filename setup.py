@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name="mexm",
       version="0.1.0",
@@ -7,5 +7,5 @@ setup(name="mexm",
       author="Eugene J. Ragasa",
       author_email="eragasa@osu.edu",
       license="MIT License",
-      packages=["src/mexm",],
+      packages=["src/mexm", find_packages()],
       zip_safe=True)
