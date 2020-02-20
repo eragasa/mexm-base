@@ -28,6 +28,8 @@ class BaseException(Exception):
 
 class EamSetflException(BaseException): pass
 
+class MexmBadEamEosError(BaseException): pass
+
 class BadPreprocessorTypeException(BaseException): pass
 
 class PyposmatBadParameterError(BaseException): pass

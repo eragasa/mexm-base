@@ -21,3 +21,5 @@ class ThreeBodyPotential(Potential):
         self.parameters = OrderedDict()
         for p in self.parameter_names:
             self.parameters[p] = None
+
+    

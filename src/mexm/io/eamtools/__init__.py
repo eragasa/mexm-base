@@ -2,7 +2,7 @@ import copy
 import numpy as np
 import scipy.constants as spc
 from collections import OrderedDict
-import pypospack.io.filesystem as filesystem
+import mexm.io.filesystem as filesystem
 
 from mexm.io.eamtools.basesetflfile import BaseSetflFile
 from mexm.io.eamtools.setflwriter import SetflWriter

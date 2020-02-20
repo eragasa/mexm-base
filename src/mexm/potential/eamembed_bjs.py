@@ -6,7 +6,7 @@ __version__ = 20171102
 import copy
 import numpy as np
 from collections import OrderedDict
-from pypospack.potential import EamEmbeddingFunction
+from mexm.potential import EamEmbeddingFunction
 from mexm.potential import MEXM_HYBRID_1BODY_FMT
 
 class BjsEmbeddingFunction(EamEmbeddingFunction):

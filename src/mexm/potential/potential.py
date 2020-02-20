@@ -17,8 +17,6 @@ from mexm.potential import MEXM_3BODY_FMT
 from mexm.potential import get_symbol_pairs
 
 class Potential(object):
-    potential_type = "potential"
-    is_base_potential = True
     """base class for potential
 
     Args:
@@ -26,6 +24,9 @@ class Potential(object):
         potential_type(str): a description for the type of potential this is
         is_charge(bool): if set to true, this potential is a charge potential, default: False
     """
+
+    potential_type = "potential"
+    is_base_potential = True
 
     def __init__(self,
                  symbols,
@@ -107,7 +108,7 @@ class Potential(object):
 
     def _initialize_1body_parameter_names(self):
         for s in self.symbols:
-            for p in BuckinghamPotential.one_body_parameters:
+            for p in type(self).one_body_parameters:
                 parameter_name = MEXM_1BODY_FMT.format(s=s,p=p)
                 self.parameter_names.append(parameter_name)
 

@@ -1,5 +1,5 @@
 import numpy as np
-from pypospack.potential import EamEmbeddingEquationOfState
+from mexm.potential import EamEmbeddingEquationOfState
 from scipy.optimize import brentq
 
 class RoseEquationOfStateEmbeddingFunction(EamEmbeddingEquationOfState):

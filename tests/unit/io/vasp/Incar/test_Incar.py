@@ -1,11 +1,25 @@
 import pytest
+import os
 from mexm.io.vasp import Incar
+
+parent_path = os.path.dirname(os.path.abspath( __file__ ))
+
+@pytest.fixture
+def incar_path():
+    path = os.path.join(parent_path, 'resources', 'INCAR')
+    return path
+
+@pytest.fixture
+def incar_obj(incar_path):
+    o = Incar()
+    o.read(path=incar_path)
+    return o
 
 def test_Incar____init__():
     o = Incar()
+    assert o.path is None
 
-def test_Incar__read():
-    incar_path = 'INCAR'
+def test_Incar__read(incar_path):
     o = Incar()
     o.read(path=incar_path)
 
@@ -48,6 +62,7 @@ def dev_Incar__dos_information_to_string_():
 
     s = o.dos_information_to_string_()
     print(s)
+
 if __name__ == "__main__":
     dev_Incar__set_tag_value__ISTART()
     dev_Incar__system_information_to_string_()

@@ -4,11 +4,12 @@ this module impplements the generalized lennard jones potential
 import copy
 from collections import OrderedDict
 import numpy as np
-from pypospack.potential import PairPotential
-from pypospack.potential import determine_symbol_pairs
+from mexm.potential import PairPotential
+from mexm.potential import MEXM_2BODY_FMT
+from mexm.potential import get_symbol_pairs
+
 __author__ = "Eugene J. Ragasa"
 __copyright__ = "Copyright (C) 2019"
-__license__ = "Simplified BSD License"
 __version__ = 20171102
 
 def func_cutoff_mishin2004(r, rc, hc, h0):
@@ -78,11 +79,13 @@ class GeneralizedLennardJonesPotential(PairPotential):
 
     # this method overrides the parents stub
     def _init_parameter_names(self):
-        self.symbol_pairs = list(determine_symbol_pairs(self.symbols))
+        self.symbol_pairs = list(get_symbol_pairs(self.symbols))
         self.parameter_names = []
         for s in self.symbol_pairs:
             for p in self.pair_parameter_names:
-                self.parameter_names.append(self.PYPOSPACK_PAIR_FORMAT.format(s1=s[0], s2=s[1], p=p))
+                self.parameter_names.append(
+                    MEXM_2BODY_FMT.format(s1=s[0], s2=s[1], p=p)
+                    )
         return list(self.parameter_names)
 
     # this method overrides the parents stub
@@ -162,4 +165,4 @@ class GeneralizedLennardJonesPotential(PairPotential):
         return reference_dict
 
 if __name__ == "__main__":
-    o = MorsePotential(symbols=['Ni'])
+    pass

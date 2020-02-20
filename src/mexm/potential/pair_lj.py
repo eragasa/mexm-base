@@ -6,8 +6,10 @@ __version__ = 20171102
 import copy
 import numpy as np
 from collections import OrderedDict
-from pypospack.potential import PairPotential
-from pypospack.potential import determine_symbol_pairs
+
+from mexm.potential import PairPotential
+from mexm.potential import MEXM_2BODY_FMT
+from mexm.potential import get_symbol_pairs
 
 def func_lj(r,epsilon,sigma,r_cut_pair=None):
     assert isinstance(r, np.ndarray)
@@ -36,7 +38,8 @@ class LennardJonesPotential(PairPotential):
     """
 
     RCUT_GLOBAL_LJ_DEFAULT = 10.0
-    RCUT_GLBOAL_COULOMB_DEFAULT = 10.0
+    RCUT_GLOBAL_COULOMB_DEFAULT = 10.0
+    is_base_potential = False
     global_potential_parameters = ['r_cut_global']
     pair_potential_parameters = ['epsilon','sigma','r_cut_pair','r_cut_coulomb']
 
@@ -45,14 +48,14 @@ class LennardJonesPotential(PairPotential):
                 symbols,
                 potential_type='lj',
                 is_charge=False)
-        self.initialize_parameter_names()
-        self.initialize_parameters()
+        self._init_parameter_names()
+        self._init_parameters()
 
 
     # this method overrides the parents stub
     def _init_parameter_names(self):
         self.symbol_pairs = list(
-                determine_symbol_pairs(self.symbols)
+                get_symbol_pairs(self.symbols)
         )
         print(self.symbol_pairs)
         self.parameter_names = []
@@ -61,7 +64,7 @@ class LennardJonesPotential(PairPotential):
                 self.parameter_names.append(p)
             for p in self.pair_potential_parameters:
                 self.parameter_names.append(
-                        self.PYPOSPACK_PAIR_FORMAT.format(
+                        MEXM_2BODY_FMT.format(
                             s1=s[0],
                             s2=s[1],
                             p=p

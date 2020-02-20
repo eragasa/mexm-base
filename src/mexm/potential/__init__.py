@@ -14,7 +14,7 @@ from collections import OrderedDict
 import numpy as np
 
 from mexm.exception import BadParameterException
-from pypospack.eamtools import EamSetflFile
+from mexm.io.eamtools.eamsetflfile import EamSetflFile
 
 # static global formatting variaables
 MEXM_GLOBAL_FMT = '{parameter_name}'
@@ -148,9 +148,9 @@ eam_density_names = [
 #------------------------------------------------------------------------------
 # These are analytical EAM embedding functions
 #------------------------------------------------------------------------------
-from pypospack.potential.eamembed_bjs import BjsEmbeddingFunction
+from mexm.potential.eamembed_bjs import BjsEmbeddingFunction
 from mexm.potential.eamembed_universal import UniversalEmbeddingFunction
-from pypospack.potential.eamembed_fs import FinnisSinclairEmbeddingFunction
+from mexm.potential.eamembed_fs import FinnisSinclairEmbeddingFunction
 
 eam_embedding_analytical_names = [
         'eam_embed_bjs',
@@ -161,8 +161,8 @@ eam_embedding_analytical_names = [
 # These potentials are EAM embedding functions which are fit by solving an
 # equation of state
 #------------------------------------------------------------------------------
-from pypospack.potential.eamembed_eos_rose import RoseEquationOfStateEmbeddingFunction
-from pypospack.potential.eamembed_eos_zopemishin import ZopeMishinEosEmbeddingFunction
+from mexm.potential.eamembed_eos_rose import RoseEquationOfStateEmbeddingFunction
+from mexm.potential.eamembed_eos_zopemishin import ZopeMishinEosEmbeddingFunction
 
 eam_embedding_eos_names = [
         'eam_embed_eos_rose',
