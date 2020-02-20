@@ -759,6 +759,7 @@ class LammpsSimulation(Simulation):
             'print \"pypospack:lammps_sim:done\"\n'
                   )
         return str_out
+        
     def write_eam_potential_file(self):
         if self.lammps_setfl_path is None:
             self.lammps_setfl_path = "{}.eam.alloy".format(
