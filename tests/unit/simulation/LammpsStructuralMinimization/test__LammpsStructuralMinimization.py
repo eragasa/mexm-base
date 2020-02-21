@@ -118,7 +118,17 @@ def test___init___conditions(init_kwargs, resourcedir):
     assert isinstance(o.conditions_FINISHED, dict)
     assert isinstance(o.conditions_ERROR, dict)
 
-def test___init__(init_kwargs, resourcedir):
+def test___init__(
+        init_kwargs, 
+        resourcedir
+    ):
+    """ testing the default constructor 
+    
+    Args:
+        init_kwargs: this is a testing fixture
+        resourcedir: this is a testing fixture
+    """
+
     o = LammpsStructuralMinimization(**init_kwargs)
 
     assert not o.is_fullauto
@@ -135,25 +145,40 @@ def test___init__(init_kwargs, resourcedir):
     assert o.lammps_setfl_path is None
 
     assert o.use_mpi == False
-    try:
-        lammps_bin = os.environ['LAMMPS_SERIAL_BIN']
+    if 'LAMMPS_SERIAL_BIN' in os.environ:
+        assert o.lammps_bin == os.environ['LAMMPS_SERIAL_BIN']
+    else:
         assert o.lammps_bin == os.environ['LAMMPS_SERIAL_BIN']
     except KeyError:
         assert o.lammps_bin is None
+
+    # the path should have been created
+    assert os.path.isdir(init_kwargs['simulation_path'])
 
 def test__configure_potential__w_dict(
         init_kwargs,
         configuration_dict,
         expected_values_dict, 
-        resourcedir):
+        resourcedir
+    ):
+    """ testing the potential configuration
+    
+    Args:
+        resourcedir: this is fixture which provides a temp filesystem
+        init_kwargs (dict): this is a testing fixture
+        configuration_dict (dict): this is a testing fixture
+        expected_values_dict (dict):  this is a testing fixture
+    """
 
-    configuration = configuration_dict
-    expected_values = expected_values_dict
-
+    # this is the setup for the test
     o = LammpsStructuralMinimization(**init_kwargs)
-    o.configure_potential(potential=configuration['potential'])
-    assert isinstance(o.potential,
-                      expected_values['potential']['potential_type'])
+    o.configure_potential(potential=configuration_dict['potential'])
+
+    # check to see if the potential are the correct type
+    assert isinstance(
+        o.potential,
+        expected_values_dict['potential']['potential_type']
+    )
 
 def test__lammps_input_file_to_string(
         init_kwargs,

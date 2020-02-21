@@ -9,8 +9,9 @@ from collections import OrderedDict
 
 from mexm.io.vasp import Poscar
 from mexm.io.lammps import LammpsStructure
-from mexm.simulation import Simulation
+from mexm.structure import SimulationCell
 
+from mexm.simulation import Simulation
 from mexm.io.eamtools import SetflFile
 
 from mexm.potential import Potential,EamPotential
@@ -22,6 +23,17 @@ from mexm.exception import LammpsSimulationError
 class LammpsSimulation(Simulation):
     simulation_type = 'lammps_base'
     is_base_class = True
+    results_names = [
+        'toten', 'natoms',
+        'a11', 'a12', 'a13', 
+        'a21', 'a22', 'a23', 
+        'a31', 'a32', 'a33',
+        'totpress',
+        'p11', 'p12', 'p13', 
+        'p21', 'p22', 'p23', 
+        'p31', 'p32', 'p33'
+    ]
+
     """ Calculates cohesive energy
 
     This is an abstract data class which defines the attributes and methods
@@ -108,6 +120,8 @@ class LammpsSimulation(Simulation):
         if path.endswith('.vasp') or path.endswith('POSCAR'):
             self.structure = Poscar()
             self.structure.read(path=path)
+        else:
+            raise LammpsSimulationError('cannot read structure file: {}'.format(path))
 
     def set_lammps_bin(self, lammps_bin=None):
         if lammps_bin is not None:
@@ -128,12 +142,10 @@ class LammpsSimulation(Simulation):
     def bulk_structure_name(self, name):
         if isinstance(name, str):
             self._bulk_structure_name = name
-        if name is None:
+        elif name is None:
             self._bulk_structure_name = name
         else:
             raise TypeError('name must be a str')
-
-        
 
     @property
     def is_fullauto(self):
@@ -191,7 +203,8 @@ class LammpsSimulation(Simulation):
         if self.structure is None:
             if self.structure_path is not None:
                 self.read_structure_file(path=self.structure_path)
-                assert self.structure is not None
+                assert isinstance(self.structure, SimulationCell)
+                
             else:
                 msg = (
                     "simulation cannot continue unless either the structure "
@@ -203,6 +216,36 @@ class LammpsSimulation(Simulation):
         if self.is_fullauto:
             self.on_update_status()
 
+    def initialize_potential(self, potential = None):
+        """ initialize the potential attribute
+
+        Args:
+            potential (dict)
+        """
+
+        # process the arguments
+        if potential is None:
+            # maybe it is in self.configuration
+            pass
+        elif isinstance(potential, dict):
+            # add to the configuration if passed
+            self.configuration['potential'] = deepcopy(potential)
+        else:
+            raise TypeError('potential must be a dict')
+
+        # can't initialize the potential, if it is not in the configuration
+        if 'potential' not in self.configuration:
+            return
+        else:
+            if not isinstance(self.configuration['potential'], dict):
+                msg = (
+                    'LammpsSimulation.configuration[\'potential\') should be '
+                    'a dict'
+                )
+                raise TypeError(msg)
+
+        potential = self.configuration['potential']
+        self.configure_potential(potential=potential)
 
     def on_config(self, configuration=None, results=None):
         if configuration is not None:
@@ -211,10 +254,14 @@ class LammpsSimulation(Simulation):
         assert isinstance(results, dict)
         self.results = deepcopy(results)
 
-        self.configure_potential()
-        if 'parameters' in self.configuration:
-            if isinstance(self.potential,Potential):
-                parameters_ = self.configuration['parameters']
+        # initialize the potential
+        if 'potential' in self.configuration:
+            self.initialize_potential()
+
+        # assign the parameters on the potential
+        if isinstance(self.potential, Potential):
+            if 'parameters' in self.configuration['potential']:
+                parameters_ = self.configuration['potential']['parameters']
                 self.potential.parameters = parameters_
 
         # writing eam potential files
@@ -257,17 +304,6 @@ class LammpsSimulation(Simulation):
                             setfl_filename=str(self.potential.setfl_filename))
                 raise ValueError(msg_err)
 
-        self.update_status()
-        if self.is_fullauto:
-            self.on_update_status()
-
-    def on_ready(self,configuration=None,results=None):
-        if configuration is not None:
-            self.configuration = deepcopy(configuration)
-
-        self.write_lammps_input_file()
-        self.write_potential_file(results=results)
-        self.write_structure_file()
         if isinstance(self.potential,EamPotential):
             if self.potential.setfl_filename_src is None:
                 if self.lammps_setfl_path is None:
@@ -278,6 +314,18 @@ class LammpsSimulation(Simulation):
                         self.lammps_setfl_path)
                 self.write_eam_setfl_file(
                         filename=_eam_setfl_filename_dst)
+
+        self.update_status()
+        if self.is_fullauto:
+            self.on_update_status()
+
+    def on_ready(self,configuration=None, results=None):
+        if configuration is not None:
+            self.configuration = deepcopy(configuration)
+        self.write_lammps_input_file()
+        self.write_structure_file(results=results)
+        self.write_potential_file(results=results)
+        
         self.run()
 
         self.update_status()
@@ -331,9 +379,6 @@ class LammpsSimulation(Simulation):
             'potential_initialized':self.is_potential_initialized(),
             'parameters_processed':self.is_potential_parameters_processed()
         }
-        self.conditions_CONFIG = OrderedDict()
-        self.conditions_CONFIG['potential_initialized']\
-                = isinstance(self.potential, Potential)
         return self.conditions_CONFIG
 
     def get_conditions_ready(self):
@@ -422,49 +467,6 @@ class LammpsSimulation(Simulation):
         self.process = subprocess.Popen("exec " + cmd_str, shell=True)
         os.chdir(_cwd)
 
-    def post(self):
-        lammps_result_names = ['tot_energy','num_atoms',
-            'xx','yy','zz','xy','xz','yz',
-            'tot_press','pxx','pyy','pzz','pxy','pxz','pyz'
-        ]
-
-        self.results = OrderedDict()
-        self.get_variables_from_lammps_output(
-                variables = lammps_result_names)
-
-        try:
-            # calculate cohesive energy
-            total_energy = self.results['tot_energy']
-            n_atoms = self.results['num_atoms']
-            self.results['ecoh'] = total_energy/n_atoms
-        except KeyError as e:
-            print(e)
-
-        self.status = 'DONE'
-
-    def get_variables_from_lammps_output(self,variables):
-        filename = os.path.join(self.path,'lammps.out')
-        with open(filename,'r') as f:
-            lines = f.readlines()
-
-        self.results = {}
-        for i,line in enumerate(lines):
-            for name in variables:
-                if line.startswith('{} = '.format(name)):
-                    try:
-                        self.results[name] = \
-                                float(line.split('=')[1].strip())
-                    except ValueError as e:
-                        if line.split('=')[1].strip().endswith('GPa'):
-                            self.results[name] = \
-                                float(line.split('=')[1].strip().split(' ')[0])
-                        else:
-                            raise
-                    except:
-                        print('name:{}'.format(name))
-                        print('line:{}'.format(line.strip()))
-                        raise
-
     def write_eam_setfl_file(self,filename):
         _setfl_dst_filename = filename
         _Nr = self.configuration['potential']['N_r']
@@ -492,7 +494,7 @@ class LammpsSimulation(Simulation):
                 rhomax=_rhomax,
                 parameters=_parameters)
 
-    def write_potential_file(self):
+    def write_potential_file(self, results=None):
         if self.potential is None:
             raise ValueError
 
@@ -740,26 +742,48 @@ class LammpsSimulation(Simulation):
             '\n'
             '# ---- output ----\n'
             'print \"pypospack:output_section:begin\"\n'
-            'print \"tot_energy = ${tot_energy}\"\n'
-            'print \"num_atoms = ${natoms}"\n'
+            'print \"toten = ${tot_energy}\"\n'
+            'print \"natoms = ${natoms}"\n'
             'print \"a11 = ${a11}\"\n'
             'print \"a22 = ${a22}\"\n'
             'print \"a33 = ${a33}\"\n'
             'print \"a12 = ${tilt_xy}\"\n'
             'print \"a13 = ${tilt_xz}\"\n'
             'print \"a23 = ${tilt_yz}\"\n'
-            'print \"tot_press = ${tot_press}\"\n'
-            'print \"pxx = ${press_xx}\"\n'
-            'print \"pyy = ${press_yy}\"\n'
-            'print \"pzz = ${press_zz}\"\n'
-            'print \"pxy = ${press_xy}\"\n'
-            'print \"pxz = ${press_xz}\"\n'
-            'print \"pyz = ${press_yz}\"\n'
+            'print \"totpress = ${tot_press}\"\n'
+            'print \"p11 = ${press_xx}\"\n'
+            'print \"p22 = ${press_yy}\"\n'
+            'print \"p33 = ${press_zz}\"\n'
+            'print \"p12 = ${press_xy}\"\n'
+            'print \"p13 = ${press_xz}\"\n'
+            'print \"p23 = ${press_yz}\"\n'
             'print \"pypospack:output_section:done\"\n'
             'print \"pypospack:lammps_sim:done\"\n'
                   )
         return str_out
-        
+
+    def __get_results_from_lammps_outputfile(self):
+        path_ = os.path.join(self.path, 'lammps.out')
+        with open(path_, 'r') as f:
+            lines = f.readlines()
+
+        results_names_ = self.results_names
+        results_ = OrderedDict()
+
+        for i, line in enumerate(lines):
+            for name in results_names_:
+                if line.startswith('{} = '.format(name)):
+                    results_[name] = float(line.split('=')[1].strip())
+
+                if line.startswith('ERROR:'):
+                    print('name:{}'.format(name))
+                    print('line:{}'.format(line.strip))
+                    raise NotImplementedError
+
+        # store the results in the obj attribute
+        self.results = OrderedDict()
+        for k in self.results_names:
+            self.results['{}.{}'.format(self.name, k)] = results_[k]
     def write_eam_potential_file(self):
         if self.lammps_setfl_path is None:
             self.lammps_setfl_path = "{}.eam.alloy".format(
