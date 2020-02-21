@@ -31,13 +31,6 @@ def resourcedir(tmpdir, request):
 @pytest.fixture
 def init_kwargs(configuration_dict):
     kwargs = {
-        'name':'test_name',
-        'simulation_path':'MgO_NaCl_333_fr_a.lammps_min_none',
-        'structure_path': configuration_dict['simulation']['path'],
-        'bulk_structure_name':'MgO_NaCl_unit'
-    }
-
-    kwargs = {
         'name':configuration_dict['simulation']['path'],
         'simulation_path':configuration_dict['simulation']['path'],
         'structure_path':configuration_dict['structures']['path'],
@@ -84,6 +77,7 @@ def configuration_dict(resourcedir):
         'OO_C':27.88,
         'OO_cutoff':12.0
     }
+
     configuration['potential'] = {
         'name':potential_name,
         'symbols':potential_symbols,
@@ -127,7 +121,8 @@ def test_static_variables(
     
 def test_inheritance(
         resourcedir,
-        init_kwargs):
+        init_kwargs
+):
 
     o = LammpsStaticCalculation(**init_kwargs)
     assert isinstance(o, LammpsSimulation)

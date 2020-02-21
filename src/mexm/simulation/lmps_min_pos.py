@@ -5,37 +5,46 @@ from mexm.simulation import LammpsSimulation
 from mexm.simulation import PositionMinimization
 
 class LammpsPositionMinimization(LammpsSimulation, PositionMinimization):
-    simulation_type = 'lammps_min_pos'
-    is_base_class = False
-    results_name = [
-        'toten', 'natoms',
-        'a11', 'a12', 'a13', 'a21', 'a22', 'a23', 'a31', 'a32', 'a33',
-        'totpress',
-        'p11', 'p12', 'p13', 'p21', 'p22', 'p23', 'p31', 'p32', 'p33'
-
-    ]
     """ Class for LAMMPS structural minimization
 
     This data class defines additional attributes and methods necessary to
     interact with the Workflow manager.
-
-    Args:
-        name (str)
-        simulation_path (str)
-        structure_path (str)
-        bulk_structure_name (str)
 
     Attributes:
         bulk_structure_name (str)
         bulk_structure_path (str)
         config_map
     """
-    def __init__(self,
-                 name,
-                 simulation_path,
-                 structure_path,
-                 bulk_structure_name=None):
-        _task_type = 'lmps_min_pos'
+    simulation_type = 'lammps_min_pos'
+    is_base_class = False
+    results_name = [
+        'toten', 'natoms',
+        # lattice elements
+        'a11', 'a12', 'a13', 
+        'a21', 'a22', 'a23', 
+        'a31', 'a32', 'a33',
+        'totpress',
+        # pressure tensor
+        'p11', 'p12', 'p13', 
+        'p21', 'p22', 'p23', 
+        'p31', 'p32', 'p33'
+    ]
+    
+    def __init__(
+        self,
+        name,
+        simulation_path,
+        structure_path,
+        bulk_structure_name=None
+    ):
+        """ default constructor
+
+        Args:
+            name (str)
+            simulation_path (str)
+            structure_path (str)
+            bulk_structure_name (str)
+        """
 
         self.bulk_structure_name = None
         self.bulk_structure_path = None
@@ -47,9 +56,6 @@ class LammpsPositionMinimization(LammpsSimulation, PositionMinimization):
                                   simulation_path=simulation_path,
                                   structure_path=structure_path,
                                   bulk_structure_name=bulk_structure_name)
-
-    def postprocess(self):
-        LammpsSimulation.postprocess(self)
 
     def lammps_input_file_to_string(self):
         str_out = "".join([\

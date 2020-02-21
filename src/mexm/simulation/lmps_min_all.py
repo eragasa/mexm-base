@@ -40,9 +40,6 @@ class LammpsStructuralMinimization(LammpsSimulation, StructuralMinimization):
             bulk_structure_name=bulk_structure_name
         )
 
-    def postprocess(self):
-        LammpsSimulation.postprocess(self)
-
     def lammps_input_file_to_string(self):
         str_out = "".join([\
                 self._lammps_input_initialization_section(),

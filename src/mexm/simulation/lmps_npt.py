@@ -4,42 +4,228 @@ from collections import OrderedDict
 from mexm.simulation import LammpsSimulation, NptSimulation
 from mexm.io.vasp import Poscar
 from mexm.structure import SimulationCell
+from mexm.io.lammps import LammpsStructure
 
 class LammpsNptSimulation(LammpsSimulation, NptSimulation):
-    """ Class for LAMMPS structural minimization
+    simulation_type = 'lammps_npt'
+    is_base_class = False
+    thermostat_types = ['NoseHoover']
 
-    This data class defines additional attributes and methods necessary to
-    interact with the Workflow manager.
+    """ Class for LAMMPS NPT (isothermal_isobaric) simulations
+
+    This data class defines additional attributes and methods 
 
     Args:
-        task_name(str): unique id for the task name being define
-        task_directory(str): the directory where this task will create
+        name (str): unique id for the task name being define
+        path (str): the directory where this task will create
             input and output files for LAMMPS
         simulation_path(str): path for the simulation
         structure_path(str): path for the structure
         bulk_structure_name(str): name for the structure.
-
+        temperature_initial (int): in degrees kelvin
+        temperature_final (int): in degrees kelvin
+        temperature_damp (int): temperature dampening, no units
+        pressure_initial (int): in bars
+        pressure_final (int): in bars
+        pressure_damp (int): pressure dampening, no units
+        drag_coefficient (float): drag coefficient, no units
+        time_total (int): in picoseconds
+        total_step (int): in femtoseconds
+        pressure_damp (float): no units
     Attributes:
-        config
-        config_map
+        lammps_npt_ramp_path (str)
+        lammps_npt_path (str)
     """
-    def __init__(self,
-                 name,
-                 simulation_path,
-                 structure_path,
-                 bulk_structure_name):
+    def __init__(
+        self,
+        name,
+        simulation_path,
+        structure_path,
+        bulk_structure_name = None,
+        thermostat_type = 'NoseHoover',
+        temperature_initial = 0.0,
+        temperature_final = 100.0,
+        temperature_damp = 'Auto',
+        pressure_initial = 0.0,
+        pressure_final = 1000.0,
+        pressure_damp = 'Auto',
+        drag_coefficient = 'Auto',
+        time_ramp = 10000,
+        time_run = 10000,
+        time_step = 3
+    ):
 
         LammpsSimulation.__init__(self,
                                   name=name,
-                                  simulation_path=simulation_path,
+                                  path=simulation_path,
                                   structure_path=structure_path,
                                   bulk_structure_name=None)
-        self.npt_temperature = None
-        self.npt_pressure = None
-        self.npt_pressure_damp = None
-        self.npt_time_total = None
-        self.npt_time_step = None
-        self.set_npt_thermostat()
+
+        self.lammps_npt_ramp_path = os.path.join(self.path, 'lmps_npt_ramp.out')
+        self.lammps_npt_path = os.path.join(self.path, 'lmps_npt.out')
+
+        self._thermostat_type = thermostat_type
+        self._temperature_initial = temperature_initial
+        self._temperature_final = temperature_final
+        self._temperature_damp = temperature_damp
+        self._pressure_initial = pressure_initial
+        self._pressure_final = pressure_final
+        self._pressure_damp = pressure_damp
+        self._drag_coefficient = drag_coefficient
+        self._time_ramp = time_ramp
+        self._time_run = time_run
+        self._time_step = time_step
+
+    @property
+    def thermostat_type(self):
+        return self._thermostat_type
+    
+    @thermostat_type.setter
+    def thermostat_type(self, thermostat_type):
+        if thermostat_type not in self.thermostat_types:
+            msg = "{} is not a supported thermostat".format(thermostat_type)
+            raise ValueError(msg)
+        self._thermostat_type = thermostat_type
+
+    @property
+    def temperature_initial(self):
+        return self._temperature_initial
+
+    @temperature_initial.setter
+    def temperature_initial(self, temperature):
+        temperature_ = float(temperature)
+        if temperature_ < 0.:
+            msg = "temperature cannot be less than zero"
+            raise ValueError(msg)
+        self._temperature_initial = temperature_
+    
+    @property
+    def temperature_final(self):
+        return self._temperature_final
+        
+    @temperature_final.setter
+    def temperature_final(self, temperature):
+        temperature_ = float(temperature)
+        if temperature_ < 0.:
+            msg = "temperature cannot be less than zero"
+            raise ValueError(msg)
+        self._temperature_final = temperature_
+
+    @property
+    def temperature_damp(self):
+        if self._temperature_damp == 'Auto':
+            return self.get_recommended_temperature_damp()
+        else:
+            return self._temperature_damp
+
+    @temperature_damp.setter
+    def temperature_damp(self, t_damp):
+        self._temperature_damp = t_damp
+
+    @property
+    def pressure_initial(self):
+        return self._pressure_initial
+
+    @pressure_initial.setter
+    def pressure_initial(self, pressure):
+        pressure_ = float(pressure)
+        if pressure_ < 0:
+            msg = "pressure cannot be negative"
+            raise ValueError(msg)
+        self._pressure_initial = pressure_
+
+    @property
+    def pressure_final(self):
+        return self._pressure_final
+    
+    @pressure_final.setter
+    def pressure_final(self, pressure):
+        pressure_ = float(pressure)
+        if pressure_ < 0:
+            msg = "pressure cannot be negative"
+            raise ValueError(msg)
+        self._pressure_final = pressure_
+
+    @property
+    def pressure_damp(self):
+        if self._pressure_damp == 'Auto':
+            return self.get_recommended_pressure_damp()
+        else:
+            return self._pressure_damp
+
+    @pressure_damp.setter
+    def pressure_damp(self, p_damp):
+        if p_damp == 'Auto':
+            self._pressure_damp = 'Auto'
+        else:
+            self._pressure_damp = float(p_damp)
+
+    @property
+    def drag_coefficient(self):
+        if self._drag_coefficient == 'Auto':
+            return self._determine_drag_coefficient()
+        else:
+            return self._drag_coefficient
+
+    @drag_coefficient.setter
+    def drag_coefficient(self, drag_c):
+        if drag_c == 'Auto':
+            self._drag_coefficient = 'Auto'
+        else:
+            self._drag_coefficent = float(drag_c)
+
+    @property
+    def time_ramp(self):
+        return self._time_ramp
+
+    @time_ramp.setter
+    def time_ramp(self, t_ramp):
+        time_ramp = int(t_ramp)
+        if time_ramp < 0:
+            msg = "time_ramp must be greater than zero"
+            raise ValueError(msg)
+        self._time_ramp = time_ramp
+
+    @property
+    def time_run(self):
+        return self._time_run
+
+    @time_run.setter
+    def time_run(self, t_run):
+        time_run = int(t_run)
+        if time_run < 0:
+            msg = "time_run must be greater than zero"
+            raise ValueError(msg)
+        self._tim_rune = time_run
+
+    @property
+    def time_step(self):
+        return self._time_step
+
+    @time_step.setter
+    def time_step(self, t_step):
+        time_step = int(t_step)
+        if time_step < 0:
+            msg = "time step must be greater than zero"
+        self._time_step = time_step
+
+    @property
+    def npt_configuration(self):
+        configuration = {
+            'thermostat_type':self.thermostat_type,
+            'temperature_initial':self.temperature_initial,
+            'temperature_final':self.temperature_final,
+            'temperature_damp':self.temperature_damp,
+            'pressure_initial':self.pressure_initial,
+            'pressure_final':self.pressure_final,
+            'pressure_damp':self.pressure_damp,
+            'drag_coefficient':self.drag_coefficient,
+            'time_ramp':self.time_ramp,
+            'time_run':self.time_run,
+            'time_step':self.time_step
+        }
+        return configuration
+
 
     def modify_structure(self, sc=None):
         if sc is not None:
@@ -90,12 +276,6 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
 
         self.time_total = None
         self.time_step = None
-
-
-        self.supercell = supercell
-
-        self.lammps_out_fn = 'lammps.out'
-        self.lattice_fn = 'lattice.out'
 
     def get_recommended_pressure_damp(self):
         return self._determine_pressure_dampening(dt=self.time_step)
@@ -155,12 +335,11 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
                 structure=_structure,
                 sc=_supercell)
 
-        self.lammps_structure = lammps.LammpsStructure(\
-                obj=self.structure)
+        self.lammps_structure = LammpsStructure(obj=self.structure)
 
         _str_out = self.lammps_input_file_to_string()
 
-        _lammps_filename = os.path.join(self.task_directory,filename)
+        _lammps_filename = os.path.join(self.task_directory, filename)
         with open(_lammps_filename,'w') as f:
             f.write(_str_out)
 
@@ -173,8 +352,8 @@ class LammpsNptSimulation(LammpsSimulation, NptSimulation):
                 self._lammps_input_npt_thermostat(
                     time_total = self.time_total,
                     time_step = self.time_step,
-                    temperature = self.temperature,
-                    pressure=self.pressure),
+                    temperature = self.npt_temperature,
+                    pressure=self.npt_pressure),
                 self._lammps_input_out_section(),
                 ])
         return(str_out)
