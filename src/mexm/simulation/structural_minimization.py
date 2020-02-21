@@ -4,7 +4,6 @@ from mexm.simulation import LammpsSimulation
 from mexm.simulation import StructuralMinimization
 
 class LammpsStructuralMinimization(LammpsSimulation, StructuralMinimization):
-    simulation_type = 'lmps_min_all'
     """ Class for LAMMPS structural minimization
 
     This data class defines additional attributes and methods necessary to 
@@ -14,20 +13,42 @@ class LammpsStructuralMinimization(LammpsSimulation, StructuralMinimization):
         task_name(str): unique id for the task name being define
         task_directory(str): the directory where this task will create
             input and output files for LAMMPS
-
-    Attributes:
-        config
-        config_map
     """
-    def __init__(self,
-            name,
-            simulation_path,
-            structures)
 
-        super(LammpsSimualation).__init__(name, simulation, path, structures)
+    simulation_type = 'lmps_min_all'
+    is_base_class= False
+    results_name = [
+        'toten', 'natoms',
+        # lattice elements
+        'a11', 'a12', 'a13', 
+        'a21', 'a22', 'a23', 
+        'a31', 'a32', 'a33',
+        'totpress',
+        # pressure tensor
+        'p11', 'p12', 'p13', 
+        'p21', 'p22', 'p23', 
+        'p31', 'p32', 'p33'
+    ]
 
-    def postprocess(self):
-        LammpsSimulation.postprocess(self)
+    def __init__(
+        self,
+        name,
+        simulation_path,
+        structure_path,
+    ):
+        """ default constructor
+        Args:
+            task_name(str): unique id for the task name being define
+            task_directory(str): the directory where this task will create
+                input and output files for LAMMPS
+
+        """
+        LammpsSimulation.__init__(
+            self,
+            name=name,
+            simulation_path=simulation_path,
+            strucutre_path=structure_path
+        )
 
     def lammps_input_file_to_string(self):
         str_out = "".join([\
@@ -44,54 +65,54 @@ class LammpsStructuralMinimization(LammpsSimulation, StructuralMinimization):
     
     def __get_results_from_lammps_outputfile(self):
         _filename = os.path.join(
-                self.task_directory,
+                self.path,
                 'lammps.out')
         with open(_filename,'r') as f:
             lines = f.readlines()
-        
+
         _variables = [
                 'tot_energy',
                 'num_atoms',
-                'xx','yy','zz','xy','xz','yz',
+                'a11','a12','a13','a22','a23','a33',
                 'tot_press',
                 'pxx', 'pyy', 'pzz', 'pxy', 'pxz', 'pyz',
                 ]
-        _results = OrderedDict()
-        
+        results_ = OrderedDict()
+
         for i,line in enumerate(lines):
             for name in _variables:
                 if line.startswith('{} = '.format(name)):
-                    _results[name] = float(line.split('=')[1].strip())
+                    results_[name] = float(line.split('=')[1].strip())
 
                 if line.startswith('ERROR:'):
                     print('name:{}'.format(name))
                     print('line:{}'.format(line.strip))
                     raise NotImplementedError
-      
-        _task_name = self.task_name
+
+        name_ = self.name
         self.results = OrderedDict()
-        self.results['{}.{}'.format(_task_name,'toten')] = _results['tot_energy']
-        self.results['{}.{}'.format(_task_name,'natoms')] = _results['num_atoms']
+        self.results['{}.{}'.format(name_,'toten')] = results_['tot_energy']
+        self.results['{}.{}'.format(name_,'natoms')] = results_['num_atoms']
         # this only works for orthogonal cells
-        self.results['{}.{}'.format(_task_name,'a11')] = _results['xx']
-        self.results['{}.{}'.format(_task_name,'a12')] = 0
-        self.results['{}.{}'.format(_task_name,'a13')] = 0
-        self.results['{}.{}'.format(_task_name,'a21')] = 0
-        self.results['{}.{}'.format(_task_name,'a22')] = _results['yy']
-        self.results['{}.{}'.format(_task_name,'a23')] = 0
-        self.results['{}.{}'.format(_task_name,'a31')] = 0
-        self.results['{}.{}'.format(_task_name,'a32')] = 0
-        self.results['{}.{}'.format(_task_name,'a33')] = _results['zz']
-        self.results['{}.{}'.format(_task_name,'totpress')] = _results['tot_press']
-        self.results['{}.{}'.format(_task_name,'p11')] = _results['pxx']
-        self.results['{}.{}'.format(_task_name,'p12')] = _results['pxy']
-        self.results['{}.{}'.format(_task_name,'p13')] = _results['pxz']
-        self.results['{}.{}'.format(_task_name,'p21')] = _results['pxy']
-        self.results['{}.{}'.format(_task_name,'p22')] = _results['pyy']
-        self.results['{}.{}'.format(_task_name,'p23')] = _results['pyz'] #pyz=pzy
-        self.results['{}.{}'.format(_task_name,'p31')] = _results['pxz'] #pxz=pzx
-        self.results['{}.{}'.format(_task_name,'p32')] = _results['pyz']
-        self.results['{}.{}'.format(_task_name,'p33')] = _results['pzz']
+        self.results['{}.{}'.format(name_,'a11')] = results_['a11']
+        self.results['{}.{}'.format(name_,'a12')] = results_['a12']
+        self.results['{}.{}'.format(name_,'a13')] = results_['a13']
+        self.results['{}.{}'.format(name_,'a21')] = 0
+        self.results['{}.{}'.format(name_,'a22')] = results_['a22']
+        self.results['{}.{}'.format(name_,'a23')] = results_['a23']
+        self.results['{}.{}'.format(name_,'a31')] = 0
+        self.results['{}.{}'.format(name_,'a32')] = 0
+        self.results['{}.{}'.format(name_,'a33')] = results_['a33']
+        self.results['{}.{}'.format(name_,'totpress')] = results_['tot_press']
+        self.results['{}.{}'.format(name_,'p11')] = results_['pxx']
+        self.results['{}.{}'.format(name_,'p12')] = results_['pxy']
+        self.results['{}.{}'.format(name_,'p13')] = results_['pxz']
+        self.results['{}.{}'.format(name_,'p21')] = results_['pxy']
+        self.results['{}.{}'.format(name_,'p22')] = results_['pyy']
+        self.results['{}.{}'.format(name_,'p23')] = results_['pyz'] #pyz=pzy
+        self.results['{}.{}'.format(name_,'p31')] = results_['pxz'] #pxz=pzx
+        self.results['{}.{}'.format(name_,'p32')] = results_['pyz']
+        self.results['{}.{}'.format(name_,'p33')] = results_['pzz']
 
     def _lammps_input_run_minimization(self):
         str_out = (

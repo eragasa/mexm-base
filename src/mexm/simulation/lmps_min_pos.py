@@ -29,7 +29,7 @@ class LammpsPositionMinimization(LammpsSimulation, PositionMinimization):
         'p21', 'p22', 'p23', 
         'p31', 'p32', 'p33'
     ]
-    
+
     def __init__(
         self,
         name,
@@ -53,7 +53,7 @@ class LammpsPositionMinimization(LammpsSimulation, PositionMinimization):
 
         LammpsSimulation.__init__(self,
                                   name=name,
-                                  simulation_path=simulation_path,
+                                  path=simulation_path,
                                   structure_path=structure_path,
                                   bulk_structure_name=bulk_structure_name)
 
@@ -173,7 +173,12 @@ class LammpsPositionMinimization(LammpsSimulation, PositionMinimization):
         self.results['{}.{}'.format(name_,'p32')] = results_['pyz']
         self.results['{}.{}'.format(name_,'p33')] = results_['pzz']
 
-    def _lammps_input_run_minimization(self):
+    def _lammps_input_run_minimization(
+        self,
+        etol = 1e-20,
+        ftol = 1e-20,
+        maxiter = 1000,
+        maxeval = 10000):
         str_out = (
             '# ---- define settings\n'
             'compute eng all pe/atom\n'

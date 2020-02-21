@@ -29,7 +29,7 @@ class LammpsStructuralMinimization(LammpsSimulation, StructuralMinimization):
     """
     def __init__(self,
                  name,
-                 simulation_path,
+                 path,
                  structure_path,
                  bulk_structure_name=None):
 
@@ -110,7 +110,7 @@ class LammpsStructuralMinimization(LammpsSimulation, StructuralMinimization):
             'compute eatoms all reduce sum c_eng\n'
             '# ---- run minimization\n'
             'reset_timestep 0\n'
-            'fix 1 all box/relax iso 0.0 vmax 0.001\n'
+            'fix 1 all box/relax ansio 0.0 vmax 0.001\n'
             'thermo 10\n'
             'thermo_style custom step pe lx ly lz xy xz yz press pxx pyy pzz pxy pxz pyz c_eatoms\n'
             # 'thermo_style custom step pe lx ly lz press pxx pyy pzz c_eatoms\n'
