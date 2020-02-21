@@ -148,8 +148,6 @@ def test___init__(
     if 'LAMMPS_SERIAL_BIN' in os.environ:
         assert o.lammps_bin == os.environ['LAMMPS_SERIAL_BIN']
     else:
-        assert o.lammps_bin == os.environ['LAMMPS_SERIAL_BIN']
-    except KeyError:
         assert o.lammps_bin is None
 
     # the path should have been created
