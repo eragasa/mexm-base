@@ -1,3 +1,17 @@
+# coding: utf-8
+# Copyright (c) Eugene J. Ragasa
+# Distributed under the terms of the MIT License
+
+""" the INCAR file for VASP
+"""
+
+__all__ = ["Incar"]
+__author__ = "Eugene J. Ragasa"
+__email__ = "ragasa.2@osu.edu"
+__copyright__ = "Copyright 2020, Eugene J. Ragasa"
+__maintainer__ = "Eugene J. Ragasa"
+__date__ = "2020/02/22"
+
 import os
 import shutil
 import pathlib
@@ -22,6 +36,7 @@ class Incar(object):
     format_section = '# {:*^78}'
     
     incar_tags = {
+        'ALGO':incartags.AlgoTags,
         'ENCUT':incartags.EncutTag,
         'EDIFF':incartags.EdiffTag,
         'EDIFFG':incartags.EdiffgTag,
@@ -31,7 +46,11 @@ class Incar(object):
         'INIWAVE':incartags.IniwaveTag,
         'ISIF':incartags.IsifTag,
         'ISMEAR':incartags.IsmearTags,
+        'ISYM':incartags.IsymTags,
         'LPLANE':incartags.LplaneTag,
+        'LREAL':incartags.LrealTags,
+        'LREAL':incartags.LrealTags,
+        'KPAR':incartags.KparTag,
         'NELM':incartags.NelmTag,
         'NELMDL':incartags.NelmdlTag,
         'NELMIN':incartags.NelminTag,
@@ -147,15 +166,14 @@ class Incar(object):
            option_flag (str):
         """
         try:
-            option_comment = self.incar_tag_values[option_flag][option_value]
+            option_comment = self.incar_tag_values[option_tag][option_value]
             str_out = '{:<30}! {}\n'.format(
-                "{} = {}".format(option_flag, option_value),
+                "{} = {}".format(option_tag, option_value),
                 option_comment
             )
         except KeyError:
-            str_out = '{} = {}\n'.format(option_flag, option_value)
+            str_out = '{} = {}\n'.format(option_tag, option_value)
         return str_out
-
 
     def write(self, path='POSCAR'):
         """write poscar file
@@ -199,12 +217,32 @@ class Incar(object):
             except ValueError:
                 self.incar_tag_values[tag_name] = tag_value
 
-    def get_tag_value(self, tag_name):
+    def get_tag_value(self, tag_name: str):
+        """ get the tag value for the INCAR file
+        
+        Arguments:
+            tag_name (str): name of the INCAR tag
+        Returns:
+            tag value for the incar file
+        """
         return self.incar_tag_values[tag_name]
 
-    def get_tag_comment(self, tag_name):
-        tag_value = self.incar_tag_values[tag_name]
-        return self.incar_tags[tag_name].get_comment()
+    def get_tag_comment(
+        self, 
+        tag_name: str, 
+        tag_value: (str, int, float, list) = None
+    ):
+        """ get the tag comment for a value of the incar file 
+        
+        Arguments:
+            tag_name (str): name of the INCAR tag
+            tag_value (str, int, float, list): value of the 
+                INCAR file
+        Returns:
+            str: comment for the INCAR tag 
+        """
+        tag_name_ = self.incar_tag_values[tag_name]
+        return self.incar_tags[tag_name_].get_comment()
 
     def read(self, path=None):
         """ configure the object from reading an INCAR file

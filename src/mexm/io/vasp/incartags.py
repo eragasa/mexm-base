@@ -1,7 +1,38 @@
+# coding: utf-8
+# Copyright (c) Eugene J. Ragasa
+# Distributed under the terms of the MIT License
+
+""" collection of INCAR tags for VASP
+
+This module contains base classes for INCAR tags, not every
+INCAR tag has been implemented.  In addition, not every INCAR
+tag has been implemented for output in the mexm.io.vasp.Incar
+class.  If there is an issue with tag support, please contact me
+and it can be implemented fairly quickly
+
+Base Classes:
+    IncarBaseTag
+    IncarBaseTags (deprecated, use IncarBaseTag instead)
+    IncarBaseEnumeratedTag
+    IncarBaseIntegerTag
+    IncarBaseStringTag
+    IncarBaseFloatTag
+"""
+
+__author__ = "Eugene J. Ragasa"
+__email__ = "ragasa.2@osu.edu"
+__copyright__ = "Copyright 2020, Eugene J. Ragasa"
+__maintainer__ = "Eugene J. Ragasa"
+__date__ = "2020/02/22"
+
 from collections import OrderedDict
 from mexm.io.vasp.errors import VaspIncarError
 
 class IncarBaseTag():
+    """ abstract base class for all IncarTag """
+
+    # static variables
+    tag_name = "BASETAG"
     tag_dictionary = OrderedDict()
 
     @classmethod
@@ -19,11 +50,15 @@ class IncarBaseTag():
             msg = "unknown option, {}".format(option)
             raise VaspIncarError(msg)
 
+    @classmethod
+    def cast_option(cls, option):
+        raise NotImplementedError
 
 class IncarBaseTags(IncarBaseTag): pass
 
 class IncarBaseEnumeratedTag(IncarBaseTag):
-    tag_name = 'fake_tag'
+    """ abstract base class for INCAR tags with enumerated values """
+    tag_name = 'ENUMERATEDTAG'
     tag_dictionary = {}
 
     @classmethod
@@ -34,11 +69,18 @@ class IncarBaseEnumeratedTag(IncarBaseTag):
             return False
 
 class IncarBaseIntegerTag(IncarBaseTag):
-    tag_name = "fake_tag"
+    tag_name = "INTEGERTAG"
     comment = ""
 
     @classmethod
-    def is_valid_option(cls, option):
+    def is_valid_option(cls, option: int):
+        """
+        Arguments:
+            option (integer): value of the tag
+
+        Returns
+            bool: whether or not the tag is valid
+        """
         return isinstance(option, int)
 
     @classmethod
@@ -46,7 +88,7 @@ class IncarBaseIntegerTag(IncarBaseTag):
         return cls.comment
 
 class IncarBaseStringTag(IncarBaseTag):
-    tag_name = "fake tag"
+    tag_name = "STRINGTAG"
     comment = ""
 
     @classmethod
@@ -175,6 +217,48 @@ class IsmearTags(IncarBaseTags):
         (2,'method of Methfessel-Paxton order 2')
     ])
 
+class KparTag(IncarBaseIntegerTag):
+    """ INCAR tag KPAR
+
+    To obtain high efficiency on massively parallel systems or modern multi-
+    core machines, it is strongly recommended to use all at the same time. 
+    Most algorithms work with any data distribution.
+    """
+    tag_name = 'KPAR',
+    tag_default = 1,
+    comment = "number of kpoints to paralellize"
+
+    @classmethod
+    def is_valid_option(cls, option: int):
+        """ determine if the prposed option is an appropriate tag
+
+        Arguments:
+            option (int): this method will see if the option can be cast
+               into an int
+        """
+        try:
+            option_ = int(option)
+        except ValueError:
+            return False
+
+        if option_ > 0:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def cast_option(self, option):
+        try:
+            option_ = int(option)
+        except ValueError:
+            msg = "KPAR tag must be castable into an integer"
+
+        if option_ > 0:
+            return option_
+        else:
+            msg = "KPAR tag must be greater than zero"
+            return option_
+        
 class SigmaTag(IncarBaseFloatTag):
     tag_name = 'SIGMA'
     comment = 'width of the smearing in eV.'
