@@ -1,0 +1,20 @@
+@startuml
+    class MexmTask
+    
+    class SimulationTask
+    SimulationTask --> MexmTask
+
+    class VaspSimulationTask
+    VaspSimulationTask --> MexmTask
+
+    class LammpsSimultionTask 
+    LammpSimulationTask --> MexmTask
+
+    class MexmWorkflow
+    MexmWorkflow --> MexmTask
+
+    class MexmFactory
+    class MexmOverlord
+
+    class MexmTenant
+@enduml

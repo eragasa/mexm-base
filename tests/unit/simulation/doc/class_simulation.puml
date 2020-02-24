@@ -1,0 +1,54 @@
+@startuml
+
+@startuml class_mexm.simulation_base_classes
+class Simulation{
+    + inputfiles: dict
+    + outputfiles: dict
+}
+
+class NptSimulation
+NptSimulation --> Simulation
+
+class NvtSimulation
+NvtSimulation --> Simulation
+
+class LammpsSimulation
+LammpsSimulation --> Simulation
+class VaspSimulation
+VaspSimulation --> Simulation
+
+class mexm.simulation.VaspStructuralRelaxation
+mexm.simulation.VaspStructuralRelaxation --> mexm.simulation.VaspSimulation
+
+class mexm.simulation.VaspPositionRelaxation
+mexm.simulation.VaspPositionRelaxation --> mexm.simulation.VaspSimulation
+mexm.simulation.VaspPositionRelaxation --> mexm.simulation.PositionRelaxation
+
+class mexm.simulation.VaspStaticCalculation
+mexm.simulation.VaspStaticCalculation --> mexm.simulation.VaspSimulation
+mexm.simulation.VaspStaticCalculation --> mexm.simulation.StaticCalculation
+
+class mexm.simulation.SimulationFactory
+mexm.simulation.SimulationFactory *--> mexm.simulation.Simulation
+@enduml
+
+@startuml
+    class io.vasp.Incar
+    class io.vasp.Outcar
+    class io.vasp.Potcar
+    class in.vasp.Poscar
+    io.vasp.Poscar --> structure.SimulationCell
+    class io.vasp.Contcar
+    io.vasp.Contcar --> io.vasp.Poscar
+    class io.vasp.Outcar
+    class io.vasp.Ozicar
+
+    class VaspSimulation
+    io.vasp.Incar *--> VaspSimulation: 
+    io.vasp.Outcar *--> VaspSimulation: 
+    io.vasp.Potcar *--> VaspSimulation: input >
+    io.vasp.Poscar *--> VaspSimulation: input >
+    io.vasp.Contcar *--> VaspSimulation: output <
+    io.vasp.Ozicar *--> VaspSimulation: output <
+    io.vasp
+@enduml
