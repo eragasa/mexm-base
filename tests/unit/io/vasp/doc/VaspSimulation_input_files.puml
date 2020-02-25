@@ -1,0 +1,36 @@
+@startuml
+
+class Incar
+class Poscar
+class Potcar{
+    + symbols
+}
+class Kpoints
+
+VaspSimulation *-- Incar
+VaspSimulation *-- Poscar
+VaspSimulation *-- Potcar
+VaspSimulation *-- Kpoints
+
+Poscar --> SimulationCell
+
+@enduml
+
+@startuml Potcar:write
+start
+if (xc_type == LDA) then (yes)
+    :xc_type_path = get_lda_path_dir();
+elseif (xc_type == GGA) then (yes)
+    :xc_type_path = get_gga_path_dir();
+else
+    end
+endif
+:get_symbols;
+while (:symbols in) is (yes)
+        :get_potcar;
+        :append_potcar;
+endwhile
+-> no;
+
+stop
+@enduml

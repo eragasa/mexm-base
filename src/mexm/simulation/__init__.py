@@ -18,7 +18,7 @@ class VaspStaticCalculation(VaspSimulation, StaticCalculation): pass
 
 class PositionMinimization(Simulation): pass
 from mexm.simulation.lmps_min_pos import LammpsPositionMinimization
-class GulpStaticCalculation(GulpSimulation, PositionMinimization): pass
+class GulpPositionMinimization(GulpSimulation, PositionMinimization): pass
 class VaspPositionMinimization(VaspSimulation, PositionMinimization): pass
 
 class PhononCalculation(Simulation): pass
@@ -27,6 +27,18 @@ class VaspPhononCalculation(VaspSimulation, PhononCalculation): pass
 
 class NptSimulation(Simulation): pass
 from mexm.simulation.lmps_npt import LammpsNptSimulation
+
+class NvtSimulation(Simulation): pass
+from mexm.simulation.lmps_nvt import LammpsNvtSimulation
+
+class SimulationFactory():
+    factories = dict(
+        {k.name:k in LammpsSimulation.__subclasses__}.items(),
+        {k.name:k in GulpSimulation.__subclasses__}.items(),
+        {k.name:k in PhontsSimulation.__subclasses__}.items(),
+        {k.name:k in Vasp.__subclasses__}.items()
+    )
+
 from mexm.simulation.manager import SimulationManager
 from mexm.simulation.manager import SerialSimulationManager
 from mexm.simulation.manager import MpiSimulationManager

@@ -1,0 +1,18 @@
+@startuml
+abstract class AbstractMexmDaemon{
+  -- properties --
+
+  -- constructor --
+
+  -- methods --
+  }
+
+MexmWorkflowProducer --> AbstractMexmDaemon
+MexmWorkflowConsumer --> AbstractMexmDaemon
+MexmWorkflowConsumerProducer --> AbstractMexmDaemon 
+
+class MexmDaemonFactory
+MexmWorkflowProducerFactory --> MexmDaemonFactory
+MexmWorflowConsumerFactory --> MexmDaemonFactory
+MexmWorkflowConsumerProducerFactory --> MexmDaemonFactory
+@enduml

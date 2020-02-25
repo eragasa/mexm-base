@@ -1,20 +1,33 @@
 @startuml
-    class MexmTask
+    class MexmTask{
+        -- methods --
+        requires
+    }
+    
+    class MexmForkTask
+    MexmForkTask --> MexmTask
     
     class SimulationTask
     SimulationTask --> MexmTask
 
     class VaspSimulationTask
     VaspSimulationTask --> MexmTask
+    VaspSimulation *--> VaspSimulationTask
 
-    class LammpsSimultionTask 
-    LammpSimulationTask --> MexmTask
+    class LammpsSimulationTask 
+    LammpsSimulationTask --> MexmTask
+    LammpsSimulation *--> MexmTask
 
     class MexmWorkflow
     MexmWorkflow --> MexmTask
 
+    class AbstractFactory
+
+    
     class MexmFactory
+    
     class MexmOverlord
 
     class MexmTenant
+
 @enduml

@@ -1,0 +1,50 @@
+@startuml
+class VaspOutputFile{
+    -- static --
+    + default_filename
+    + description
+}
+class VaspOutputFiles
+VaspOutputFiles *--> Bsefatband
+VaspOutputFiles *--> Chg
+VaspOutputFiles *--> Chgcar
+VaspOutputFiles *--> Contcar
+VaspOutputFiles *--> Doscar
+VaspOutputFiles *--> Eigenval
+VaspOutputFiles *--> Elfcar
+VaspOutputFiles *--> Ibzkpt
+VaspOutputFiles *--> Locpot
+VaspOutputFiles *--> Oszicar
+VaspOutputFiles *--> Outcar
+VaspOutputFiles *--> Parchg
+VaspOutputFiles *--> Procar
+VaspOutputFiles *--> Report
+VaspOutputFiles *--> TmpCar
+VaspOutputFiles *--> Vasprunxml
+VaspOutputFiles *--> BseDiagonalScreenedExchange
+VaspOutputFiles *--> Wavecar
+VaspOutputFiles *--> Waveder
+VaspOutputFiles *--> BseScreenedExchange
+VaspOutputFiles *--> Xdatcar
+
+Bsefatband --> VaspOutputFile
+Chg --> VaspOutputFile
+Chgcar --> VaspOutputFile
+Contcar --> VaspOutputFile
+Doscar --> VaspOutputFile
+Eigenval --> VaspOutputFile
+Ibzkpt --> VaspOutputFile
+Locpot --> VaspOutputFile
+Oszicar --> VaspOutputFile
+Outcar --> VaspOutputFile
+Parchg --> VaspOutputFile
+Procar --> VaspOutputFile
+Report --> VaspOutputFile
+TmpCar --> VaspOutputFile
+Vasprunxml --> VaspOutputFile
+BseDiagonalScreenedExchange --> VaspOutputFile
+Wavecar --> VaspOutputFile
+Waveder --> VaspOutputFile
+BseScreenedExchange --> VaspOutputFile
+Xdatcar --> VaspOutputFile
+@enduml
