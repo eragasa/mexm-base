@@ -1,7 +1,4 @@
 @startuml 
-    abstract SimulationState{
-        + name
-    }
 
     SimulationInitState --> SimulationState
     SimulationConfigState --> SimulationState
