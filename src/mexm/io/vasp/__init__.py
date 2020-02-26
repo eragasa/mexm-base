@@ -47,21 +47,7 @@ class VaspInputFiles():
         'POTCAR':Potcar,
     }
 
-# output files
-class VaspOutputFiles():
-    repository = {
-        'BSEFATBAND':Bsefatband,
-        'CHG':Chg,
-        'CHGCAR':Chgcar,
-        'CONTCAR':Contcar,
-        'DOSCAR':Doscar,
-        'EIGENVAL':Eigenval,
-        'ELFCAR':Elfcar,
-        'IBZKPT':Ibzkpt,
-        'LOCPOT':Locpot,
-        'OSZICAR':Oszicar,
-        'OUTCAR':Outcar
-    }
+
 
 class Bsefatband():
     default_filename = 'BSEFATBAND'
@@ -115,32 +101,39 @@ class Locpot():
     )
 from mexm.io.vasp.oszicar import Oszicar
 from mexm.io.vasp.outcar import Outcar
+
 class Parchg():
     default_filename = 'PARCHG'
     description = (
         'Contains partial charge densities.'
     )
 class Procar():
+
     default_filename = 'PROCAR'
     description = 'Contains spd and site-projected wave function character.'
+
 class Report():
     default_filename = 'REPORT'
     description = 'Contains output of various molecular dynamics calculations'
+
 class TmpCar():
     default_filename = 'TMPCAR'
-    description = 'Contains wavefunction and ionic positions of previous ionic step.
+    description = 'Contains wavefunction and ionic positions of previous ionic step.'
+
 class Vasprunxml():
     default_filename = 'vasprun.xml'
     description = 'main output file in xml format'
+
 class BseDiagonalScreenedExchange():
     default_filename = 'WXXXX.tmp'
     description = (
         "Contains diagonal elements of screened exchange in BSE calculations."
     )
+
 class Wavecar():
     default_filename = 'WAVECAR'
     description = (
-        Binary file containing information such as wave function coefficients, eigenvalues, Fermi weights, etc.
+        "Binary file containing information such as wave function coefficients," "eigenvalues, Fermi weights, etc."
     )
 class Waveder():
     default_filename = 'WAVEDER'
@@ -153,6 +146,22 @@ class BseScreenedExchange():
 class Xdatcar():
     default_filename = 'XDATCAR'
     description = 'Contains ionic configuration for each output step of molecular dynamics simulations.'
+
+# output files
+class VaspOutputFiles():
+    repository = {
+        'BSEFATBAND':Bsefatband,
+        'CHG':Chg,
+        'CHGCAR':Chgcar,
+        'CONTCAR':Contcar,
+        'DOSCAR':Doscar,
+        'EIGENVAL':Eigenval,
+        'ELFCAR':Elfcar,
+        'IBZKPT':Ibzkpt,
+        'LOCPOT':Locpot,
+        'OSZICAR':Oszicar,
+        'OUTCAR':Outcar
+    }
 
 class VaspSimulation():
     def __init__(self):
