@@ -24,14 +24,19 @@ class GulpStaticCalculation(GulpSimulation, StaticCalculation):
 class VaspStaticCalculation(VaspSimulation, StaticCalculation):
     simulation_type = 'vasp_min_none'
 
-class PositionMinimization(Simulation): pass
+class PositionMinimization(Simulation):
+    pass
+
 from mexm.simulation.lmps_min_pos import LammpsPositionMinimization
+
 class GulpPositionMinimization(GulpSimulation, PositionMinimization):
     simulation_type = 'gulp_min_positions'
+
 class VaspPositionMinimization(VaspSimulation, PositionMinimization):
     simulation_type = 'vasp_min_positions'
     
-class PhononCalculation(Simulation): pass
+class PhononCalculation(Simulation):
+    pass
 class GulpPhononCalculation(GulpSimulation, PhononCalculation):
     simulation_type = 'gulp_phonons'
 class VaspPhononCalculation(VaspSimulation, PhononCalculation):
@@ -56,6 +61,10 @@ class SimulationFactory():
         **{k.simulation_type: k for k in PhontsSimulation.__subclasses__()},
         **{k.simulation_type: k for k in VaspSimulation.__subclasses__()}
     )
+
+    @staticmethod
+    def create_Simulation(simulation_type: str) -> Simulation:
+        return SimulationFactory.factories[simulation_type]()
 #if False:
 
 

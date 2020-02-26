@@ -1,12 +1,16 @@
 import os
 import shutil
 from copy import deepcopy
+from typing import Dict
+from abc import ABC
+from abc import abstractmethod
+from abc import abstractclassmethod
+from collections import OrderedDict
 from mexm.exception import MexmException
 
 class MexmSimulationException(MexmException): pass
 
-class Simulation():
-    is_base_class = True
+class Simulation(ABC):
     states = ['INIT','CONFIG','READY','RUNNING','POST','FINISHED','ERROR']
     def __init__(self,
                  name,
@@ -55,24 +59,79 @@ class Simulation():
             self._path = path
         else:
             self._path = os.path.abspath(path)
-        
+
+    @abstractmethod
+    def get_conditions_init(self): 
+        raise NotImplementedError
+    
+    @abstractmethod
+    def get_conditions_config(self): 
+        raise NotImplementedError
+    
+    @abstractmethod
+    def get_conditions_ready(self): 
+        raise NotImplementedError
+    
+    @abstractmethod
+    def get_conditions_running(self): 
+        raise NotImplementedError
+    
+    @abstractmethod
+    def get_conditions_post(self): 
+        raise NotImplementedError
+    
+    @abstractmethod
+    def get_conditions_finished(self): 
+        raise NotImplementedError
+
+    @abstractmethod
+    def on_init(self): 
+        raise NotImplementedError
+    
+    @abstractmethod
+    def on_config(self): 
+        raise NotImplementedError
+    
+    @abstractmethod
+    def on_ready(self): 
+        raise NotImplementedError
+    
+    @abstractmethod
+    def on_running(self): 
+        raise NotImplementedError
+    
+    @abstractmethod
+    def on_post(self): 
+        raise NotImplementedError
+    
+    @abstractmethod
+    def on_finished(self): 
+        raise NotImplementedError
+    
+    @abstractmethod
+    def on_error(self): 
+        raise NotImplementedError
+
+
     @property
     def conditions_INIT(self):
         return self.conditions['INIT']
 
     @conditions_INIT.setter
-    def conditions_INIT(self, conditions):
+    def conditions_INIT(self, conditions) -> Dict:
         self.conditions['INIT'] = deepcopy(conditions)
 
     @property
-    def conditions_CONFIG(self): return self.conditions['CONFIG']
+    def conditions_CONFIG(self): 
+        return self.conditions['CONFIG']
 
     @conditions_CONFIG.setter
-    def conditions_CONFIG(self, conditions):
+    def conditions_CONFIG(self, conditions) -> Dict:
         self.conditions['CONFIG'] = deepcopy(conditions)
 
     @property
-    def conditions_READY(self): return self.conditions['READY']
+    def conditions_READY(self) -> Dict: 
+        return self.conditions['READY']
 
     @conditions_READY.setter
     def conditions_READY(self, conditions):
@@ -154,26 +213,6 @@ class Simulation():
         }
         status_to_method_map[self.status]()
 
-    def on_init(): 
-        raise NotImplementedError
-    
-    def on_config(): 
-        raise NotImplementedError
-    
-    def on_ready(): 
-        raise NotImplementedError
-    
-    def on_running(): 
-        raise NotImplementedError
-    
-    def on_post(): 
-        raise NotImplementedError
-    
-    def on_finished(): 
-        raise NotImplementedError
-    
-    def on_error(): 
-        raise NotImplementedError
 
     def update_status(self):
         assert isinstance(self.conditions_INIT, dict)
@@ -228,11 +267,5 @@ class Simulation():
             msg = "unknown status, {}".format(self.status)
             raise ValueError(msg)
 
-    def get_conditions_init(self): raise NotImplementedError
-    def get_conditions_config(self): raise NotImplementedError
-    def get_conditions_ready(self): raise NotImplementedError
-    def get_conditions_running(self): raise NotImplementedError
-    def get_conditions_post(self): raise NotImplementedError
-    def get_conditions_finished(self): raise NotImplementedError
 
 class AtomicSimulation(Simulation): pass

@@ -1,0 +1,26 @@
+@startuml 
+    abstract SimulationState{
+        + name
+    }
+
+    SimulationInitState --> SimulationState
+    SimulationConfigState --> SimulationState
+    SimulationReadyState --> SimulationState
+    SimulationRunningState --> SimulationState
+    SimulationPostState --> SimulationState
+    SimulationFinishedState -> SimulationState
+
+    SimulationInitState *--> SimulationInitStateFactory
+    SimulationConfigState *--> SimulationConfigStateFactory
+    SimulationReadyState *--> SimulationReadyStateFactory
+    SimulationRunningState *--> SimulationRunningStateFactory
+    SimulationPostState *--> SimulationPostStateFactory
+    SimulationFinishedState *--> SimulationFinishedStateFactory
+
+    SimulationInitStateFactory *--> SimulationFactory
+    SimulationConfigStateFactory *--> SimulationFactory
+    SimulationReadyStateFactory *--> SimulationFactory
+    SimulationRunningStateFactory *--> SimulationFactory
+    SimulationPostStateFactory *--> SimulationFactory
+    SimulationFinishedStateFactory *--> SimulationFactory
+@enduml
