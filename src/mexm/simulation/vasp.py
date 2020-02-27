@@ -76,7 +76,7 @@ class VaspSimulation(AtomicSimulation):
             self.contcar.read(path=contcar_path)
         except FileNotFoundError:
             pass
-
-
-
+    
+    def update_hpc_configuration(self, n_cores, n_nodes):
+        pass
 

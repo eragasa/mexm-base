@@ -4,7 +4,6 @@ from collections import OrderedDict
 from mexm.potential import Potential
 
 class PotentialManager(object):
-    potential_map = PotentialManager.get_potential_map()
 
     @staticmethod
     def get_potential_map():
