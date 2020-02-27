@@ -1,6 +1,8 @@
 import os
 import subprocess
+import math
 from copy import deepcopy
+from typing import List
 from mexm.simulation import VaspSimulation
 from mexm.job import HpcClusterInformation
 from mexm.job import HpcJobInformation
@@ -38,8 +40,50 @@ class TorqueJobInformation(HpcJobInformation):
 
 class TorqueSubmissionScript(HpcSubmissionScript):
 
-    def read(self, path): pass
-    def write(self, path): pass
+    def __init__(
+        self,
+        account=None,
+        walltime=None,
+        n_nodes=None,
+        ppn=None,
+        jobname=None,
+        errpath=None,
+        stdpath=None,
+        modules=None,
+        cmd=None,
+    ):
+        super().__init__()
+        self.account=account
+        self.walltime=walltime
+        self.n_nodes=n_nodes
+        self.ppn=ppn
+        self.jobname=jobname
+        self.errpath=errpath
+        self.stdpath=stdpath
+        self.modules=modules
+        self.cmd = cmd
+    def read(self, path): 
+        pass
+
+    def write(self, path):
+        submission_script_str = "\n".join([
+            self.header_section_to_string(
+                account=self.account,
+                walltime=self.walltime_to_string(self.walltime),
+                n_nodes=self.n_nodes,
+                ppn=self.ppn,
+                jobname=self.jobname,
+                errpath=self.errpath,
+                stdpath=self.stdpath
+            ),
+            self.module_section_to_string(modules=self.modules),
+            self.cmd
+        ])
+
+        with open(path,'w') as f:
+            f.write(submission_script_str)
+        return submission_script_str
+    
     def walltime_to_string(self, walltime: int):
         hr = str(walltime)
         min = '00'
@@ -53,12 +97,12 @@ class TorqueSubmissionScript(HpcSubmissionScript):
         n_nodes: int, ppn, jobname, errpath, stdpath
     ):
         header_str = (
-            "#PBS -A {account}\n",
-            "#PBS -l walltime={walltime}\n",
-            "#PBS -l nodes={n_nodes}:ppn={ppn}\n",
-            "#PBS -N {jobname}\n",
-            "#PBS -e {errpath}\n",
-            "#PBS -o {stdpath}\n",
+            "#PBS -A {account}\n"
+            "#PBS -l walltime={walltime}\n"
+            "#PBS -l nodes={n_nodes}:ppn={ppn}\n"
+            "#PBS -N {jobname}\n"
+            "#PBS -e {errpath}\n"
+            "#PBS -o {stdpath}\n"
             "#PBS -S /bin/bash\n\n"
             "cd $PBS_O_WORKDIR\n\n"
         ).format(
@@ -72,14 +116,15 @@ class TorqueSubmissionScript(HpcSubmissionScript):
         )
         return header_str
 
-    def module_section_to_string(self, modules):
+    def module_section_to_string(self, modules: List[str]) -> str:
         modules_str = "\n".join(
             ["module load {}".format(k) for k in modules]
         ) + "\n\n"
+        return modules_str
 
 class TorqueJobSubmissionManager(JobSubmissionManager):
     def __init__(self):
-        pass
+        self.cluster = TorqueHpcClusterInformation()
 
     def request_job(
         self,

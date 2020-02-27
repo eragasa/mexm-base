@@ -11,6 +11,8 @@ class HpcJobInformation(ABC):
     pass
 
 class HpcSubmissionScript(ABC):
+
+    def __init__(self): pass
     @abstractmethod
     def read(self, path):
         raise NotImplementedError
