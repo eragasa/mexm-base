@@ -1,20 +1,9 @@
 import os
 import subprocess
 
-cmd = 'qstat -u {user}'.format(os.environ['USER'])
-path = os.path.join(
-    'resource',
-    'qstat_stdout_results.txt'
-)
-with open(path) as f:
-    lines = f.readlines()
+from mexm.jobs import JobSubmissionManager
 
-n_lines = len(lines)
-names = [k.strip().lower() for k in lines[0].split()]
-print(names)
-
-
-class TorqueJobSubmissionManager():
+class TorqueJobSubmissionManager(JobSubmissionManager):
 
     def submit_job(
         self, 
@@ -22,7 +11,7 @@ class TorqueJobSubmissionManager():
         submission_script_path: str
     ):
         # setting an initial context, so I can return to it
-        initial_path = os.pwd()
+        initial_path = os.getcwd()
 
         os.chdir(simulation_path)
         cmd = ['qsub', submission_script_path]
