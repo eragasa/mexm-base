@@ -1,0 +1,15 @@
+@startuml
+class Caller
+
+abstract Command{
+    -- method --
+    execute()
+}
+Caller *--> Command
+
+class ConcreteCommand{
+    -- state --
+    execute()
+}
+ConcreteCommand --> Command
+@enduml

@@ -9,7 +9,7 @@ from mexm.io.vasp import Outcar
 from mexm.io.vasp import Oszicar
 from mexm.io.vasp import Contcar
 
-class VaspSimulation(AtomicSimulation):
+class VaspSimulation():
     """
 
     Attributes:
@@ -39,9 +39,9 @@ class VaspSimulation(AtomicSimulation):
         potcar_path = os.path.join(simulation_path, 'POTCAR')
 
         self.poscar.write(path=poscar_path)
+        self.potcar.symbols = self.poscar.symbols
         self.potcar.write(path=potcar_path)
         self.incar.write(path=incar_path)
-        self.potcar.write(path=potcar_path)
 
     def read(self, simulation_path):
         self.path = simulation_path

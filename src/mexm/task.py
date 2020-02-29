@@ -39,73 +39,7 @@ class Task():
     def simulation_path(self, path):
         self._simulation_path = os.path.abspath(path)
 
-class DbAdapter(ABC):
-    def __init__(self, db_path: str = None):
-        self.db_path = os.path.abspath(db_path)
 
-class SqliteAdapter(DbAdapter):
-
-
-import mysql.connector
-class MysqlAdapter(DbAdapter):
-    def __init__(
-        self, 
-        host="localhost",
-        port=None,
-        dbname="mexm"
-        user="username", 
-        password="password"
-    ):
-        del port, dbname # required definition by abstract class
-                         # but not used 
-        self.db_connector = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password
-        )
-
-import psycopg2
-class PsqlAdapter(DbAdapter):
-    def __init__(
-        self,
-        hostname='localhost',
-        port=5432,
-        dbname="mexm",
-        user="username",
-        password="password"
-    ):
-        self.db_conn=psycopg2.connect(
-            self.get_sql_connection_string(
-                hostname=hostname,
-                port=port,
-                dbname=dbname,
-                user=user,
-                password=password
-            )
-        )
-
-    def get_sql_connection_string(
-        self, 
-        hostname,
-        dbname,
-        port, 
-        user, 
-        password
-    ):
-        str_connection = (
-            "host={host} "
-            "port={port} "
-            "dbname={dbname} "
-            "user={user} "
-            "password={password}"
-        ).format(
-            host=hostname, 
-            port=port, 
-            dbname=dbname,
-            user=user,
-            password=password
-        )
-        return str_connection
 
         
 

@@ -2,17 +2,21 @@
 
 class Incar
 class Poscar
+Poscar --> SimulationCell
+
 class Potcar{
     + symbols
 }
 class Kpoints
 
-VaspSimulation *-- Incar
-VaspSimulation *-- Poscar
-VaspSimulation *-- Potcar
-VaspSimulation *-- Kpoints
+VaspInputFiles *-- Incar
+VaspInputFiles *-- Poscar
+VaspInputFiles *-- Potcar
+VaspInputFiles *-- Kpoints
 
-Poscar --> SimulationCell
+VaspOutputFiles 
+VaspSimulation *-- VaspInputFiles
+
 
 @enduml
 

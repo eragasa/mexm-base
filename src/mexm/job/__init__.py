@@ -12,10 +12,8 @@ class HpcJobInformation(ABC):
 
 class HpcSubmissionScript(ABC):
 
-    def __init__(self): pass
-    @abstractmethod
-    def read(self, path):
-        raise NotImplementedError
+    def __init__(self):
+        self.job_name = None
 
     @abstractmethod
     def write(self, path):

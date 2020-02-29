@@ -259,15 +259,6 @@ class KparTag(IncarBaseIntegerTag):
             msg = "KPAR tag must be greater than zero"
             return option_
         
-class SigmaTag(IncarBaseFloatTag):
-    tag_name = 'SIGMA'
-    comment = 'width of the smearing in eV.'
-
-class SymprecTag(IncarBaseFloatTag):
-    tag_name = 'SYMPREC'
-    comment = 'determines how accurate positions must be'
-
-
 class NelmTag(IncarBaseIntegerTag):
     tag_name = 'NELM'
     comment = 'maximum number of electronic SCF steps'
@@ -444,9 +435,17 @@ class NswTag(IncarBaseFloatTag):
     tag_name = 'NSW'
     comment = 'maximum number of ionic relaxation steps'
 
+class SigmaTag(IncarBaseFloatTag):
+    tag_name = 'SIGMA'
+    comment = 'width of the smearing in eV.'
 
 class SystemTag(IncarBaseStringTag):
     tag_name = 'SYSTEM'
+
+
+class SymprecTag(IncarBaseFloatTag):
+    tag_name = 'SYMPREC'
+    comment = 'determines how accurate positions must be'
 
 
 class IncarComments():

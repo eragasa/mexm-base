@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 
 class VaspPotcarError(Exception):
     def __init__(self,*args,**kwargs):
@@ -7,7 +8,10 @@ class VaspPotcarError(Exception):
         Exception.__init__(self,*args,**kwargs)
 
 class Potcar(object):
-    supported_xc_types = ['lda', 'gga']
+    supported_xc_types = [
+        'PAW_LDA',
+        'PAW_GGA'
+    ]
     """ object to deal with POTCAR files for VASP simulations
 
     Args:
@@ -33,16 +37,16 @@ class Potcar(object):
     >>> export VASP_GGA_DIR=$(cd ~/opt/vasp/potentials/GGA;pwd)
 
     for windows systems:
-    >>> setx VASP_LDA_DIR "C:\vasp\LDA" /M
-    >>> setx VASP_GGA_DIR "C:\vasp\GGA" /M
+    >>> setx VASP_LDA_DIR "C:\\vasp\\LDA" /M
+    >>> setx VASP_GGA_DIR "C:\\vasp\\GGA" /M
     """
     def __init__(self, symbols = None,
                        path= None,
-                       xc_type = 'gga'):
+                       xc_type = 'PAW_GGA'):
 
         self.symbols_ = None
         self.path_ = None
-        self.xc_type_ = None
+        self._xc_type = None
         self.encut_min_ = None
         self.encut_max_ = None
 
@@ -74,18 +78,17 @@ class Potcar(object):
 
     @property
     def xc_type(self):
-        return self.xc_type_
+        return self._xc_type
 
     @xc_type.setter
     def xc_type(self, xc_type):
         if isinstance(xc_type, str):
-            xc_type_ = xc_type.lower()
-            if xc_type_ not in Potcar.supported_xc_types:
+            if xc_type not in Potcar.supported_xc_types:
                 msg = (
                     '{xc} is an unsupported exchange correlation functional'
-                ).format(xc=xc_type_)
+                ).format(xc=xc_type)
                 raise VaspPotcarError(msg)
-            self.xc_type_ = xc_type_
+            self._xc_type = xc_type
         else:
             msg = (
                 'xc_type argument must be a string'
@@ -143,16 +146,19 @@ class Potcar(object):
             for line in f:
                 line = line.strip()
                 if 'TITEL' in line:
+                    
                     symbol = line.split('=')[1].strip().split(' ')[1]
                     symbols.append(symbol)
+
+                    xc.append(
+                        line.split('=')[1].strip().split(' ')[0]
+                    )
                 elif 'ENMIN' in line:
                     obj_re = re.match('ENMAX  =  (.*); ENMIN  =  (.*) eV.*',line,re.M|re.I)
                     enmax = float(obj_re.group(1))
                     enmin = float(obj_re.group(2))
                     encut_min.append(enmin)
                     encut_max.append(enmax)
-                elif 'LEXCH' in line:
-                    xc.append(line.split('=')[1].strip())
                 elif "VRHFIN" in line:
                     models.append(line.split('=')[1].strip())
 
@@ -165,8 +171,10 @@ class Potcar(object):
         assert xc.count(xc[0]) == len(xc)
 
         # not sure sure if this is correct, but i think PE is for GGA-PBE
-        if xc[0] == 'PE':
-            self.xc_type = 'GGA'
+        
+        if xc[0] == 'PAW_GGA':
+            self.xc_type = 'PAW_GGA'
+        elif xc[0] == 'PAW_LDA':
         else:
             msg = 'unknown xc type: {}'.format(xc[0])
             raise ValueError(msg)
@@ -184,15 +192,12 @@ class Potcar(object):
         Raises:
             pypospack.io.vasp.VaspPotcarError
         """
-        if path is not None:
-            self.path = path
-        else:
-            if self.path is None:
-                raise TypeError('cannot find suitable path')
+
+        self.path = path
 
         #  if a source potcar is given just copy the file
         if src is not None:
-            __write_potcar_by_copy(src_fn=src,dst_fn=self.path)
+            shutil.copy(src=src, dst=self.path)
 
         self.__set_xc_directory()
 
@@ -222,18 +227,32 @@ class Potcar(object):
         # http://cms.mpi.univie.ac.at/vasp/vasp/Recommended_PAW_potentials_DFT_calculations_using_vasp_5_2.html
         self.potcars = {} # initialize
         for s in self.symbols:
-            # try VASP_XC_DIR/symbol/POTCAR
-            if pathlib.Path(os.path.join(self.potcar_dir,s,'POTCAR')).is_file():
-                self.potcars[s] = os.path.join(self.potcar_dir,s,'POTCAR')
-            # try VASP_XC_DIR/symbol_new/POTCAR
-            elif pathlib.Path(os.path.join(self.potcar_dir,"{}_new".format(s),'POTCAR')).is_file():
-                self.potcars[s] = os.path.join(self.potcar_dir,"{}_new".format(s),'POTCAR')
-            # try VASP_XC_DIR/symbols_h/POTCAR
-            elif pathlib.Path(os.path.join(self.potcar_dir,"{}_h".format(s),'POTCAR')).is_file():
-                self.potcars[s] = os.path.join(self.potcar_dir,"{}_h".format(s),'POTCAR')
+            
+            potcar_path = os.path.join(self.potcar_dir,s,'POTCAR')
+            potcar_new_path = os.path.join(
+                self.potcar_dir,"{}_new".format(s),'POTCAR'
+            )
+            potcar_hard_path = os.path.join(
+                self.potcar_dir,"{}_h".format(s),'POTCAR'
+            )
+
+            if os.path.isfile(potcar_path):
+                # try VASP_XC_DIR/symbol/POTCAR
+                self.potcars[s] = potcar_path
+
+            elif os.path.isfile(potcar_new_path):
+                # try VASP_XC_DIR/symbol_new/POTCAR
+                self.potcars[s] = os.path.join(
+                    self.potcar_dir,"{}_new".format(s),'POTCAR'
+                )
+
+            elif os.path.isfile(potcar_hard_path):
+                # try VASP_XC_DIR/symbols_h/POTCAR
+                self.potcars[s] = potcar_hard_path
+
             else:
                 print(os.path.join(self.potcar_dir,"{}_new".format(s),'POTCAR'))
-                msg = 'cannot find a POTCAR file for {}.{}\n'.format(self.xc,s)
+                msg = 'cannot find a POTCAR file for {}.{}\n'.format(self.xc_type,s)
                 msg += 'potcar_dir:{}'.format(self.potcar_dir)
                 raise VaspPotcarError(msg)
 
@@ -271,7 +290,7 @@ class Potcar(object):
             (pypospack.io.vasp.VaspPotcarError): if the directory is not set
                  as an environment variable.
         """
-        if self.xc == 'GGA':
+        if self.xc_type == 'PAW_GGA':
             try:
                 self.potcar_dir = os.environ['VASP_GGA_DIR']
             except KeyError:
