@@ -54,6 +54,7 @@ class Oszicar():
 
         i_line = 0
         while i_line < n_lines:
+            print(i_line, lines[i_line])
             if lines[i_line] == Oszicar.str_scf_step:
                 electric_scf.append({})
                 n_scf += 1

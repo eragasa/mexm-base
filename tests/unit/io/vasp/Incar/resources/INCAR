@@ -10,7 +10,7 @@ INIWAVE = 1
 
 ENCUT = 240
 NELM = 60
-NELMIN = 0
+NELMIN = 2
 NELMDL = 3
 EDIFF = 1e-4
 PREC = Accurate

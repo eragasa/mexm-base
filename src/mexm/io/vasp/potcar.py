@@ -10,7 +10,8 @@ class VaspPotcarError(Exception):
 class Potcar(object):
     supported_xc_types = [
         'PAW_LDA',
-        'PAW_GGA'
+        'PAW_GGA',
+        'PAW_PBE'
     ]
     """ object to deal with POTCAR files for VASP simulations
 

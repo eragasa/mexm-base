@@ -37,6 +37,10 @@ class Incar(object):
     
     incar_tags = {
         'ALGO':incartags.AlgoTag,
+        'AMIX':incartags.AmixTag,
+        'AMIX_MAG':incartags.AmixmagTag,
+        'BMIX':incartags.BmixTag,
+        'BMIX_MAG':incartags.BmixmagTag,
         'ENCUT':incartags.EncutTag,
         'EDIFF':incartags.EdiffTag,
         'EDIFFG':incartags.EdiffgTag,
@@ -214,10 +218,6 @@ class Incar(object):
         self.lcharg = False
         self.lvtot = False
 
-    def get_section_string(self, comment):
-        str_out = '# {:*^78}\n'.format(comment)
-        return str_out
-
     def get_option_string(self, option_tag, option_value):
         """
 
@@ -225,7 +225,7 @@ class Incar(object):
            option_flag (str):
         """
         try:
-            option_comment = self.incar_tag_values[option_tag][option_value]
+            option_comment = self.incar_tags[option_tag].get_comment(option_value)
             str_out = '{:<30}! {}\n'.format(
                 "{} = {}".format(option_tag, option_value),
                 option_comment
@@ -252,9 +252,10 @@ class Incar(object):
 
             tag_value_ = float(tag_value)
             if not self.incar_tags[tag_name].is_valid_option(option=tag_value_):
-                print('tag_name',tag_name)
-                print('tag_value',tag_value_)
-                raise ValueError
+                msg = "{tag_name} = {tag_value} is not a valid option"
+                raise ValueError(
+                    msg.format(tag_name=tag_name, tag_value=tag_value)
+                )
             self.incar_tag_values[tag_name] = tag_value_
 
         # IncarBaseIntegerTag
@@ -262,9 +263,10 @@ class Incar(object):
 
             tag_value_ = int(tag_value)
             if not self.incar_tags[tag_name].is_valid_option(option=tag_value_):
-                print('tag_name',tag_name)
-                print('tag_value',tag_value_)
-                raise ValueError
+                msg = "{tag_name} = {tag_value} is not a valid option"
+                raise ValueError(
+                    msg.format(tag_name=tag_name, tag_value=tag_value)
+                )
             self.incar_tag_values[tag_name] = tag_value_
 
         # IncarBaseStringTag
@@ -272,9 +274,10 @@ class Incar(object):
             if not self.incar_tags[tag_name].is_valid_option(
                 option=tag_value
             ):
-                print('tag_name',tag_name)
-                print('tag_value',tag_value)
-                raise ValueError
+                msg = "{tag_name} = {tag_value} is not a valid option"
+                raise ValueError(
+                    msg.format(tag_name=tag_name, tag_value=tag_value)
+                )
             
             tag_value_ = str(tag_value)
             self.incar_tag_values[tag_name] = tag_value_
@@ -283,26 +286,21 @@ class Incar(object):
         elif issubclass(self.incar_tags[tag_name], incartags.IncarBaseEnumeratedTag):
             tag_value_ = self.incar_tags[tag_name].convert(option=tag_value)
             if not self.incar_tags[tag_name].is_valid_option(option=tag_value_):
-                print('tag_name',tag_name)
-                print('tag_value',tag_value_)
-                raise ValueError
+                msg = "{tag_name} = {tag_value} is not a valid option"
+                raise ValueError(
+                    msg.format(tag_name=tag_name, tag_value=tag_value)
+                )
             
             self.incar_tag_values[tag_name] = tag_value_
 
         # IncarBaseTags
         elif issubclass(self.incar_tags[tag_name], incartags.IncarBaseTag):
             if not self.incar_tags[tag_name].is_valid_option(option=tag_value):
-                print('tag_name',tag_name)
-                print('tag_value',tag_value)
-                print('tag_class',self.incar_tags[tag_name])
-                assert issubclass(self.incar_tags[tag_name], incartags.IncarBaseFloatTag)
-                raise ValueError
+                msg = "{tag_name} = {tag_value} is not a valid option"
+                raise ValueError(
+                    msg.format(tag_name=tag_name, tag_value=tag_value)
+                )
 
-            try:
-                tag_value_ = int(tag_value)
-            except:
-                print(tag_name, tag_value)
-                raise
             self.incar_tag_values[tag_name] = tag_value_
                     
         else:
@@ -393,6 +391,7 @@ class Incar(object):
     def to_string(self):
         str_out = ''
         str_out += self.system_information_to_string_()
+        str_out += self.optimization_information_to_string()
         str_out += self.start_information_to_string_()
         str_out += self.dos_information_to_string_()
         str_out += self.symmetry_information_to_string()
@@ -419,75 +418,73 @@ class Incar(object):
             fmt_tag.format(tag_name, tag_value),
             tag_comment)
 
+    def get_section_string(self, section_name, section_included_tags):
+        fmt_section = self.format_section
+          
+        str_out = fmt_section.format(section_name) + "\n"
+        for k in section_included_tags:
+            if k in self.incar_tag_values:
+                str_out += self.get_option_string(
+                    option_tag = k, 
+                    option_value = self.incar_tag_values[k]
+                )
+            else:
+                pass
+        return str_out
+
+        
     def system_information_to_string_(self):
-        str_out = "SYSTEM = {}\n\n".format(self.system)
+        str_out = "SYSTEM = {}\n".format(self.system)
         return str_out
 
     def start_information_to_string_(self):
-        fmt_section = self.format_section
+        section_name = 'STARTING INFORMATION'
+        section_included_tags = ['ISTART', 'ICHARG']
+        str_out = self.get_section_string(
+            section_name = section_name,
+            section_included_tags = section_included_tags
+        )
+        return str_out
 
-        str_out = "\n".join([
-            fmt_section.format('STARTING INFORMATION'),
-            self.get_tag_string_('ISTART', self.istart),
-            self.get_tag_string_('ICHARG', self.icharg)
-        ]) + "\n"
-
+    def optimization_information_to_string(self):
+        section_name = 'OPTIMIZATION'
+        section_included_tags = ['LPLANE', 'NPAR', 'NSIM']
+        str_out = self.get_section_string(
+            section_name = section_name,
+            section_included_tags = section_included_tags
+        )
         return str_out
 
     def dos_information_to_string_(self):
-        fmt_section = self.format_section
-
-        str_out = "\n".join([
-            fmt_section.format('DENSITY OF STATES'),
-            self.get_tag_string_('ISMEAR', self.istart),
-            self.get_tag_string_('SIGMA', self.icharg)
-        ]) + "\n"
-
+        section_name = 'DENSITY OF STATES'
+        section_included_tags = ['ISMEAR', 'SIGMA']
+        str_out = self.get_section_string(
+            section_name = section_name,
+            section_included_tags = section_included_tags
+        )
         return str_out
 
     def symmetry_information_to_string(self):
-        fmt_section = self.format_section
-
-        str_out = "\n".join([
-            fmt_section.format('SYMMETRY'),
-            self.get_tag_string_('ISYM', self.isym),
-            self.get_tag_string_('SYMPREC', self.symprec)
-        ]) + "\n"
-
+        section_name = 'SYMMETRY'
+        section_included_tags = ['ISYM', 'SYMPREC']
+        if 'ISYM' not in self.incar_tag_values:
+            self.incar_tag_values['ISYM'] = -1
+        str_out = self.get_section_string(
+            section_name = section_name,
+            section_included_tags = section_included_tags
+        )
         return str_out
 
     def scf_information_to_string(self):
-        fmt_section = self.format_section
-
-        if self.algo.startswith('N'):
-            self.algo = 'Normal'
-        elif self.algo.startswith('V'):
-            self.algo = 'VeryFast'
-        elif self.algo.startswith('F'):
-            self.algo = 'Fast'
-        else:
-            raise VaspIncarError('Unsupported ALGO value:{}'.format(self.algo))
-
-        if self.lreal == False or self.lreal.startswith('F') or self.lreal == '.FALSE.':
-            self.lreal = '.FALSE.'
-        elif self.lreal == True or self.lreal.startswith('T') or self.lreal == '.TRUE.':
-            self.lreal = '.TRUE.'
-        else:
-            str_type = type(self.lreal)
-            str_value = '{}'.format(self.lreal)
-            print(str_type,str_value)
-            raise VaspIncarError('Unsupported LREAL value:{}'.format(self.lreal))
-        
-        str_out = "\n".join([
-            fmt_section.format('ELECTRONIC SCF RELAXATION'),
-            self.get_tag_string_('ALGO', self.algo),
-            self.get_tag_string_('PREC', self.prec),
-            self.get_tag_string_('LREAL', self.lreal),
-            self.get_tag_string_('EDIFF', self.ediff),
-            self.get_tag_string_('ENCUT', self.encut),
-            self.get_tag_string_('NELM', self.nelm)
-        ]) + "\n"
-
+        section_name = 'ELECTRONIC SCF RELATION'
+        section_included_tags = [
+            'ALGO', 'PREC', 'LREAL', 'EDIFF', 'ENCUT', 'NELM',
+            'NELMMIN', 'NELMDL'
+        ]
+        str_out = self.get_section_string(
+            section_name = section_name,
+            section_included_tags = section_included_tags
+        )
         return str_out
 
     def spin_polarization_to_string(self):
@@ -553,26 +550,21 @@ class Incar(object):
 
 
     def _mixer_to_string(self):
-
-        mixing_tags = [self.amix, self.bmix, self.amix_mag, self.bmix_mag]
-        if all([k is None for k in mixing_tags]):
+        section_name = "MIXING"
+        section_included_tags = [
+            'AMIX', 'BMIX',
+            'AMIX_MAG', 'BMIX_MAG'
+        ]
+        if not any(
+            [k in self.incar_tag_values for k in section_included_tags]
+        ):
             return ""
-        else:
-            str_out = self.get_section_string("MIXING")
-            if self.amix is not None:
-                str_out += self.get_option_string('AMIX',self.amix)
-            if self.bmix is not None:
-                str_out += self.get_option_string('BMIX',self.bmix)
-            if self.amix_mag is not None:
-                str_out += self.get_option_string('AMIX_MAG', self.amix_mag)
-            if self.bmix_mag is not None:
-                str_out += self.get_option_string('BMIX_MAG', self.bmix_mag)
-            return str_out
 
-        self._ibrion = -1
-        self._isif = 3
-        self._ediffg = -0.01
-        self._potim = None
+        str_out = self.get_section_string(
+            section_name = section_name,
+            section_included_tags = section_included_tags
+        )
+        return str_out
 
     def get_default_potim(self):
         if self.ibrion in [1, 2, 3]:
@@ -583,20 +575,18 @@ class Incar(object):
             msg = ('IBRION illegal tag error: {}'.format(self.ibrion))
             raise VaspIncarError(msg)
 
+    def get_default_ediffg(self):
+        ediffg = -0.01 # eV/Angs - typical value
+        return ediffg
+
+    def get_default_nsw(self):
+        nsw = 40
+        return nsw
+
     def __ionic_relaxation_to_string(self):
-        fmt = "{} = {}"
 
-        if (self.ibrion is None) and (self.isif is None):
-            return ''
-
-        # some default configuration for ibrion
-        if self.ibrion is None:
-            self.ibrion = 2
-
-
-
-
-        if self.isif == -1:
+        isif = self.incar_tag_values['ISIF']
+        if isif == -1:
             fmt_section = self.format_section
             section_str = 'IONIC RELAXATION CONFIGURATION'
             str_out = "\n".join([
@@ -606,31 +596,21 @@ class Incar(object):
             return str_out
 
         else:
-            # some default configuration for isif
-            if self.isif is None:
-                self.isif = 3
-
-            # some default configuration for EDIFFG
-            if self.ediffg is None:
-                self.ediffg = -0.01 # ev/A - typical
-            # some default configuration for POTIM
-            if self.potim is None:
-                self.get_default_potim()
-
-            # some default configuration for NSW
-            if self.nsw is None:
-                self.nsw = 40
 
             fmt_section = self.format_section
-            section_str = 'IONIC RELAXATION CONFIGURATION'
-            str_out = "\n".join([
-                fmt_section.format(section_str),
-                self.get_tag_string_('IBRION', self.ibrion),
-                self.get_tag_string_('ISIF', self.isif),
-                self.get_tag_string_('POTIM', self.potim),
-                self.get_tag_string_('NSW', self.nsw),
-                self.get_tag_string_('EDIFFG', self.ediffg)
-            ]) + "\n"
+            section_name = 'IONIC RELAXATION CONFIGURATION'
+            included_tags = [
+                'IBRION', 'ISIF', 'POTIM', 'NSW', 'EDIFFG'
+            ]
+            str_out = fmt_section.format(section_name) + "\n"
+            for k in included_tags:
+                if k in self.incar_tag_values:
+                    str_out += self.get_option_string(
+                        option_tag = k, 
+                        option_value = self.incar_tag_values[k]
+                    )
+                else:
+                    pass
             return str_out
 
 # *****************************************************************************

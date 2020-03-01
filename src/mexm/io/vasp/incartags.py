@@ -129,6 +129,22 @@ class AlgoTag(IncarBaseEnumeratedTag):
     def convert(cls, option):
         return str(option)
 
+class AmixTag(IncarBaseFloatTag):
+    tag_name = 'AMIX'
+    comment = 'linear mixing parameter mixing scheme'
+
+class AmixmagTag(IncarBaseFloatTag):
+    tag_name = "AMIX_MAG"
+    comment = "linear mixing parameter for the magnetization density"
+
+class BmixTag(IncarBaseFloatTag):
+    tag_name = 'BMIX'
+    comment = 'cutoff wave vector for Kerker mixing scheme'
+
+class BmixmagTag(IncarBaseFloatTag):
+    tag_name = 'BMIX_MAG'
+    comment = 'cutoff wave vector for magnetization density'
+
 class LchargTag(IncarBaseEnumeratedTag):
     tag_name = 'LCHARG'
     tag_dictionary = OrderedDict([
@@ -541,7 +557,7 @@ class PotimTag(IncarBaseFloatTag):
     tag_name = 'POTIM'
     comment = 'scaling factor in relaxation'
 
-class NswTag(IncarBaseFloatTag):
+class NswTag(IncarBaseIntegerTag):
     tag_name = 'NSW'
     comment = 'maximum number of ionic relaxation steps'
 
