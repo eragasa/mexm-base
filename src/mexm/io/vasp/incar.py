@@ -448,7 +448,7 @@ class Incar(object):
 
     def optimization_information_to_string(self):
         section_name = 'OPTIMIZATION'
-        section_included_tags = ['LPLANE', 'NPAR', 'NSIM']
+        section_included_tags = ['LPLANE', 'NPAR', 'NSIM', 'KPAR']
         str_out = self.get_section_string(
             section_name = section_name,
             section_included_tags = section_included_tags
