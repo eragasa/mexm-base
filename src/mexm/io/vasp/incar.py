@@ -584,35 +584,34 @@ class Incar(object):
         return nsw
 
     def __ionic_relaxation_to_string(self):
-
-        isif = self.incar_tag_values['ISIF']
-        if isif == -1:
+        
+        # set a default value of ISIF, if one is not set
+        if 'IBRION' not in self.incar_tag_values:
+            self.incar_tag_values['IBRION'] = -1
+        
+        if self.incar_tag_values['IBRION'] == -1:
             fmt_section = self.format_section
-            section_str = 'IONIC RELAXATION CONFIGURATION'
-            str_out = "\n".join([
-                fmt_section.format(section_str),
-                self.get_tag_string_('IBRION', self.ibrion)
-            ]) + "\n"
+            section_name = 'IONIC RELAXATION CONFIGURATION'
+            section_included_tags = ['IBRION']
+            str_out = self.get_section_string(
+                section_name = section_name,
+                section_included_tags = section_included_tags
+            )
             return str_out
 
         else:
 
             fmt_section = self.format_section
             section_name = 'IONIC RELAXATION CONFIGURATION'
-            included_tags = [
+            section_included_tags = [
                 'IBRION', 'ISIF', 'POTIM', 'NSW', 'EDIFFG'
             ]
             str_out = fmt_section.format(section_name) + "\n"
-            for k in included_tags:
-                if k in self.incar_tag_values:
-                    str_out += self.get_option_string(
-                        option_tag = k, 
-                        option_value = self.incar_tag_values[k]
-                    )
-                else:
-                    pass
+            str_out = self.get_section_string(
+                section_name = section_name,
+                section_included_tags = section_included_tags
+            )
             return str_out
-
 # *****************************************************************************
 # ****    SOME HELPER FUNCTIONS
 # *****************************************************************************

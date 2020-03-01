@@ -47,7 +47,10 @@ class IncarBaseTag():
         try:
             return cls.tag_dictionary[option]
         except KeyError:
-            msg = "unknown option, {}".format(option)
+            msg = "{}unknown option, {}".format(
+                str(cls),
+                option
+            )
             raise VaspIncarError(msg)
 
     @classmethod
@@ -323,9 +326,12 @@ class IniwaveTag(IncarBaseIntegerTag):
     @classmethod
     def convert(cls, option) -> int:
         return int(option)
+
 class IsifTag(IncarBaseEnumeratedTag):
     tag_name = 'ISIF'
     tag_dictionary = OrderedDict([
+        (0, 'relaxation, ions=T, cellshape=F, cellvolume=F'),
+        (1, 'relaxation, ions=T, cellshape=F, cellvolume=F'),
         (2, 'relaxation, ions=T, cellshape=F, cellvolume=F'),
         (3, 'relaxation, ions=T, cellshape=T, cellvolume=T'),
         (4, 'relaxation, ions=T, cellshape=T, cellvolume=F'),

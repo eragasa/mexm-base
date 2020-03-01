@@ -14,6 +14,7 @@ obj.read(simulation_path=simulation_path)
 
 # check to see if the types of the input files were done correctly
 assert isinstance(obj.incar, Incar)
+print(obj.incar.to_string())
 assert isinstance(obj.poscar, Poscar)
 assert isinstance(obj.kpoints, Kpoints)
 assert isinstance(obj.potcar, Potcar)
