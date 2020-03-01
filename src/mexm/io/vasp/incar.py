@@ -36,21 +36,23 @@ class Incar(object):
     format_section = '# {:*^78}'
     
     incar_tags = {
-        'ALGO':incartags.AlgoTags,
+        'ALGO':incartags.AlgoTag,
         'ENCUT':incartags.EncutTag,
         'EDIFF':incartags.EdiffTag,
         'EDIFFG':incartags.EdiffgTag,
-        'ISTART':incartags.IstartTags,
-        'IBRION':incartags.IBrionTags,
-        'ICHARG':incartags.IchargTags,
+        'ISTART':incartags.IstartTag,
+        'IBRION':incartags.IbrionTag,
+        'ICHARG':incartags.IchargTag,
         'INIWAVE':incartags.IniwaveTag,
         'ISIF':incartags.IsifTag,
-        'ISMEAR':incartags.IsmearTags,
-        'ISYM':incartags.IsymTags,
+        'ISMEAR':incartags.IsmearTag,
+        'ISPIN':incartags.IspinTag,
+        'ISYM':incartags.IsymTag,
         'LCHARG':incartags.LchargTag,
         'LPLANE':incartags.LplaneTag,
         'LREAL':incartags.LrealTags,
         'LWAVE':incartags.LwaveTag,
+        'LVTOT':incartags.LvtotTag,
         'KPAR':incartags.KparTag,
         'NELM':incartags.NelmTag,
         'NELMDL':incartags.NelmdlTag,
@@ -59,8 +61,9 @@ class Incar(object):
         'NSIM':incartags.NsimTag,
         'NSW':incartags.NswTag,
         'POTIM':incartags.PotimTag,
-        'PREC':incartags.PrecTags,
+        'PREC':incartags.PrecTag,
         'SIGMA':incartags.SigmaTag,
+        'SYMPREC':incartags.SymprecTag,
         'SYSTEM':incartags.SystemTag,
     }
 
@@ -71,6 +74,11 @@ class Incar(object):
             filename (str): the filename of the INCAR file, default:'INCAR'
         """
         self._path = None
+
+        self._lwave = None
+        self._lcharg = None
+        self._lvtot = None
+
 
         # handle arguments
         if path is not None:
@@ -104,6 +112,56 @@ class Incar(object):
         if not isinstance(path, str):
             raise TypeError("path must be a string")
         self._path = path
+
+    @property
+    def lwave(self):
+        return self._lwave
+
+    @lwave.setter
+    def lwave(self, lwave):
+        if lwave in [True, 'T', '.TRUE.']:
+            self._lwave = '.TRUE.'
+        elif lwave in [False, 'F', '.FALSE.']:
+            self._lwave = '.FALSE.'
+        else:
+            msg = "LWAVE tag cannot be {}({})".format(type(self.lwave),self.lwave)
+            raise VaspIncarError(msg)
+
+    @property
+    def lcharg(self):
+        return self._lcharg
+        
+    @lcharg.setter
+    def lcharg(self, lcharg):
+        if lcharg in [True, 'T', '.TRUE.']:
+            self._lcharg = '.TRUE.'
+        elif lcharg in [False, 'F', '.FALSE.']:
+            self._lcharg = '.FALSE.'
+        else:
+            msg = "LCHARG tag cannot be {}({})".format(type(self.lcharg),self.lcharg)
+            raise VaspIncarError(msg)
+
+    @property
+    def lvtot(self):
+        return self._lvtot
+
+    @lvtot.setter
+    def lvtot(self, lvtot):
+        if lvtot in [True, 'T', '.TRUE']:
+            self._lvtot = '.TRUE.'
+        elif lvtot in [False, 'F', '.FALSE.']:
+            self._lvtot = '.FALSE.'
+        else:
+            msg = "LVTOT tag cannot be {}({})".format(type(self.lwave),self.lvtot)
+            raise VaspIncarError(msg)
+
+    @property
+    def icharg(self):
+        return self.incar_tag_values['ICHARG']
+
+    @icharg.setter
+    def icharg(self, icharg):
+        self.incar_tag_values['ICHARG'] = icharg
 
     def __init_start_info(self):
         self.istart = 0
@@ -190,33 +248,70 @@ class Incar(object):
     def set_tag_value(self, tag_name, tag_value):
 
         # IncarBaseFloatTag
-        if isinstance(self.incar_tags[tag_name], 
-                      incartags.IncarBaseFloatTag):
+        if issubclass(self.incar_tags[tag_name], incartags.IncarBaseFloatTag):
+
             tag_value_ = float(tag_value)
-            assert self.incar_tag_values[tag_name].is_valid_option(
-                option=tag_value
-                )
+            if not self.incar_tags[tag_name].is_valid_option(option=tag_value_):
+                print('tag_name',tag_name)
+                print('tag_value',tag_value_)
+                raise ValueError
+            self.incar_tag_values[tag_name] = tag_value_
+
+        # IncarBaseIntegerTag
+        elif issubclass(self.incar_tags[tag_name], incartags.IncarBaseIntegerTag):
+
+            tag_value_ = int(tag_value)
+            if not self.incar_tags[tag_name].is_valid_option(option=tag_value_):
+                print('tag_name',tag_name)
+                print('tag_value',tag_value_)
+                raise ValueError
             self.incar_tag_values[tag_name] = tag_value_
 
         # IncarBaseStringTag
-        elif isinstance(self.incar_tags[tag_name],
-                        incartags.IncarBaseStringTag):
-            assert self.incar_tag_values[tag_name].is_valid_tag(
+        elif issubclass(self.incar_tags[tag_name], incartags.IncarBaseStringTag):
+            if not self.incar_tags[tag_name].is_valid_option(
                 option=tag_value
-                )
+            ):
+                print('tag_name',tag_name)
+                print('tag_value',tag_value)
+                raise ValueError
+            
+            tag_value_ = str(tag_value)
+            self.incar_tag_values[tag_name] = tag_value_
+
+        # IncarBaseEnumeratedTag
+        elif issubclass(self.incar_tags[tag_name], incartags.IncarBaseEnumeratedTag):
+            tag_value_ = self.incar_tags[tag_name].convert(option=tag_value)
+            if not self.incar_tags[tag_name].is_valid_option(option=tag_value_):
+                print('tag_name',tag_name)
+                print('tag_value',tag_value_)
+                raise ValueError
+            
             self.incar_tag_values[tag_name] = tag_value_
 
         # IncarBaseTags
-        elif isinstance(self.incar_tags[tag_name], 
-                        incartags.IncarBaseTags):
+        elif issubclass(self.incar_tags[tag_name], incartags.IncarBaseTag):
+            if not self.incar_tags[tag_name].is_valid_option(option=tag_value):
+                print('tag_name',tag_name)
+                print('tag_value',tag_value)
+                print('tag_class',self.incar_tags[tag_name])
+                assert issubclass(self.incar_tags[tag_name], incartags.IncarBaseFloatTag)
+                raise ValueError
+
             try:
                 tag_value_ = int(tag_value)
-                assert self.incar_tag_values[tag_name].is_valid_option(
-                    option=tag_value
-                )
-                self.incar_tag_values[tag_name] = int(tag_value)
-            except ValueError:
-                self.incar_tag_values[tag_name] = tag_value
+            except:
+                print(tag_name, tag_value)
+                raise
+            self.incar_tag_values[tag_name] = tag_value_
+                    
+        else:
+            msg = "{tag_name},{tag_class},{tag_value}".format(
+                tag_name=tag_name,
+                tag_class=str(self.incar_tags[tag_name]),
+                tag_value=tag_value
+            )
+            raise VaspIncarError(msg)
 
     def get_tag_value(self, tag_name: str):
         """ get the tag value for the INCAR file
@@ -300,12 +395,12 @@ class Incar(object):
         str_out += self.system_information_to_string_()
         str_out += self.start_information_to_string_()
         str_out += self.dos_information_to_string_()
-        str_out += self.__sym_information_to_string()
-        str_out += self.__scf_information_to_string()
-        str_out += self.__spin_polarization_to_string()
+        str_out += self.symmetry_information_to_string()
+        str_out += self.scf_information_to_string()
+        str_out += self.spin_polarization_to_string()
         str_out += self._mixer_to_string()
         str_out += self.__ionic_relaxation_to_string()
-        str_out += self.__output_configuration_to_string()
+        str_out += self.output_configuration_to_string()
         return str_out
 
     def get_tag_comment_(self, tag_name, tag_value):
@@ -318,7 +413,8 @@ class Incar(object):
         tag_comment = self.get_tag_comment_(
             tag_name=tag_name,
             tag_value=tag_value
-            )
+        )
+
         return fmt_line.format(
             fmt_tag.format(tag_name, tag_value),
             tag_comment)
@@ -349,43 +445,20 @@ class Incar(object):
 
         return str_out
 
+    def symmetry_information_to_string(self):
+        fmt_section = self.format_section
 
+        str_out = "\n".join([
+            fmt_section.format('SYMMETRY'),
+            self.get_tag_string_('ISYM', self.isym),
+            self.get_tag_string_('SYMPREC', self.symprec)
+        ]) + "\n"
 
-    def _mixer_to_string(self):
-
-        mixing_tags = [self.amix, self.bmix, self.amix_mag, self.bmix_mag]
-        if all([k is None for k in mixing_tags]):
-            return ""
-        else:
-            str_out = self.get_section_string("MIXING")
-            if self.amix is not None:
-                str_out += self.get_option_string('AMIX',self.amix)
-            if self.bmix is not None:
-                str_out += self.get_option_string('BMIX',self.bmix)
-            if self.amix_mag is not None:
-                str_out += self.get_option_string('AMIX_MAG', self.amix_mag)
-            if self.bmix_mag is not None:
-                str_out += self.get_option_string('BMIX_MAG', self.bmix_mag)
-            return str_out
-    def __system_information_to_string(self):
-        str_out = "SYSTEM = {}\n\n".format(self.system)
         return str_out
 
+    def scf_information_to_string(self):
+        fmt_section = self.format_section
 
-
-
-
-    def __sym_information_to_string(self):
-        fmt = "{} = {}"
-        str_out = self._fmt_section.format('SYMMETRY')
-        str_out += self._fmt_arg.format(fmt.format('ISYM',self.isym),self._cmt_dict['ISYM'][self.isym])
-        str_out += self._fmt_arg.format(fmt.format('SYMPREC',self.symprec),self._cmt_dict['SYMPREC'])
-        str_out += "\n"
-        return str_out
-
-
-    def __scf_information_to_string(self):
-        fmt = "{} = {}"
         if self.algo.startswith('N'):
             self.algo = 'Normal'
         elif self.algo.startswith('V'):
@@ -404,29 +477,39 @@ class Incar(object):
             str_value = '{}'.format(self.lreal)
             print(str_type,str_value)
             raise VaspIncarError('Unsupported LREAL value:{}'.format(self.lreal))
-
-        str_out = self._fmt_section.format('ELECTRONIC SCF RELAXATION')
-        str_out += self._fmt_arg.format(fmt.format('ALGO',self.algo),self._cmt_dict['ALGO'][self.algo])
-        str_out += self._fmt_arg.format(fmt.format('PREC',self.prec),self._cmt_dict['PREC'][self.prec])
-        str_out += self._fmt_arg.format(fmt.format('LREAL',self.lreal),self._cmt_dict['LREAL'][self.lreal])
-        str_out += self._fmt_arg.format(fmt.format('EDIFF',self.ediff),self._cmt_dict['EDIFF'])
-        str_out += self._fmt_arg.format(fmt.format('ENCUT',self.encut),self._cmt_dict['ENCUT'])
-        str_out += self._fmt_arg.format(fmt.format('NELM',self.nelm),self._cmt_dict['NELM'])
-        str_out += '\n'
+        
+        str_out = "\n".join([
+            fmt_section.format('ELECTRONIC SCF RELAXATION'),
+            self.get_tag_string_('ALGO', self.algo),
+            self.get_tag_string_('PREC', self.prec),
+            self.get_tag_string_('LREAL', self.lreal),
+            self.get_tag_string_('EDIFF', self.ediff),
+            self.get_tag_string_('ENCUT', self.encut),
+            self.get_tag_string_('NELM', self.nelm)
+        ]) + "\n"
 
         return str_out
 
-    def _spin_polarization_to_string(self):
+    def spin_polarization_to_string(self):
         fmt = "{} = {}"
 
-        str_out = self._fmt_section.format('SPIN POLARIZATION CONFIGURATION')
-
+    
         if self.ispin==1:
-            str_out += self._fmt_arg.format(fmt.format('ISPIN',self.ispin),self._cmt_dict['ISPIN'][self.ispin])
+            fmt_section = self.format_section
+
+            section_name = 'SPIN POLARIZATION CONFIGURATION'
+
+            str_out = "\n".join([
+                fmt_section.format(section_name),
+                self.get_tag_string_('ISPIN', self.ispin)
+            ]) + "\n"
+
+            return str_out
 
         if self.ispin == 2:
-            str_out += self._fmt_arg.format(fmt.format('ISPIN',self.ispin),self._cmt_dict['ISPIN'][self.ispin])
-
+            fmt_section = self.format_section
+            str_out = self._fmt_section.format('SPIN POLARIZATION CONFIGURATION')
+            str_out += self.get_tag_string_('ISPIN', self.ispin)
             if self.lorbit is not None:
                 if self.lorbit < 10:
                     if self.rwigs is not None:
@@ -454,8 +537,51 @@ class Incar(object):
 
         return str_out
 
-    def __spin_polarization_to_string(self):
-        return self._spin_polarization_to_string()
+    def output_configuration_to_string(self):
+        fmt_section = self.format_section
+
+        section_str = 'OUTPUT CONFIGURATION'
+
+        str_out = "\n".join([
+            fmt_section.format(section_str),
+            self.get_tag_string_('LWAVE', self.lwave),
+            self.get_tag_string_('LCHARG', self.lcharg),
+            self.get_tag_string_('LVTOT', self.lvtot)
+        ]) + "\n"
+
+        return str_out
+
+
+    def _mixer_to_string(self):
+
+        mixing_tags = [self.amix, self.bmix, self.amix_mag, self.bmix_mag]
+        if all([k is None for k in mixing_tags]):
+            return ""
+        else:
+            str_out = self.get_section_string("MIXING")
+            if self.amix is not None:
+                str_out += self.get_option_string('AMIX',self.amix)
+            if self.bmix is not None:
+                str_out += self.get_option_string('BMIX',self.bmix)
+            if self.amix_mag is not None:
+                str_out += self.get_option_string('AMIX_MAG', self.amix_mag)
+            if self.bmix_mag is not None:
+                str_out += self.get_option_string('BMIX_MAG', self.bmix_mag)
+            return str_out
+
+        self._ibrion = -1
+        self._isif = 3
+        self._ediffg = -0.01
+        self._potim = None
+
+    def get_default_potim(self):
+        if self.ibrion in [1, 2, 3]:
+            self.potim = 0.5
+        elif self.ibrion in [5, 6, 7, 8]:
+            self.potim = 0.015
+        else:
+            msg = ('IBRION illegal tag error: {}'.format(self.ibrion))
+            raise VaspIncarError(msg)
 
     def __ionic_relaxation_to_string(self):
         fmt = "{} = {}"
@@ -467,71 +593,45 @@ class Incar(object):
         if self.ibrion is None:
             self.ibrion = 2
 
-        # some default configuration for isif
-        if self.isif is None:
-            self.isif = 3
 
-        # some default configuration for EDIFFG
-        if self.ediffg is None:
-            self.ediffg = -0.01 # ev/A - typical
-        # some default configuration for POTIM
-        if self.potim is None:
-            if self.ibrion in [1,2,3]:
-                self.potim = 0.5
-            if self.ibrion in [5,6,7,8]:
-                self.potim = 0.015
 
-        # some default configuration for NSW
-        if self.nsw is None:
-            self.nsw = 40
 
-        str_out = self._fmt_section.format('IONIC RELAXATION CONFIGURATION')
-        str_out += self._fmt_arg.format(fmt.format('IBRION',self.ibrion),self._cmt_dict['IBRION'][self.ibrion])
-        str_out += self._fmt_arg.format(fmt.format('ISIF',self.isif),self._cmt_dict['ISIF'][self.isif])
-        str_out += self._fmt_arg.format(fmt.format('POTIM',self.potim),self._cmt_dict['POTIM'])
-        str_out += self._fmt_arg.format(fmt.format('NSW',self.nsw),self._cmt_dict['NSW'])
+        if self.isif == -1:
+            fmt_section = self.format_section
+            section_str = 'IONIC RELAXATION CONFIGURATION'
+            str_out = "\n".join([
+                fmt_section.format(section_str),
+                self.get_tag_string_('IBRION', self.ibrion)
+            ]) + "\n"
+            return str_out
 
-        if self.ediffg < 0:
-            str_out += self._fmt_arg.format(fmt.format('EDIFFG',self.ediffg),'force convergence requirements in ev A')
         else:
-            str_out += self._fmt_arg.format(fmt.format('EDIFGG',self.ediffg),'energy convergence in eV')
-        str_out += '\n'
+            # some default configuration for isif
+            if self.isif is None:
+                self.isif = 3
 
-        return str_out
+            # some default configuration for EDIFFG
+            if self.ediffg is None:
+                self.ediffg = -0.01 # ev/A - typical
+            # some default configuration for POTIM
+            if self.potim is None:
+                self.get_default_potim()
 
-    def __output_configuration_to_string(self):
-        fmt = "{} = {}"
+            # some default configuration for NSW
+            if self.nsw is None:
+                self.nsw = 40
 
-        if self.lwave in [True,'T','.TRUE.']:
-            self.lwave = '.TRUE.'
-        elif self.lwave in [False,'F','.FALSE.']:
-            self.lwave = '.FALSE.'
-        else:
-            msg = "LWAVE tag cannot be {}({})".format(type(self.lwave),self.lwave)
-            raise VaspIncarException(msg)
-
-        if self.lcharg in [True,'T','.TRUE.']:
-            self.lcharg = '.TRUE.'
-        elif self.lcharg in [False,'F','.FALSE.']:
-            self.lcharg = '.FALSE.'
-        else:
-            msg = "LCHARG tag cannot be {}({})".format(type(self.lcharg),self.lcharg)
-            raise VaspIncarException(msg)
-
-        if self.lvtot is [True,'T','.TRUE.']:
-            self.lvtot = '.TRUE.'
-        elif self.lvtot in [False,'T','.FALSE.']:
-            self.lvtot= '.FALSE.'
-        else:
-            msg = "LVTOT tag cannot be {}({})".format(type(self.lwave),self.lvtot)
-            raise VaspIncarException(msg)
-
-        str_out = self._fmt_section.format('OUTPUT CONFIGURATION')
-        str_out += self._fmt_arg.format(fmt.format('LWAVE',self.lwave),self._cmt_dict['LWAVE'][self.lwave])
-        str_out += self._fmt_arg.format(fmt.format('LCHARG',self.lcharg),self._cmt_dict['LCHARG'][self.lcharg])
-        str_out += self._fmt_arg.format(fmt.format('LVTOT',self.lvtot),self._cmt_dict['LVTOT'][self.lvtot])
-        str_out += "\n"
-        return str_out
+            fmt_section = self.format_section
+            section_str = 'IONIC RELAXATION CONFIGURATION'
+            str_out = "\n".join([
+                fmt_section.format(section_str),
+                self.get_tag_string_('IBRION', self.ibrion),
+                self.get_tag_string_('ISIF', self.isif),
+                self.get_tag_string_('POTIM', self.potim),
+                self.get_tag_string_('NSW', self.nsw),
+                self.get_tag_string_('EDIFFG', self.ediffg)
+            ]) + "\n"
+            return str_out
 
 # *****************************************************************************
 # ****    SOME HELPER FUNCTIONS

@@ -170,13 +170,10 @@ class Potcar(object):
         assert xc != []
         assert xc.count(xc[0]) == len(xc)
 
-        # not sure sure if this is correct, but i think PE is for GGA-PBE
-        
-        if xc[0] == 'PAW_GGA':
-            self.xc_type = 'PAW_GGA'
-        elif xc[0] == 'PAW_LDA':
+        if xc[0] in self.supported_xc_types:
+            self.xc_type = xc[0]
         else:
-            msg = 'unknown xc type: {}'.format(xc[0])
+            msg = 'unknown xc_type: {}'.format(xc[0])
             raise ValueError(msg)
         
     def write(self, 
@@ -280,7 +277,7 @@ class Potcar(object):
             ).format(xc_type)
             raise VaspPotcarError(msg)
 
-    def __set_xc_directory(self):
+    def __set_xc_directory(self) -> str:
         """ sets the directory of the exchange correlation functional
 
         the exchange correlation functional is set to either 'LDA' or 'GGA'
@@ -289,6 +286,8 @@ class Potcar(object):
         Raises:
             (pypospack.io.vasp.VaspPotcarError): if the directory is not set
                  as an environment variable.
+        Returns:
+            str: the path to the XC directory.
         """
         if self.xc_type == 'PAW_GGA':
             try:
@@ -297,34 +296,10 @@ class Potcar(object):
                 msg = ('need to set environment variable VASP_GGA_DIR to the '
                        'location of the VASP GGA-PBE potential files' )
                 raise VaspPotcarError(msg)
-        elif self.xc == 'LDA':
+        elif self.xc_type == 'PAW_LDA':
             try:
                 self.potcar_dir = os.environ['VASP_LDA_DIR']
             except KeyError:
                 msg = ('need to set environment variable VASP_LDA_DIR to the '
                        'location of the VASP LDA-CA potential files' )
-
-    def __str__(self):
-        header_row   = "symbol enmin enmax xc\n"
-        format_row   = "{}({}) {:10.6f} {:10.6f} {}\n"
-
-        n_atoms = len(self._symbols)
-        str_out      = header_row
-        for i in range(n_atoms):
-            str_out += format_row.format(self._symbols[i],
-                                         self._models[i],
-                                         self._encut_min[i],
-                                         self._encut_max[i],
-                                         self._xc[i])
-        return str_out
-
-def get_recommmended_potcars(symbols):
-    # standard recommendations
-    potcar_std = {
-        'H':'H',
-        'He':'He',
-        'Li':'Li_sv',
-        'Be':'Be',
-        'B':'B',
-        'C':'C'
-    }
+        return self.potcar_dir
