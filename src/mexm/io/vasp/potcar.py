@@ -291,14 +291,14 @@ class Potcar(object):
         """
         if self.xc_type == 'PAW_GGA':
             try:
-                self.potcar_dir = os.environ['VASP_GGA_DIR']
+                self.potcar_dir = os.environ['VASP_POTPAW_GGA']
             except KeyError:
                 msg = ('need to set environment variable VASP_GGA_DIR to the '
                        'location of the VASP GGA-PBE potential files' )
                 raise VaspPotcarError(msg)
         elif self.xc_type == 'PAW_LDA':
             try:
-                self.potcar_dir = os.environ['VASP_LDA_DIR']
+                self.potcar_dir = os.environ['VASP_POTPAW_LDA']
             except KeyError:
                 msg = ('need to set environment variable VASP_LDA_DIR to the '
                        'location of the VASP LDA-CA potential files' )
