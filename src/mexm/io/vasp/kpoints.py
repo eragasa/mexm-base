@@ -20,14 +20,14 @@ class Kpoints(object):
         mesh_shift(:obj:`list` of :obj:`int`): defines the shift of the k-kpoint mesh
     """
     def __init__(self,
-                 filename="KPOINTS",
+                 path="KPOINTS",
                  comment="Automatic Mesh",
                  n_kpoints = 0,
                  mesh_type = "Monkhorst-Pack",
                  mesh_size = [4,4,4],
                  mesh_shift = [0,0,0]):
 
-        self.filename = filename
+        self.path = path
         self.comment = comment
         self.n_kpoints = n_kpoints
         self.mesh_type = mesh_type
@@ -40,21 +40,30 @@ class Kpoints(object):
         str_out += "{}\n".format(self.n_kpoints)
         str_out += "{}\n".format(self.mesh_type)
 
-        str_out += "{:3d} {:3d} {:3d}\n".format(self.mesh_size[0],
+        str_out += "{:<3} {:<3} {:<3}\n".format(self.mesh_size[0],
                                                 self.mesh_size[1],
                                                 self.mesh_size[2])
-        str_out += "{:3d} {:3d} {:3d}\n".format(self.mesh_shift[0],
+        str_out += "{:4f} {:4f} {:4f}\n".format(self.mesh_shift[0],
                                                self.mesh_shift[1],
                                                self.mesh_shift[2])
         return str_out
 
-    def write(self,filename = None):
-        if filename is not None:
-            self.filename = filename
-        f = open(self.filename, 'w')
+    def write(self, path = None):
+        if path is not None:
+            self.path = path
+        f = open(self.path, 'w')
         f.write(self.to_string())
         f.close()
 
-    def read(self,filename = None):
-        if filename is not None:
-            self.filename = filename
+    def read(self, path = None):
+        if path is not None:
+            self.path = path
+
+        with open(self.path, 'r') as f:
+            lines = [k.strip() for k in f.readlines()]
+
+        self.comment = lines[0]
+        self.n_kpoints = lines[1]
+        self.mesh_type = lines[2]
+        self.mesh_size = [int(k.strip()) for k in lines[3].split()]
+        self.mesh_shift = [float(k.strip()) for k in lines[4].split()]

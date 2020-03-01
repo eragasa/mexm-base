@@ -190,7 +190,6 @@ class LplaneTag(IncarBaseEnumeratedTag):
         else:
             return str(option)
 
-
 class LwaveTag(IncarBaseEnumeratedTag):
     tag_name = 'LWAVE'
     tag_dictionary = OrderedDict([
@@ -222,7 +221,6 @@ class LvtotTag(IncarBaseEnumeratedTag):
             return '.FALSE.'
         else:
             return str(option)
-
 
 class EdiffTag(IncarBaseFloatTag):
     tag_name = 'EDIFF'

@@ -36,12 +36,13 @@ class VaspSimulation():
         poscar_path = os.path.join(simulation_path, 'POSCAR')
         potcar_path = os.path.join(simulation_path, 'POTCAR')
         incar_path = os.path.join(simulation_path, 'INCAR')
-        potcar_path = os.path.join(simulation_path, 'POTCAR')
+        kpoints_path = os.path.join(simulation_path, 'KPOINTS')
 
         self.poscar.write(path=poscar_path)
         self.potcar.symbols = self.poscar.symbols
         self.potcar.write(path=potcar_path)
         self.incar.write(path=incar_path)
+        self.kpoints.write(path=kpoints_path)
 
     def read(self, simulation_path):
         self.path = simulation_path
@@ -50,12 +51,13 @@ class VaspSimulation():
         poscar_path = os.path.join(simulation_path, 'POSCAR')
         potcar_path = os.path.join(simulation_path, 'POTCAR')
         incar_path = os.path.join(simulation_path, 'INCAR')
-        potcar_path = os.path.join(simulation_path, 'POTCAR')
+        kpoints_path = os.path.join(simulation_path, 'KPOINTS')
 
         self.poscar.read(path=poscar_path)
         self.potcar.read(path=potcar_path)
         self.incar.read(path=incar_path)
-        self.potcar.read(path=potcar_path)
+        self.kpoints.read(path=kpoints_path)
+
 
         # these files are the output files
         oszicar_path = os.path.join(simulation_path, 'OSZICAR')
