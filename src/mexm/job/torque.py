@@ -141,7 +141,7 @@ class TorqueJobSubmissionManager(JobSubmissionManager):
             ppn_ = self.cluster.cores_per_node
 
         if n_cores % ppn_ != 0:
-            n_nodes_ (math.floor(n_cores/ppn_) + 1)
+            n_nodes_ =  (math.floor(n_cores/ppn_) + 1)
             n_cores_ = n_nodes * ppn_
         else:
             n_nodes_ = n_nodes

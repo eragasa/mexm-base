@@ -30,4 +30,21 @@ class JobSubmissionManager(ABC):
     def get_job_info(self, jobid='all', username=None):
         raise NotImplementedError
 
+from mexm.job.torque import TorqueSubmissionScript
 from mexm.job.torque import TorqueJobSubmissionManager
+
+class JobSubmissionManagerFactory():
+    obj_submission_scripts = {
+        'torque':TorqueSubmissionScript
+    }
+    obj_job_submission_manager = {
+        'torque':TorqueJobSubmissionManager
+    }
+
+    @staticmethod
+    def write_submission_script(hpc_type, script_kwargs, script_path):
+        obj_submission_script \
+            = JobSubmissionManagerFactory.obj_submission_scripts[hpc_type](
+                **script_kwargs
+            )
+        obj_submission_script.write(path=script_path)

@@ -43,6 +43,7 @@ def test__write():
     obj.write(path=path)
 
     assert os.path.isfile(path)
+    
 def dev__wall_time_to_string():
     objTorqueSubmissionScript = TorqueSubmissionScript()
     walltime_str = objTorqueSubmissionScript.walltime_to_string(72)
