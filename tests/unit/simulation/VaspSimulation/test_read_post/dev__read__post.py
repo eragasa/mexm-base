@@ -22,7 +22,11 @@ assert isinstance(obj.potcar, Potcar)
 # check to see if the types of the vasp outfiles were done correctly
 assert isinstance(obj.outcar, Outcar)
 assert isinstance(obj.oszicar, Oszicar)
+print('electric_scf')
+for scf_info in obj.oszicar.electric_scf:
+    print(scf_info)
+print('ionic_relaxation')
+for ionic_info in obj.oszicar.ionic_relaxation:
+    print(ionic_info)
+print('n_ionic:{}'.format(obj.oszicar.n_ionic))
 print(obj.oszicar.n_scf)
-print(obj.oszicar.n_ionic)
-print(obj.oszicar.electric_scf)
-print(obj.oszicar.ionic_relaxation)
