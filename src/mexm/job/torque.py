@@ -185,7 +185,7 @@ class TorqueJobSubmissionManager(JobSubmissionManager):
 
         jobid = subprocess_stdout.split('.')[0]
         # return the results
-        return subprocess_stdout
+        return jobid
 
 
     def get_job_info(

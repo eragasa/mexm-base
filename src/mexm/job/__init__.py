@@ -1,5 +1,6 @@
 from abc import ABC
 from abc import abstractmethod
+import os
 
 class HpcClusterInformation(ABC):
     def __init__(self):
@@ -40,7 +41,7 @@ class JobSubmissionManagerFactory():
     obj_job_submission_manager = {
         'torque':TorqueJobSubmissionManager
     }
-
+    
     @staticmethod
     def write_submission_script(hpc_type, script_kwargs, script_path):
         obj_submission_script \
@@ -48,3 +49,10 @@ class JobSubmissionManagerFactory():
                 **script_kwargs
             )
         obj_submission_script.write(path=script_path)
+
+    @staticmethod
+    def submit_job(hpc_type, simulation_path, submission_script_path='runjob.sh'):
+        JobSubmissionManagerFactory.obj_job_submission_manager[hpc_type].submit_job(
+            simulation_path = simulation_path,
+            submission_script_path = submission_script_path
+        )
