@@ -77,7 +77,8 @@ class TorqueSubmissionScript(HpcSubmissionScript):
                 stdpath=self.stdpath
             ),
             self.module_section_to_string(modules=self.modules),
-            self.cmd
+            self.cmd,
+            self.footer_section_to_string()
         ])
 
         with open(path,'w') as f:
@@ -121,6 +122,9 @@ class TorqueSubmissionScript(HpcSubmissionScript):
             ["module load {}".format(k) for k in modules]
         ) + "\n\n"
         return modules_str
+
+    def footer_section_to_string(self):
+        return "touch jobComplete"
 
 class TorqueJobSubmissionManager(JobSubmissionManager):
     def __init__(self):
