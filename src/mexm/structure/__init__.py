@@ -39,7 +39,7 @@ def make_super_cell(structure, sc):
     """
     assert isinstance(structure, SimulationCell)
     assert isinstance(sc, list)
-    assert all([instance(k,int) for k in sc])
+    assert all([isinstance(k,int) for k in sc])
 
     supercell = SimulationCell()
     supercell.structure_comment = "{}x{}x{}".format(sc[0],sc[1],sc[2])
@@ -60,9 +60,9 @@ def make_super_cell(structure, sc):
                 for atom in structure.atomic_basis:
                     sc_atom  = deepcopy(atom)
                     sc_atom.position = [
-                        (i+position[0])/sc[0],
-                        (j+position[1])/sc[1],
-                        (k+position[2])/sc[2]\
+                        (i+atom.position[0])/sc[0],
+                        (j+atom.position[1])/sc[1],
+                        (k+atom.position[2])/sc[2]\
                     ]
                     supercell.atomic_basis.append(deepcopy(sc_atom))
 

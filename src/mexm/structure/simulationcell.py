@@ -44,6 +44,7 @@ def convert_coordinates(position, lattice, src_type='cartesian', dst_type='direc
     return new_position
 
 class SimulationCell(object):
+    ptol = 1e-8
     """A structural representation of a material system
 
     A structural system consists of a vector of lattice vector which forms the
@@ -74,13 +75,13 @@ class SimulationCell(object):
         self.interstitials = []
 
 
-    @staticmethod
-    def initialize_from_object(obj):
+    @classmethod
+    def initialize_from_object(cls, obj):
 
         if isinstance(obj, ase.atoms.Atoms):
-            simulation_cell = SimulationCell.initialize_from_ase(obj)
+            simulation_cell = cls.initialize_from_ase(obj)
         elif isinstance(obj, SimulationCell):
-            simulation_cell = SimulationCell.initialize_from_mexm(obj)
+            simulation_cell = cls.initialize_from_mexm(obj)
         else:
             raise TypeError(
                 "{} is not a supported structure object for initialization".format(
@@ -90,11 +91,15 @@ class SimulationCell(object):
 
         return simulation_cell
 
-    @staticmethod
-    def initialize_from_mexm(obj):
+    @classmethod
+    def initialize_from_mexm(cls, obj):
         """ copy constructor from mexm """
         assert isinstance(obj, SimulationCell)
-        o = deepcopy(obj)
+        o = cls()
+        o.comment = obj.comment
+        o.lattice.a0 = obj.lattice.a0
+        o.lattice.H = deepcopy(obj.lattice.H)
+        o.atomic_basis = deepcopy(obj.atomic_basis)
         return o
 
     @staticmethod
@@ -123,7 +128,7 @@ class SimulationCell(object):
             o.add_atom(symbol=atom.symbol, position=position)
         return o
 
-    def to_dict():
+    def to_dict(self):
         return {
             'comment':self.comment,
             'lattice':self.lattice.to_dict(),
