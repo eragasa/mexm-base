@@ -30,6 +30,10 @@ class VaspSimulation():
         self.contcar = Contcar()
         self.oszicar = Oszicar()
 
+    @property
+    def total_energy(self):
+        return self.outcar.total_energy
+
     def write(self, simulation_path):
         self.path = simulation_path
 

@@ -85,7 +85,7 @@ class SimulationCell(object):
         else:
             raise TypeError(
                 "{} is not a supported structure object for initialization".format(
-                    str(type(simulation_cell))
+                    str(type(obj))
                 )
             )
 

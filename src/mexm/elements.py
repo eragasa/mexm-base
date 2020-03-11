@@ -2653,6 +2653,14 @@ def word_wrap(text, linelen=80, indent=0, joinstr='\n'):
         result.append(' '.join(line))
     return joinstr.join(result)
 
+# -- written by EJR, Materials Ex Machina, 2020
+from typing import List
+def sort_symbols_by_atomic_number(symbols: List[str]) -> List[str]:
+    atmnums = [ELEMENTS[s].number for s in symbols]
+    atmnums.sort()
+    symbols_ = [ELEMENTS[v].symbol for v in atmnums]
+    return symbols_
+
 
 if __name__ == '__main__':
     for _ in ELEMENTS:
