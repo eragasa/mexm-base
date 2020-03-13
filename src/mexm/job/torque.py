@@ -62,6 +62,7 @@ class TorqueSubmissionScript(HpcSubmissionScript):
         self.stdpath=stdpath
         self.modules=modules
         self.cmd = cmd
+    
     def read(self, path): 
         pass
 
@@ -127,8 +128,12 @@ class TorqueSubmissionScript(HpcSubmissionScript):
         return "touch jobComplete"
 
 class TorqueJobSubmissionManager(JobSubmissionManager):
-    def __init__(self):
+    def __init__(
+        self,
+        qsub_path='/opt/torque/bin/qsub'
+    ):
         self.cluster = TorqueHpcClusterInformation()
+        self.qsub_path=qsub_path
 
     def request_job(
         self,
@@ -178,7 +183,7 @@ class TorqueJobSubmissionManager(JobSubmissionManager):
         initial_path = os.getcwd()
 
         os.chdir(simulation_path)
-        cmd = ['qsub', submission_script_path]
+        cmd = [self.qsub_path, submission_script_path]
         subprocess_result = subprocess.run(
             cmd, 
             stdout=subprocess.PIPE)
