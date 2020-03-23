@@ -290,7 +290,7 @@ class Potcar(object):
         Returns:
             str: the path to the XC directory.
         """
-        if self.xc_type == 'PAW_GGA':
+        if self.xc_type in ['PAW_GGA', 'PAW_PBE']:
             try:
                 self.potcar_dir = os.environ['VASP_POTPAW_GGA']
             except KeyError:
@@ -303,4 +303,6 @@ class Potcar(object):
             except KeyError:
                 msg = ('need to set environment variable VASP_POTPAW_LDA to the '
                        'location of the VASP LDA-CA potential files' )
+        else:
+            raise ValueError('unknown xc_type:{}'.format(self.xc_type))
         return self.potcar_dir
