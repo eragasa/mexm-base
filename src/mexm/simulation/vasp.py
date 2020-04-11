@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from mexm.simulation import AtomicSimulation
 from mexm.io.vasp import Incar
@@ -22,6 +23,8 @@ class VaspSimulation():
     """
 
     def __init__(self):
+        self.src_path = None
+        self.dst_path = None
         self.incar = Incar()
         self.poscar = Poscar()
         self.potcar = Potcar()
@@ -35,7 +38,7 @@ class VaspSimulation():
         return self.outcar.total_energy
 
     def write(self, simulation_path):
-        self.path = simulation_path
+        self.dst_path = simulation_path
 
         poscar_path = os.path.join(simulation_path, 'POSCAR')
         potcar_path = os.path.join(simulation_path, 'POTCAR')
@@ -49,7 +52,7 @@ class VaspSimulation():
         self.kpoints.write(path=kpoints_path)
 
     def read(self, simulation_path):
-        self.path = simulation_path
+        self.src_path = simulation_path
 
         # these files are the input files
         poscar_path = os.path.join(simulation_path, 'POSCAR')
@@ -83,3 +86,34 @@ class VaspSimulation():
     def update_hpc_configuration(self, n_cores, n_nodes):
         pass
 
+    def archive(
+        self, 
+        dst_path: str,
+        files_to_archive=[
+            'POSCAR', 'INCAR', 'KPOINTS', 
+            'OSZICAR', 'OUTCAR', 'CONTCAR', 'vasprun.xml'
+        ]
+    ):
+        """
+        Arguments:
+            dst_path (str): directory which the VASP files will be created
+            files_to_archive (List[str]): which VASP files to archive, by default
+                this method will try to archive the POSCAR, INCAR, KPOINTS, 
+                OSZICAR, OUTCAR, CONTCAR, and vasprun.xml 
+        """
+
+        self.dst_path = dst_path
+
+        # delete destination path if it exists
+        if os.path.isdir(self.dst_path):
+            shutil.rmtree(self.dst_path)
+        os.mkdir(self.dst_path)
+
+        # archive the files        
+        for f in files_to_archive:
+            try:
+                src_file_path = os.path.join(self.src_path, f)
+                dst_file_path = os.path.join(self.dst_path, f)
+                shutil.copy(src = src_file_path, dst = dst_file_path)
+            except FileNotFoundError:
+                pass
