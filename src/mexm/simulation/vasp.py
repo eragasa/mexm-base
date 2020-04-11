@@ -16,9 +16,9 @@ class VaspSimulation():
         incar(Incar)
         poscar(Poscar)
         kpoints(Kpoints)
-        outcar(Outcar)
-        contcar(Contcar)
-        oszicar(Ozicar)
+        outcar(Outcar): initialized as None, object initialized on read()
+        contcar(Contcar): initailized as None, object initialized on read()
+        oszicar(Ozicar): initialized as None, object initialized on read()
     """
 
     def __init__(self):
@@ -26,9 +26,9 @@ class VaspSimulation():
         self.poscar = Poscar()
         self.potcar = Potcar()
         self.kpoints = Kpoints()
-        self.outcar = Outcar()
-        self.contcar = Contcar()
-        self.oszicar = Oszicar()
+        self.outcar = None
+        self.contcar = None
+        self.oszicar = None
 
     @property
     def total_energy(self):
@@ -68,20 +68,17 @@ class VaspSimulation():
         outcar_path = os.path.join(simulation_path, 'OUTCAR')
         contcar_path = os.path.join(simulation_path, 'CONTCAR')
 
-        try:
+        if os.path.isfile(oszicar_path):
+            self.oszicar = Oszicar()
             self.oszicar.read(path=oszicar_path)
-        except FileNotFoundError:
-            pass
 
-        try:
+        if os.path.isfile(outcar_path):
+            self.outcar = Outcar()
             self.outcar.read(path=outcar_path)
-        except FileNotFoundError:
-            pass
 
-        try:
+        if os.path.isfile(contcar_path):
+            self.contcar = Contcar()
             self.contcar.read(path=contcar_path)
-        except FileNotFoundError:
-            pass
     
     def update_hpc_configuration(self, n_cores, n_nodes):
         pass
