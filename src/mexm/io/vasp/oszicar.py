@@ -63,24 +63,45 @@ class Oszicar():
 
                 tokens = [k.strip() for k in lines[i_line].split()]
                 try:
-                    electric_scf[n_scf-1].append({
-                        'E': float(tokens[2]),
-                        'dE': float(tokens[3]),
-                        'd_eps': float(tokens[4]),
-                        'ncg': int(tokens[5]),
-                        'rms': float(tokens[6]),
-                        'rms_c': float(tokens[7])
-                    })
-                except IndexError:
-                    electric_scf[n_scf-1].append({
-                        'E': float(tokens[2]),
-                        'dE': float(tokens[3]),
-                        'd_eps': float(tokens[4]),
-                        'ncg': int(tokens[5]),
-                        'rms': float(tokens[6]),
-                        'rms_c': None
-                    })
+                    E = float(tokens[2])
+                except ValueError:
+                    E = None
 
+                try:
+                    dE = float(tokens[3])
+                except ValueError:
+                    dE = None
+
+                try:
+                    d_eps = float(tokens[4])
+                except ValueError:
+                    d_eps = None
+
+                try:
+                    ncg = int(tokens[5])
+                except ValueError:
+                    ncg = None
+
+                try:
+                    rms = float(tokens[6])
+                except ValueError:
+                    rms = None
+
+                try:
+                    rms_c = float(tokens[7])
+                except ValueError:
+                    rms_c = None
+                except IndexError:
+                    rms_c = None
+		
+                electric_scf[n_scf-1].append({
+                    'E':E,
+                    'dE':dE,
+                    'd_eps':d_eps,
+                    'ncg':ncg,
+                    'rms':rms,
+                    'rms_c':rms_c
+                })
             else:
                 tokens = [k.strip() for k in lines[i_line].split()]
                 ionic_info.append({

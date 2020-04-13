@@ -61,10 +61,13 @@ class VaspSimulation():
         kpoints_path = os.path.join(simulation_path, 'KPOINTS')
 
         self.poscar.read(path=poscar_path)
-        self.potcar.read(path=potcar_path)
         self.incar.read(path=incar_path)
         self.kpoints.read(path=kpoints_path)
-
+        
+        try:
+            self.potcar.read(path=potcar_path)
+        except FileNotFoundError:
+            pass
 
         # these files are the output files
         oszicar_path = os.path.join(simulation_path, 'OSZICAR')
