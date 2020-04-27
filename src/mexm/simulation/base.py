@@ -6,11 +6,14 @@ from abc import ABC
 from abc import abstractmethod
 from abc import abstractclassmethod
 from collections import OrderedDict
+
+from mexm.structure import SimulationCell
 from mexm.exception import MexmException
 
 class MexmSimulationException(MexmException): pass
 
 class Simulation(ABC):
+
     states = ['INIT','CONFIG','READY','RUNNING','POST','FINISHED','ERROR']
     def __init__(self,
                  name,
@@ -45,6 +48,10 @@ class Simulation(ABC):
             raise ValueError("name has an illegal character")
 
         self._name = name
+
+    @property
+    def structure(self) -> SimulationCell:
+        raise NotImplementedError
 
     @property
     def path(self):

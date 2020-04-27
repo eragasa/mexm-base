@@ -34,6 +34,13 @@ class VaspSimulation():
         self.oszicar = None
 
     @property
+    def structure(self) -> Poscar:
+        if isinstance(self.contcar, Contcar):
+            return self.contcar
+        else:
+            return self.poscar
+
+    @property
     def total_energy(self):
         return self.outcar.total_energy
 
