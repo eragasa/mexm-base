@@ -275,4 +275,4 @@ class Simulation(ABC):
             raise ValueError(msg)
 
 
-class AtomicSimulation(Simulation): pass
+class AtomicSimulation(): pass

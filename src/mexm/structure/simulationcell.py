@@ -138,6 +138,17 @@ class SimulationCell(object):
         }
 
     @property
+    def volume(self) -> float:
+        """ volume is calculate from the scalar triple product """
+
+        a1 = self.lattice.a1
+        a2 = self.lattice.a2
+        a3 = self.lattice.a3
+
+        volume = np.dot(np.cross(a1, a2), a3)
+
+
+    @property
     def H(self):
         return self.lattice.H
 
