@@ -326,7 +326,7 @@ class SimulationCell(object):
                     symbol,
                     position
             )
-            raise ValueError(err_msg)
+            raise ValueError(msg)
 
     def remove_atom(self, symbol, position):
         """ remove an atom from the structure
