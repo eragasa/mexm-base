@@ -233,7 +233,9 @@ class Potcar(object):
             potcar_hard_path = os.path.join(
                 self.potcar_dir,"{}_h".format(s),'POTCAR'
             )
-
+            potcar_sv_path = os.path.join(
+                self.potcar_dir, '{}_sv'.format(s), 'POTCAR'
+            )
             if os.path.isfile(potcar_path):
                 # try VASP_XC_DIR/symbol/POTCAR
                 self.potcars[s] = potcar_path
@@ -247,7 +249,8 @@ class Potcar(object):
             elif os.path.isfile(potcar_hard_path):
                 # try VASP_XC_DIR/symbols_h/POTCAR
                 self.potcars[s] = potcar_hard_path
-
+            elif os.path.isfile(potcar_sv_path):
+                self.potcars[s] = potcar_sv_path
             else:
                 print(os.path.join(self.potcar_dir,"{}_new".format(s),'POTCAR'))
                 msg = 'cannot find a POTCAR file for {}.{}\n'.format(self.xc_type,s)
