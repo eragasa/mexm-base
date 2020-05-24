@@ -10,7 +10,7 @@ from mexm.io.vasp import Outcar
 from mexm.io.vasp import Oszicar
 from mexm.io.vasp import Contcar
 
-class VaspSimulation():
+class VaspSimulation(AtomicSimulation):
     """
 
     Attributes:
