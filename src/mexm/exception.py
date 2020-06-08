@@ -7,7 +7,7 @@ class MexmException(Exception):
         super(MexmException, self).__init__(msg)
         self.original_exception = original_exception
 
-class BaseException(Exception):
+class BaseError(Exception):
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
@@ -24,7 +24,12 @@ class BaseException(Exception):
             self.__class__.__name__,
             self.msg)
 
+# deprecated
+class BaseException(BaseError): pass
+
 #TODO: rneame *Exception names to *Error names
+
+class MexmUnsupportedOperationSystemError(BaseError): pass
 
 class EamSetflException(BaseException): pass
 
