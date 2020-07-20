@@ -433,6 +433,7 @@ class IsmearTag(IncarBaseEnumeratedTag):
     def convert(cls, option):
         return int(option)
 
+
 class KparTag(IncarBaseIntegerTag):
     """ INCAR tag KPAR
 
@@ -474,7 +475,43 @@ class KparTag(IncarBaseIntegerTag):
         else:
             msg = "KPAR tag must be greater than zero"
             return option_
-        
+ 
+class NcoreTag(IncarBaseIntegerTag):
+    tag_name = 'NCORE',
+    tag_default = 1,
+    comment = "compute cores per orbital"
+
+    @classmethod
+    def is_valid_option(cls, option:int):
+        """ determine if the proposed option in an approptiate tag
+
+        Arguments:
+            option (int): this method will if the option can be cast to an int
+        """
+
+        try:
+            option_ = int(option)
+        except ValueError:
+            return False
+
+        if option_ > 0:
+            return True
+        else:
+            return False
+    
+    @classmethod
+    def convert(self, option) -> int:
+        try:
+            option_ = int(option)
+        except ValueError:
+            msg = "NCORE tag must be castable into an integer"
+
+        if option_ > 0:
+            return option_
+        else:
+            msg = "NCORE tag must be greater than zero"
+            return option_
+
 class NelmTag(IncarBaseIntegerTag):
     tag_name = 'NELM'
     comment = 'maximum number of electronic SCF steps'

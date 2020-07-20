@@ -61,6 +61,7 @@ class Incar(object):
         'NELM':incartags.NelmTag,
         'NELMDL':incartags.NelmdlTag,
         'NELMIN':incartags.NelminTag,
+        'NCORE':incartags.NcoreTag,
         'NPAR':incartags.NparTag,
         'NSIM':incartags.NsimTag,
         'NSW':incartags.NswTag,
@@ -448,7 +449,7 @@ class Incar(object):
 
     def optimization_information_to_string(self):
         section_name = 'OPTIMIZATION'
-        section_included_tags = ['LPLANE', 'NPAR', 'NSIM', 'KPAR']
+        section_included_tags = ['LPLANE', 'NPAR', 'NSIM', 'KPAR', 'NCORE']
         str_out = self.get_section_string(
             section_name = section_name,
             section_included_tags = section_included_tags
